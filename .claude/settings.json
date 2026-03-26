@@ -1,0 +1,20 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "command": "cd backend && python -m pytest tests/ -x --tb=short -q 2>&1 | tail -30"
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pytest:*)",
+      "Bash(uvicorn:*)",
+      "Bash(alembic:*)",
+      "Bash(pip:*)",
+      "Bash(npm:*)",
+      "Bash(docker-compose:*)"
+    ]
+  }
+}
