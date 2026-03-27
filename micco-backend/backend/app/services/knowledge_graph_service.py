@@ -153,7 +153,7 @@ class KnowledgeGraphService:
         )
         return self._rag
 
-    async def ingest(self, markdown_content: str) -> None:
+    async def ingest(self, markdown_content: str, document_id: int | None = None) -> None:
         """
         Ingest markdown content into the knowledge graph.
         LightRAG extracts entities and relationships automatically.
@@ -165,9 +165,10 @@ class KnowledgeGraphService:
             return
 
         try:
-            await rag.ainsert(markdown_content)
+            doc_ids = [str(document_id)] if document_id else None
+            await rag.ainsert(markdown_content, ids=doc_ids)
             logger.info(
-                f"KG ingested {len(markdown_content)} chars for workspace {self.workspace_id}"
+                f"KG ingested {len(markdown_content)} chars for doc {document_id} in workspace {self.workspace_id}"
             )
 
             # Check if entities were actually extracted
@@ -242,6 +243,15 @@ class KnowledgeGraphService:
                 logger.warning(f"KG cleanup failed for workspace {self.workspace_id}: {e}")
             self._rag = None
             self._initialized = False
+
+    async def delete_document(self, document_id: int) -> None:
+        """Delete a document's node and edge data from the Knowledge Graph."""
+        rag = await self._get_rag()
+        try:
+            await rag.adelete_by_doc_id(str(document_id))
+            logger.info(f"Deleted document {document_id} from Knowledge Graph")
+        except Exception as e:
+            logger.error(f"Failed to delete document {document_id} from KG: {e}")
 
     def delete_project_data(self) -> None:
         """Delete all KG data for this knowledge base."""
