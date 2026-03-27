@@ -1,0 +1,38 @@
+# MiccoRAG-v2 — Dev services (PostgreSQL + ChromaDB)
+# Includes auth/admin/dashboard schema for the full stack.
+# Usage: docker compose -f docker-compose.services.yml up -d
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: nexusrag-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nexusrag
+    ports:
+      - "5433:5432"
+    volumes:
+      - nexusrag_postgres_data:/var/lib/postgresql/data
+      # Auto-runs on first start — creates departments, users tables + dashboard functions
+      - ./docker/init-schema.sql:/docker-entrypoint-initdb.d/01-init-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: nexusrag-chromadb
+    ports:
+      - "8002:8000"
+    volumes:
+      - nexusrag_chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+
+volumes:
+  nexusrag_postgres_data:
+  nexusrag_chroma_data:

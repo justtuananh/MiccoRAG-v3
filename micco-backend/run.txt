@@ -1,0 +1,10 @@
+
+.venv\Scripts\activate
+
+# backend 
+cd /d d:\AI-project\HVKTQS\micco-backend
+start start_server.bat  
+
+
+# service
+docker compose -f docker-compose.services.yml up -d

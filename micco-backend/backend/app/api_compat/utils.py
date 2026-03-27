@@ -1,0 +1,68 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.config import settings
+from app.models.knowledge_base import KnowledgeBase
+
+
+async def get_or_create_default_workspace(db: AsyncSession) -> KnowledgeBase:
+    ws_id = settings.COMPAT_DEFAULT_WORKSPACE_ID
+    result = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == ws_id))
+    workspace = result.scalar_one_or_none()
+    if workspace:
+        return workspace
+
+    if not settings.COMPAT_AUTO_CREATE_DEFAULT_WORKSPACE:
+        raise RuntimeError("Default workspace does not exist and auto-creation is disabled")
+
+    workspace = KnowledgeBase(
+        id=ws_id,
+        name=settings.COMPAT_DEFAULT_WORKSPACE_NAME,
+        description=settings.COMPAT_DEFAULT_WORKSPACE_DESCRIPTION,
+    )
+    db.add(workspace)
+    await db.commit()
+    await db.refresh(workspace)
+    return workspace
+
+
+def format_bytes_to_human(size_bytes: int) -> str:
+    if size_bytes < 1024:
+        return f"{size_bytes} B"
+    if size_bytes < 1024 * 1024:
+        return f"{size_bytes / 1024:.0f} KB"
+    if size_bytes < 1024 * 1024 * 1024:
+        return f"{size_bytes / (1024 * 1024):.1f} MB"
+    return f"{size_bytes / (1024 * 1024 * 1024):.1f} GB"
+
+
+def infer_file_type(filename: str) -> str:
+    return filename.rsplit(".", 1)[-1].upper() if "." in filename else "FILE"
+
+
+def map_rag_doc_to_legacy(doc: Any, owner_name: str = "System") -> dict[str, Any]:
+    return {
+        "id": doc.id,
+        "name": doc.original_filename,
+        "type": doc.file_type.upper(),
+        "category": "Tài liệu",
+        "size": format_bytes_to_human(doc.file_size or 0),
+        "owner": owner_name,
+        "department": None,
+        "date": doc.created_at.strftime("%Y-%m-%d") if doc.created_at else "",
+        "tags": [],
+        "thumbnail": None,
+        "visibility": "internal",
+        "approval_status": "approved",
+        "approval_note": None,
+        "status": "Active",
+    }
+
+
+def workspace_file_path(filename: str) -> Path:
+    return settings.BASE_DIR / "uploads" / filename

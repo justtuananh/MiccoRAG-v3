@@ -1,0 +1,55 @@
+# ============================================================
+# NexusRAG Backend — Multi-stage Docker build
+# ============================================================
+
+# Stage 1: Install Python dependencies
+FROM python:3.11-slim AS deps
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ \
+    libpq-dev \
+    libgl1 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+
+# Stage 2: Pre-download ML models (~2.5GB, cached as Docker layer)
+FROM deps AS models
+
+COPY backend/scripts/download_models.py /tmp/download_models.py
+RUN python /tmp/download_models.py
+
+
+# Stage 3: Runtime image
+FROM python:3.11-slim AS runtime
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    libgl1 \
+    libglib2.0-0 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app/backend
+
+# Copy installed packages from deps stage
+COPY --from=deps /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=deps /usr/local/bin /usr/local/bin
+
+# Copy pre-downloaded models from models stage
+COPY --from=models /root/.cache/huggingface /root/.cache/huggingface
+
+# Copy backend source
+COPY backend/ .
+
+# Create runtime directories
+RUN mkdir -p data/docling data/lightrag uploads
+
+EXPOSE 8080
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]

@@ -1,0 +1,78 @@
+# Production Docker Compose for MiccoRAG v3
+# Usage: docker compose -f production.yml up -d
+
+services:
+  # 1. Database - PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: nexusrag-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nexusrag
+    volumes:
+      - nexusrag_postgres_data:/var/lib/postgresql/data
+      - ../docker/init-schema.sql:/docker-entrypoint-initdb.d/01-init-schema.sql:ro
+    # No ports exposed to host, internal to network only
+    # ports: ["5433:5432"] 
+
+  # 2. Vector Store - ChromaDB
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: nexusrag-chromadb
+    restart: always
+    volumes:
+      - nexusrag_chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+
+  # 3. Backend - FastAPI
+  backend:
+    build:
+      context: ..
+      dockerfile: Dockerfile.backend
+    container_name: nexusrag-backend
+    restart: always
+    depends_on:
+      - postgres
+      - chromadb
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/nexusrag
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+    env_file:
+      - ../backend/.env
+    # uvicorn app.main:app --host 0.0.0.0 --port 8080
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+
+  # 4. Frontend - React (Nginx)
+  frontend:
+    build:
+      context: ../../micco-frontend
+      dockerfile: Dockerfile
+    container_name: nexusrag-frontend
+    restart: always
+    depends_on:
+      - backend
+
+  # 5. Reverse Proxy - Public Facing Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: nexusrag-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-prod.conf:/etc/nginx/conf.d/default.conf:ro
+      # SSL Certs (Will be managed by certbot on VPS host)
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  nexusrag_postgres_data:
+  nexusrag_chroma_data:
