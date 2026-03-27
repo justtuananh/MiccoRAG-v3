@@ -14,5 +14,5 @@ else
     exit 1
 fi
 
-echo "Starting NexusRAG backend on port 8080..."
-uvicorn app.main:app --reload --port 8080
+echo "Starting NexusRAG backend on port 8089..."
+uvicorn app.main:app --reload --port 8089

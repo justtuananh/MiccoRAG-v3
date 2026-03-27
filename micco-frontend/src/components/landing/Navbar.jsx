@@ -20,13 +20,18 @@ export default function Navbar() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-lg shadow-primary-600/30">
-                            <FileText className="w-5 h-5 text-white" />
+                    <Link to="/" className="flex items-center gap-4">
+                        <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center p-2 shadow-sm border border-gray-100 dark:border-gray-800">
+                            <img src="/logo-tkv.png" alt="TKV Logo" className="w-full h-full object-contain" />
                         </div>
-                        <span className="text-xl font-bold text-gray-900 dark:text-white">
-                            Micco<span className="text-gradient">AI</span>
-                        </span>
+                        <div className="flex flex-col">
+                            <span className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">
+                                TKV
+                            </span>
+                            <span className="text-sm font-bold text-primary-600 dark:text-primary-400">
+                                nền tảng tri thức
+                            </span>
+                        </div>
                     </Link>
 
                     {/* Desktop Nav Links */}
@@ -52,16 +57,10 @@ export default function Navbar() {
                             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                         </button>
                         <Link
-                            to="/login"
-                            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-secondary-400 transition-colors"
-                        >
-Đăng nhập
-                        </Link>
-                        <Link
-                            to="/register"
+                            to="/dashboard"
                             className="btn-primary text-sm !px-5 !py-2.5"
                         >
-Bắt đầu ngay
+                            Vào Dashboard
                         </Link>
                     </div>
 

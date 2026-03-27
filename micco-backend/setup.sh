@@ -136,9 +136,9 @@ fi
 # 7. Install frontend dependencies
 # -----------------------------------------------------------
 echo "[7/7] Installing frontend dependencies..."
-cd frontend
+cd ../micco-frontend
 pnpm install
-cd ..
+cd ../micco-backend
 
 # -----------------------------------------------------------
 # Done

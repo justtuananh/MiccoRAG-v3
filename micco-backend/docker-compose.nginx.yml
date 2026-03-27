@@ -1,0 +1,25 @@
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: micco-nginx-gw
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    # Connect to the host network to access backend/frontend on localhost
+    # Or you can put them in the same docker network
+    network_mode: "host"
+
+  duckdns:
+    image: lscr.io/linuxserver/duckdns:latest
+    container_name: micco-duckdns-updater
+    network_mode: "host" # Use host network to get the correct public IP
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Ho_Chi_Minh
+      - SUBDOMAINS=${DUCKDNS_SUBDOMAIN:-micco}
+      - TOKEN=${DUCKDNS_TOKEN:-4142a011-7611-4cce-af13-6198e55f96a2}
+      - LOG_FILE=false # set to true if you want to log to a file
+    restart: unless-stopped

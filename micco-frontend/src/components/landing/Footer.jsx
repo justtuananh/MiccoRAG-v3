@@ -49,13 +49,13 @@ export default function Footer() {
                             Sẵn sàng nâng cấp quy trình tài liệu của bạn?
                         </h3>
                         <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                            Tham gia cùng hơn 2.000 nhóm đang dùng Micco AI để quản lý tài liệu thông minh hơn.
+                            Tham gia cùng hơn 2.000 nhóm đang dùng TKV để quản lý tài liệu thông minh hơn.
                         </p>
                         <Link
-                            to="/register"
+                            to="/dashboard"
                             className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary-600 rounded-xl font-bold hover:shadow-xl hover:shadow-white/20 transition-all duration-300 hover:-translate-y-0.5"
                         >
-Bắt đầu dùng thử miễn phí
+                            Vào Dashboard
                         </Link>
                     </div>
                 </div>
@@ -64,13 +64,18 @@ Bắt đầu dùng thử miễn phí
                 <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
                     {/* Brand */}
                     <div className="lg:col-span-1">
-                        <Link to="/" className="flex items-center gap-2 mb-4">
-                            <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center">
-                                <FileText className="w-4 h-4 text-white" />
+                        <Link to="/" className="flex items-center gap-4 mb-4">
+                            <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center p-2 shadow-sm border border-gray-100">
+                                <img src="/logo-tkv.png" alt="TKV Logo" className="w-full h-full object-contain" />
                             </div>
-                            <span className="text-lg font-bold text-white">
-                                Micco<span className="text-accent-400">AI</span>
-                            </span>
+                            <div className="flex flex-col">
+                                <span className="text-2xl font-extrabold text-white leading-tight">
+                                    TKV
+                                </span>
+                                <span className="text-sm font-bold text-primary-400">
+                                    nền tảng tri thức
+                                </span>
+                            </div>
                         </Link>
                         <p className="text-sm text-gray-500 mb-6 leading-relaxed">
                             Nền tảng quản lý tài liệu thông minh được hỗ trợ bởi trí tuệ nhân tạo.
@@ -114,7 +119,7 @@ Bắt đầu dùng thử miễn phí
                 {/* Bottom Bar */}
                 <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-sm text-gray-600">
-                        © 2026 Micco AI. Đã đăng ký bản quyền.
+                        © 2026 TKV. Đã đăng ký bản quyền.
                     </p>
                     <p className="text-sm text-gray-600">
                         Xây dựng với ❤️ dành cho các nhóm hiện đại

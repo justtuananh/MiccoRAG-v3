@@ -73,8 +73,8 @@ export default function Hero() {
 
                     {/* CTA Buttons */}
                     <div className="flex flex-wrap gap-4 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                        <Link to="/register" className="btn-primary text-lg !px-8 !py-4 flex items-center gap-2 group">
-                            Bắt đầu ngay
+                        <Link to="/dashboard" className="btn-primary text-lg !px-8 !py-4 flex items-center gap-2 group">
+                            Vào Dashboard
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </Link>
                         <Link to="/dashboard" className="btn-secondary text-lg !px-8 !py-4 dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:border-secondary-400">

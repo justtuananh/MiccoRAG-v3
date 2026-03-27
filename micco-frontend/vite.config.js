@@ -9,9 +9,10 @@ export default defineConfig({
     allowedHosts: [
       '.trycloudflare.com'
     ],
+    port: 5174,
     proxy: {
       '/api': {
-        target: 'https://basics-name-aid-sherman.trycloudflare.com',
+        target: 'http://localhost:8082',
         changeOrigin: true,
       },
     },

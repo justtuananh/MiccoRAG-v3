@@ -5,7 +5,7 @@
  * MiccoRAG-v2   → documents (workspaces), chatbot (RAG)
  */
 
-const RAG_V2_BASE = import.meta.env.VITE_RAGV2_BASE_URL || 'http://localhost:8000';
+const RAG_V2_BASE = import.meta.env.VITE_RAGV2_BASE_URL || '';
 
 // ─── MiccoRAG-v2 base fetch (no auth token needed) ──────────────────────────
 
