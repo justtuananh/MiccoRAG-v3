@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -33,14 +33,34 @@ export default function DashboardLayout() {
     const [profileError, setProfileError] = useState('');
     const [profileSuccess, setProfileSuccess] = useState(false);
     const [profileData, setProfileData] = useState({ name: '', password: '' });
+    const [lastRequester, setLastRequester] = useState(null);
+    const [showApprovalToast, setShowApprovalToast] = useState(false);
+    const isFirstLoad = useRef(true);
 
     useEffect(() => {
         if (user?.role !== 'Admin' && user?.role !== 'Trưởng phòng') return;
-        authFetch('/api/approvals/count')
-            .then(r => r.ok ? r.json() : null)
-            .then(data => data && setPendingCount(data.count || 0))
-            .catch(() => { });
-    }, [user?.role]);
+        
+        const fetchCount = () => {
+            authFetch('/api/approvals/count')
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                    if (data && typeof data.count === 'number') {
+                        if (!isFirstLoad.current && data.count > pendingCount) {
+                            setLastRequester(data.last_requester);
+                            setShowApprovalToast(true);
+                            setTimeout(() => setShowApprovalToast(false), 5000);
+                        }
+                        setPendingCount(data.count);
+                        isFirstLoad.current = false;
+                    }
+                })
+                .catch(() => { });
+        };
+
+        fetchCount();
+        const interval = setInterval(fetchCount, 30000); // 30s polling
+        return () => clearInterval(interval);
+    }, [user?.role, authFetch]);
 
     // Close user menu on outside click
     useEffect(() => {
@@ -255,10 +275,15 @@ export default function DashboardLayout() {
                                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                             </button>
 
-                            <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors relative">
+                            <Link 
+                                to={(user?.role === 'Admin' || user?.role === 'Trưởng phòng') ? "/approvals" : "/dashboard"}
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors relative"
+                            >
                                 <Bell className="w-5 h-5" />
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-                            </button>
+                                {pendingCount > 0 && (
+                                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                                )}
+                            </Link>
 
                             {/* User Menu với Dropdown */}
                             <div className="relative" onClick={e => e.stopPropagation()}>
@@ -313,6 +338,26 @@ export default function DashboardLayout() {
                 {/* Page Content */}
                 <main className="flex-1 overflow-y-auto relative">
                     <Outlet />
+                    
+                    {/* Floating Toast for New Approvals */}
+                    {showApprovalToast && (
+                        <div className="fixed bottom-6 right-6 z-[100] animate-slide-in-up">
+                            <Link 
+                                to="/approvals"
+                                onClick={() => setShowApprovalToast(false)}
+                                className="flex items-center gap-3 px-4 py-3 bg-amber-500 text-white rounded-xl shadow-2xl hover:bg-amber-600 transition-all border-2 border-white/20"
+                            >
+                                <Bell className="w-5 h-5 animate-bounce" />
+                                <div>
+                                    <p className="text-sm font-bold">Yêu cầu phê duyệt mới!</p>
+                                    <p className="text-[10px] opacity-90">
+                                        {lastRequester ? `Tài khoản ${lastRequester} vừa gửi yêu cầu.` : 'Có nội dung mới đang chờ bạn xem xét.'}
+                                    </p>
+                                </div>
+                                <X className="w-4 h-4 ml-2" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowApprovalToast(false); }} />
+                            </Link>
+                        </div>
+                    )}
                 </main>
             </div>
 

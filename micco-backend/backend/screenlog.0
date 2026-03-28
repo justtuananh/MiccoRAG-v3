@@ -1,0 +1,165 @@
+[32mINFO[0m:     Started server process [[36m3313479[0m]
+[32mINFO[0m:     Waiting for application startup.
+INFO:app.main:Starting NexusRAG API...
+INFO:app.main:Database migration (suggested_questions) completed or already up to date
+INFO:app.main:Lifespan: Database tables created/verified
+[32mINFO[0m:     Application startup complete.
+[32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:8089[0m (Press CTRL+C to quit)
+[32mINFO[0m:     127.0.0.1:54674 - "[1mGET /health HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:54680 - "[1mGET /ready HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:54682 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+INFO:app.services.vector_store:Connecting to ChromaDB at 127.0.0.1:8003
+INFO:httpx:HTTP Request: GET http://127.0.0.1:8003/api/v2/auth/identity "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://127.0.0.1:8003/api/v2/tenants/default_tenant "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://127.0.0.1:8003/api/v2/tenants/default_tenant/databases/default_database "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://127.0.0.1:8003/api/v2/heartbeat "HTTP/1.1 200 OK"
+INFO:app.services.vector_store:Connected to ChromaDB successfully
+INFO:httpx:HTTP Request: POST http://127.0.0.1:8003/api/v2/tenants/default_tenant/databases/default_database/collections "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://127.0.0.1:8003/api/v2/tenants/default_tenant/databases/default_database/collections/2a62da83-f078-4773-97f5-0002e9389800/get "HTTP/1.1 200 OK"
+ERROR:app.api.workspaces:Failed to generate suggested questions for WS 1: 'GeminiLLMProvider' object has no attribute 'generate_response'
+[32mINFO[0m:     127.0.0.1:38000 - "[1mGET /api/v1/workspaces/1/suggested-questions HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:58938 - "[1mGET /api/v1/workspaces/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     Started server process [[36m3328199[0m]
+[32mINFO[0m:     Waiting for application startup.
+INFO:app.main:Starting NexusRAG API...
+INFO:app.main:Database migration (suggested_questions) completed or already up to date
+INFO:app.main:Lifespan: Database tables created/verified
+[32mINFO[0m:     Application startup complete.
+[32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:8089[0m (Press CTRL+C to quit)
+[32mINFO[0m:     Started server process [[36m3331186[0m]
+[32mINFO[0m:     Waiting for application startup.
+INFO:app.main:Starting NexusRAG API...
+INFO:app.main:Database migration (suggested_questions) completed or already up to date
+INFO:app.main:Lifespan: Database tables created/verified
+[32mINFO[0m:     Application startup complete.
+[32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:8089[0m (Press CTRL+C to quit)
+[32mINFO[0m:     127.0.0.1:47708 - "[1mGET /health HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:47714 - "[1mGET /ready HTTP/1.1[0m" [32m200 OK[0m
+INFO:app.services.vector_store:Connecting to ChromaDB at 127.0.0.1:8003
+INFO:httpx:HTTP Request: GET http://127.0.0.1:8003/api/v2/auth/identity "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://127.0.0.1:8003/api/v2/tenants/default_tenant "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://127.0.0.1:8003/api/v2/tenants/default_tenant/databases/default_database "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://127.0.0.1:8003/api/v2/heartbeat "HTTP/1.1 200 OK"
+INFO:app.services.vector_store:Connected to ChromaDB successfully
+INFO:httpx:HTTP Request: POST http://127.0.0.1:8003/api/v2/tenants/default_tenant/databases/default_database/collections "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://127.0.0.1:8003/api/v2/tenants/default_tenant/databases/default_database/collections/2a62da83-f078-4773-97f5-0002e9389800/get "HTTP/1.1 200 OK"
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+[32mINFO[0m:     127.0.0.1:47724 - "[1mGET /api/v1/workspaces/1/suggested-questions HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:0 - "[1mGET /api/auth/login HTTP/1.1[0m" [31m405 Method Not Allowed[0m
+[32mINFO[0m:     127.0.0.1:0 - "[1mPOST /api/auth/login HTTP/1.1[0m" [31m401 Unauthorized[0m
+[90m2026-03-28T07:23:53Z[0m [32mINF[0m Thank you for trying Cloudflare Tunnel. Doing so, without a Cloudflare account, is a quick way to experiment and try it out. However, be aware that these account-less Tunnels have no uptime guarantee, are subject to the Cloudflare Online Services Terms of Use (https://www.cloudflare.com/website-terms/), and Cloudflare reserves the right to investigate your use of Tunnels for violations of such terms. If you intend to use Tunnels in production you should use a pre-created named tunnel by following: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps
+[90m2026-03-28T07:23:53Z[0m [32mINF[0m Requesting new quick Tunnel on trycloudflare.com...
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m +--------------------------------------------------------------------------------------------+
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m |  https://francisco-david-rouge-motorola.trycloudflare.com                                  |
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m +--------------------------------------------------------------------------------------------+
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m Cannot determine default configuration path. No file [config.yml config.yaml] in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m Version 2026.3.0 (Checksum 4a9e50e6d6d798e90fcd01933151a90bf7edd99a0a55c28ad18f2e16263a5c30)
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m GOOS: linux, GOVersion: go1.24.13, GoArch: amd64
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m Settings: map[ha-connections:1 protocol:quic url:http://localhost:8888]
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m cloudflared will not automatically update if installed by a package manager.
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m Generated Connector ID: 19c62139-ba60-4ed8-987a-6ee6d0bcfbd8
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m Initial protocol quic
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m ICMP proxy will use 103.237.147.91 as source for IPv4
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m ICMP proxy will use fe80::250:56ff:fe9d:d652 in zone ens192 as source for IPv6
+[90m2026-03-28T07:23:57Z[0m [31mWRN[0m The user running cloudflared process has a GID (group ID) that is not within ping_group_range. You might need to add that user to a group within that range, or instead update the range to encompass a group the user is already in by modifying /proc/sys/net/ipv4/ping_group_range. Otherwise cloudflared will not be able to ping this network [31merror=[0m[31m"Group ID 1001 is not between ping group 1 to 0"[0m
+[90m2026-03-28T07:23:57Z[0m [31mWRN[0m ICMP proxy feature is disabled [31merror=[0m[31m"cannot create ICMPv4 proxy: Group ID 1001 is not between ping group 1 to 0 nor ICMPv6 proxy: socket: permission denied"[0m
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m ICMP proxy will use 103.237.147.91 as source for IPv4
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] [36mconnIndex=[0m0 [36mevent=[0m0 [36mip=[0m198.41.192.57
+2026/03/28 14:23:57 failed to sufficiently increase receive buffer size (was: 208 kiB, wanted: 7168 kiB, got: 416 kiB). See https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes for details.
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m ICMP proxy will use fe80::250:56ff:fe9d:d652 in zone ens192 as source for IPv6
+[90m2026-03-28T07:23:57Z[0m [32mINF[0m Starting metrics server on 127.0.0.1:20242/metrics
+[90m2026-03-28T07:23:58Z[0m [32mINF[0m Registered tunnel connection [36mconnIndex=[0m0 [36mconnection=[0m4261f536-3117-4601-bb2c-6d63c826f131 [36mevent=[0m0 [36mip=[0m198.41.192.57 [36mlocation=[0mhkg01 [36mprotocol=[0mquic
+2026-03-28T07:24:02Z INF Thank you for trying Cloudflare Tunnel. Doing so, without a Cloudflare account, is a quick way to experiment and try it out. However, be aware that these account-less Tunnels have no uptime guarantee, are subject to the Cloudflare Online Services Terms of Use (https://www.cloudflare.com/website-terms/), and Cloudflare reserves the right to investigate your use of Tunnels for violations of such terms. If you intend to use Tunnels in production you should use a pre-created named tunnel by following: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps
+2026-03-28T07:24:02Z INF Requesting new quick Tunnel on trycloudflare.com...
+2026-03-28T07:24:06Z INF +--------------------------------------------------------------------------------------------+
+2026-03-28T07:24:06Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
+2026-03-28T07:24:06Z INF |  https://scripts-michigan-weed-controversial.trycloudflare.com                             |
+2026-03-28T07:24:06Z INF +--------------------------------------------------------------------------------------------+
+2026-03-28T07:24:06Z INF Cannot determine default configuration path. No file [config.yml config.yaml] in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]
+2026-03-28T07:24:06Z INF Version 2026.3.0 (Checksum 4a9e50e6d6d798e90fcd01933151a90bf7edd99a0a55c28ad18f2e16263a5c30)
+2026-03-28T07:24:06Z INF GOOS: linux, GOVersion: go1.24.13, GoArch: amd64
+2026-03-28T07:24:06Z INF Settings: map[ha-connections:1 protocol:quic url:http://localhost:8888]
+2026-03-28T07:24:06Z INF cloudflared will not automatically update if installed by a package manager.
+2026-03-28T07:24:06Z INF Generated Connector ID: 9ac2fb0d-fc85-4c5c-8aac-c0aedd14754e
+2026-03-28T07:24:06Z INF Initial protocol quic
+2026-03-28T07:24:06Z INF ICMP proxy will use 103.237.147.91 as source for IPv4
+2026-03-28T07:24:06Z INF ICMP proxy will use fe80::250:56ff:fe9d:d652 in zone ens192 as source for IPv6
+2026-03-28T07:24:06Z WRN The user running cloudflared process has a GID (group ID) that is not within ping_group_range. You might need to add that user to a group within that range, or instead update the range to encompass a group the user is already in by modifying /proc/sys/net/ipv4/ping_group_range. Otherwise cloudflared will not be able to ping this network error="Group ID 1001 is not between ping group 1 to 0"
+2026-03-28T07:24:06Z WRN ICMP proxy feature is disabled error="cannot create ICMPv4 proxy: Group ID 1001 is not between ping group 1 to 0 nor ICMPv6 proxy: socket: permission denied"
+2026-03-28T07:24:06Z INF ICMP proxy will use 103.237.147.91 as source for IPv4
+2026-03-28T07:24:06Z INF ICMP proxy will use fe80::250:56ff:fe9d:d652 in zone ens192 as source for IPv6
+2026-03-28T07:24:06Z INF Starting metrics server on 127.0.0.1:20242/metrics
+2026-03-28T07:24:06Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.13
+2026/03/28 14:24:06 failed to sufficiently increase receive buffer size (was: 208 kiB, wanted: 7168 kiB, got: 416 kiB). See https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes for details.
+2026-03-28T07:24:07Z INF Registered tunnel connection connIndex=0 connection=0e18331b-72b4-4dde-ab04-d33fee08cc54 event=0 ip=198.41.200.13 location=hkg13 protocol=quic
+[32mINFO[0m:     127.0.0.1:34890 - "[1mPOST /api/auth/login HTTP/1.1[0m" [31m401 Unauthorized[0m
+[32mINFO[0m:     Started server process [[36m3395921[0m]
+[32mINFO[0m:     Waiting for application startup.
+INFO:app.main:Starting NexusRAG API...
+INFO:app.main:Database migration (suggested_questions) completed or already up to date
+INFO:app.main:Lifespan: Database tables created/verified
+[32mINFO[0m:     Application startup complete.
+[32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:8089[0m (Press CTRL+C to quit)
+[32mINFO[0m:     127.0.0.1:56952 - "[1mGET /health HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mPOST /api/auth/login HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces/1/suggested-questions HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/rag/chat/1/history HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+INFO: [] Loaded graph from /home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/graph_chunk_entity_relation.graphml with 606 nodes, 254 edges
+INFO:nano-vectordb:Load (606, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_entities.json'} 606 data
+INFO:nano-vectordb:Load (254, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_relationships.json'} 254 data
+INFO:nano-vectordb:Load (59, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_chunks.json'} 59 data
+INFO: [] Process 3395921 KV load full_docs with 6 records
+INFO: [] Process 3395921 KV load text_chunks with 59 records
+INFO: [] Process 3395921 KV load full_entities with 6 records
+INFO: [] Process 3395921 KV load full_relations with 4 records
+INFO: [] Process 3395921 KV load entity_chunks with 606 records
+INFO: [] Process 3395921 KV load relation_chunks with 254 records
+INFO: [] Process 3395921 KV load llm_response_cache with 124 records
+INFO: [] Process 3395921 doc status load doc_status with 6 records
+INFO:app.services.knowledge_graph_service:LightRAG initialized for workspace 1 (embedding_dim=3072)
+INFO: [] Graph truncated: 606 nodes found, limited to 150
+INFO: [] Subgraph query successful | Node count: 150 | Edge count: 155
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/rag/graph/1 HTTP/1.1[0m" [32m200 OK[0m
+INFO: [] Loaded graph from /home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/graph_chunk_entity_relation.graphml with 606 nodes, 254 edges
+INFO:nano-vectordb:Load (606, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_entities.json'} 606 data
+INFO:nano-vectordb:Load (254, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_relationships.json'} 254 data
+INFO:nano-vectordb:Load (59, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_chunks.json'} 59 data
+INFO:app.services.knowledge_graph_service:LightRAG initialized for workspace 1 (embedding_dim=3072)
+INFO: [] Graph truncated: 606 nodes found, limited to 150
+INFO: [] Subgraph query successful | Node count: 150 | Edge count: 155
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/rag/graph/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m

@@ -75,17 +75,15 @@ class RerankerService:
             return []
 
         # Ensure we don't exceed typical API limits if documents is too large
-        docs_to_rerank = documents[:100]
+        docs_to_rerank = list(documents[:100])
 
         try:
             response = self.client.rerank(
                 model=self.model_name,
                 query=query,
                 documents=docs_to_rerank,
-                top_n=top_k if top_k is not None else len(docs_to_rerank),
-                return_documents=False
+                top_n=top_k if top_k is not None else len(docs_to_rerank)
             )
-
             # Map Cohere response back to RerankResult
             results = [
                 RerankResult(index=r.index, score=r.relevance_score, text=documents[r.index])
@@ -100,10 +98,15 @@ class RerankerService:
         except Exception as e:
             logger.error(f"Cohere rerank failed: {e}")
             # Fallback to returning original items with dummy/heuristic scores if rerank fails
+            fallback_docs = list(documents)
+            if top_k is not None:
+                fallback_docs = fallback_docs[:top_k]
+                
             return [
                 RerankResult(index=i, score=1.0 / (i + 1), text=doc)
-                for i, doc in enumerate(documents[:top_k] if top_k else documents)
+                for i, doc in enumerate(fallback_docs)
             ]
+
 
 
 # Singleton instance

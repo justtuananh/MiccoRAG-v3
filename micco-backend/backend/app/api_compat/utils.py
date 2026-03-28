@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.models.knowledge_base import KnowledgeBase
+from app.models.user import User
 
 
 async def get_or_create_default_workspace(db: AsyncSession) -> KnowledgeBase:
@@ -97,3 +98,10 @@ def map_rag_doc_to_legacy(doc: Any, owner_name: str = "System") -> dict[str, Any
 
 def workspace_file_path(filename: str) -> Path:
     return settings.BASE_DIR / "uploads" / filename
+
+
+async def get_current_department_id(db: AsyncSession, user_id: int) -> int | None:
+    """Get the department_id for a given user_id."""
+    result = await db.execute(select(User.department_id).where(User.id == user_id))
+    return result.scalar_one_or_none()
+

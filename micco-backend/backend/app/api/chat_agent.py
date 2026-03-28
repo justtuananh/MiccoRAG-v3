@@ -826,6 +826,7 @@ async def chat_stream_endpoint(
         from app.models.chat_message import ChatMessage as ChatMessageModel
         user_row = ChatMessageModel(
             workspace_id=workspace_id,
+            user_id=current_user.id,
             message_id=str(uuid.uuid4()),
             role="user",
             content=request.message,
@@ -957,6 +958,7 @@ async def chat_stream_endpoint(
                     from app.models.chat_message import ChatMessage as ChatMessageModel
                     assistant_row = ChatMessageModel(
                         workspace_id=workspace_id,
+                        user_id=current_user.id,
                         message_id=str(uuid.uuid4()),
                         role="assistant",
                         content=final_answer,

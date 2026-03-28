@@ -38,7 +38,7 @@ class Document(Base):
     uploader_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id", ondelete="SET NULL"), nullable=True)
     visibility: Mapped[str] = mapped_column(String(20), default="internal") # "internal" or "public"
-    approval_status: Mapped[str] = mapped_column(String(20), default="approved") # "pending", "approved", "rejected"
+    approval_status: Mapped[str] = mapped_column(String(20), default="pending") # "pending", "approved", "rejected"
     approval_note: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # NexusRAG fields

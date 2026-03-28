@@ -8,7 +8,7 @@ class RegisterRequest(BaseModel):
     name: str
     email: str
     password: str
-    department_id: int
+    department_id: int | None = None
 
 
 class LoginRequest(BaseModel):

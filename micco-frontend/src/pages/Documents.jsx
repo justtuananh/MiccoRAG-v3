@@ -80,6 +80,7 @@ const ROWS_PER_PAGE = 10;
 export default function Documents() {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const isAdmin = user?.role === 'Admin';
 
     // Workspaces
     const [workspaces, setWorkspaces] = useState([]);
@@ -486,7 +487,7 @@ export default function Documents() {
                             >
                                 <RefreshCw className={`w-4 h-4 ${docsLoading ? 'animate-spin' : ''}`} />
                             </button>
-                            {pendingCount > 0 && (
+                            {isAdmin && pendingCount > 0 && (
                                 <button
                                     onClick={handleProcessAll}
                                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium transition-colors"
@@ -500,7 +501,7 @@ export default function Documents() {
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold transition-colors"
                             >
                                 <Upload className="w-3.5 h-3.5" />
-                                Tải lên
+                                {user?.role === 'Admin' ? 'Tải lên' : 'Tải lên & Đề xuất phê duyệt'}
                             </button>
                         </div>
                     </div>
@@ -608,7 +609,7 @@ export default function Documents() {
                                             disabled={!stagedFiles.length || uploading}
                                             className="px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 disabled:opacity-50 flex items-center gap-2"
                                         >
-                                            {uploading ? <><Loader2 className="w-4 h-4 animate-spin" />Đang tải...</> : <><Upload className="w-4 h-4" />Tải lên {stagedFiles.length > 1 ? `${stagedFiles.length} tệp` : ''}</>}
+                                            {uploading ? <><Loader2 className="w-4 h-4 animate-spin" />Đang tải...</> : <><Upload className="w-4 h-4" />{user?.role === 'Admin' ? 'Tải lên' : 'Đề xuất phê duyệt'} {stagedFiles.length > 1 ? `${stagedFiles.length} tệp` : ''}</>}
                                         </button>
                                     </div>
                                 )}
@@ -632,7 +633,7 @@ export default function Documents() {
                                     onClick={() => setShowUpload(true)}
                                     className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors"
                                 >
-                                    <Upload className="w-4 h-4" />Tải lên tài liệu đầu tiên
+                                    <Upload className="w-4 h-4" />{user?.role === 'Admin' ? 'Tải lên tài liệu đầu tiên' : 'Đề xuất phê duyệt tài liệu đầu tiên'}
                                 </button>
                             )}
                         </div>
@@ -654,7 +655,6 @@ export default function Documents() {
                                     {pageDocs.map(doc => {
                                         const isProcessing = processingIds.has(doc.id) || ['processing', 'parsing', 'indexing'].includes(doc.status?.toLowerCase());
                                         const isApproved = doc.approval_status === 'approved';
-                                        const isAdmin = user?.role === 'Admin';
                                         const canProcess = isApproved && isAdmin && ['pending', 'failed'].includes(doc.status?.toLowerCase()) && !processingIds.has(doc.id);
                                         return (
                                             <tr key={doc.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">

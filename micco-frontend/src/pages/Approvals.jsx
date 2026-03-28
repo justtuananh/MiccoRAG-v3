@@ -7,7 +7,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import Breadcrumb from '../components/shared/Breadcrumb';
 
-const PREVIEWABLE = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp'];
+const PREVIEWABLE = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'docx', 'txt', 'md'];
 const MIME_MAP = {
     pdf: 'application/pdf',
     jpg: 'image/jpeg', jpeg: 'image/jpeg',
@@ -58,7 +58,9 @@ export default function Approvals() {
                 }
             } else {
                 const ext = (item.file_type || '').toLowerCase();
-                const canEmbed = PREVIEWABLE.includes(ext);
+                const canEmbed = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+                const isTextBased = ['docx', 'txt', 'md'].includes(ext);
+
                 if (canEmbed) {
                     const res = await authFetch(`/api/documents/${item.id}/download`);
                     if (res.ok) {
@@ -66,6 +68,12 @@ export default function Approvals() {
                         const blob = new Blob([await res.arrayBuffer()], { type: mime });
                         const blobUrl = URL.createObjectURL(blob);
                         setPreview({ item, type, blobUrl, ext });
+                    }
+                } else if (isTextBased) {
+                    const res = await authFetch(`/api/approvals/documents/${item.id}/preview`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        setPreview({ item, type, text: data.content, ext });
                     }
                 } else {
                     // Not previewable — show metadata only
@@ -309,7 +317,7 @@ export default function Approvals() {
 // ─── Preview Modal ────────────────────────────────────────────
 
 function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) {
-    const { item, type, blobUrl, html, ext } = preview;
+    const { item, type, blobUrl, html, text, ext } = preview;
     const isDoc = type === 'documents';
     const title = isDoc ? item.name : item.title;
     const isLoading = actionLoading === `${type}-${item.id}`;
@@ -393,8 +401,19 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
                         </div>
                     )}
 
+                    {/* Document: Text preview for DOCX/TXT/MD */}
+                    {isDoc && text && (
+                        <div className="p-6">
+                            <div className="bg-gray-50 dark:bg-gray-950 rounded-xl border border-gray-100 dark:border-gray-800 p-6">
+                                <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 font-sans leading-relaxed">
+                                    {text}
+                                </pre>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Document: not previewable */}
-                    {isDoc && !blobUrl && (
+                    {isDoc && !blobUrl && !text && (
                         <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-6">
                             <div className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                                 <FileText className="w-7 h-7 text-gray-400" />

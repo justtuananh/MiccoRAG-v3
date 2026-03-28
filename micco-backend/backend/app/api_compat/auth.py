@@ -36,7 +36,7 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
+            detail="Email đã được sử dụng. Vui lòng đăng nhập hoặc dùng email khác.",
         )
 
     name = req.name.strip()
@@ -52,12 +52,14 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
             detail="Mật khẩu phải có ít nhất 6 ký tự"
         )
 
-    dept = await db.execute(select(Department).where(Department.id == req.department_id))
-    if dept.scalar_one_or_none() is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Department not found",
-        )
+    # Validate department if provided
+    if req.department_id is not None:
+        dept = await db.execute(select(Department).where(Department.id == req.department_id))
+        if dept.scalar_one_or_none() is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Phòng ban không hợp lệ. Vui lòng chọn phòng ban từ danh sách.",
+            )
 
     user = User(
         name=req.name,

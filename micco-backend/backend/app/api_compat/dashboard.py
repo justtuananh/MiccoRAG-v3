@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import extract, func, select, case
+from sqlalchemy import extract, func, select, case, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db
@@ -26,19 +26,26 @@ def _fmt_storage(total_bytes: int) -> str:
 @router.get("/stats")
 async def get_stats(
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    total_files = (await db.execute(select(func.count(Document.id)))).scalar() or 0
-    total_bytes = (await db.execute(select(func.coalesce(func.sum(Document.file_size), 0)))).scalar() or 0
-    team_members = (await db.execute(select(func.count(User.id)))).scalar() or 0
+    is_admin = current_user.role == "Admin"
+    
+    # Base filters
+    doc_filter = [Document.uploader_id == current_user.id] if not is_admin else []
+    kb_filter = [] # Workspaces are generally shared but can be filtered if needed
+    
+    total_files = (await db.execute(select(func.count(Document.id)).where(*doc_filter))).scalar() or 0
+    total_bytes = (await db.execute(select(func.coalesce(func.sum(Document.file_size), 0)).where(*doc_filter))).scalar() or 0
+    team_members = (await db.execute(select(func.count(User.id)))).scalar() if is_admin else 1
     total_workspaces = (await db.execute(select(func.count(KnowledgeBase.id)))).scalar() or 0
-    total_chunks = (await db.execute(select(func.coalesce(func.sum(Document.chunk_count), 0)))).scalar() or 0
+    total_chunks = (await db.execute(select(func.coalesce(func.sum(Document.chunk_count), 0)).where(*doc_filter))).scalar() or 0
     indexed_docs = (await db.execute(
-        select(func.count(Document.id)).where(Document.status == DocumentStatus.INDEXED)
+        select(func.count(Document.id)).where(Document.status == DocumentStatus.INDEXED, *doc_filter)
     )).scalar() or 0
 
     seven_days_ago = datetime.utcnow() - timedelta(days=7)
     recent_uploads = (
-        await db.execute(select(func.count(Document.id)).where(Document.created_at >= seven_days_ago))
+        await db.execute(select(func.count(Document.id)).where(Document.created_at >= seven_days_ago, *doc_filter))
     ).scalar() or 0
 
     return {
@@ -56,7 +63,9 @@ async def get_stats(
 @router.get("/uploads-over-time")
 async def get_uploads_over_time(
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    is_admin = current_user.role == "Admin"
     now = datetime.utcnow()
     rows = []
 
@@ -65,12 +74,16 @@ async def get_uploads_over_time(
         year, month = month_dt.year, month_dt.month
         month_name = month_dt.strftime("%b")
 
+        where_clause = [
+            extract("year", Document.created_at) == year,
+            extract("month", Document.created_at) == month,
+        ]
+        if not is_admin:
+            where_clause.append(Document.uploader_id == current_user.id)
+
         cnt = (
             await db.execute(
-                select(func.count(Document.id)).where(
-                    extract("year", Document.created_at) == year,
-                    extract("month", Document.created_at) == month,
-                )
+                select(func.count(Document.id)).where(*where_clause)
             )
         ).scalar() or 0
         rows.append({"month": month_name, "uploads": cnt})
@@ -81,6 +94,7 @@ async def get_uploads_over_time(
 @router.get("/storage-by-type")
 async def get_storage_by_type(
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     type_colors = {
         "PDF": "#6366f1",
@@ -97,6 +111,7 @@ async def get_storage_by_type(
 
     result = await db.execute(
         select(Document.file_type, func.coalesce(func.sum(Document.file_size), 0), func.count(Document.id))
+        .where(Document.uploader_id == current_user.id if current_user.role != "Admin" else True)
         .group_by(Document.file_type)
     )
 
@@ -118,6 +133,7 @@ async def get_storage_by_type(
 @router.get("/document-status")
 async def get_document_status(
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Get document counts grouped by processing status."""
     status_colors = {
@@ -129,8 +145,13 @@ async def get_document_status(
         "indexing": "#8b5cf6",
     }
 
+    # If uploader_id filtering is desired:
+    doc_filter = [Document.uploader_id == current_user.id] if current_user.role != "Admin" else []
+
     result = await db.execute(
-        select(Document.status, func.count(Document.id)).group_by(Document.status)
+        select(Document.status, func.count(Document.id))
+        .where(*doc_filter)
+        .group_by(Document.status)
     )
 
     data = []
@@ -148,8 +169,13 @@ async def get_document_status(
 @router.get("/workspace-stats")
 async def get_workspace_stats(
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Get per-workspace document and chunk counts."""
+    # Optional: Filter workspace stats by user uploads too?
+    # For now, show overall workspace activity but maybe cap it.
+    doc_filter = [Document.uploader_id == current_user.id] if current_user.role != "Admin" else []
+
     result = await db.execute(
         select(
             KnowledgeBase.name,
@@ -157,7 +183,7 @@ async def get_workspace_stats(
             func.coalesce(func.sum(Document.chunk_count), 0).label("chunk_count"),
             func.coalesce(func.sum(Document.file_size), 0).label("total_size"),
         )
-        .outerjoin(Document, Document.workspace_id == KnowledgeBase.id)
+        .outerjoin(Document, and_(Document.workspace_id == KnowledgeBase.id, *doc_filter))
         .group_by(KnowledgeBase.id, KnowledgeBase.name)
         .order_by(func.count(Document.id).desc())
         .limit(10)
@@ -178,13 +204,19 @@ async def get_workspace_stats(
 @router.get("/recent-documents")
 async def get_recent_documents(
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Get recent 10 documents from MiccoRAG-v2."""
-    result = await db.execute(
+    is_admin = current_user.role == "Admin"
+    query = (
         select(Document, KnowledgeBase.name.label("workspace_name"))
         .join(KnowledgeBase, Document.workspace_id == KnowledgeBase.id)
-        .order_by(Document.created_at.desc())
-        .limit(10)
+    )
+    if not is_admin:
+        query = query.where(Document.uploader_id == current_user.id)
+        
+    result = await db.execute(
+        query.order_by(Document.created_at.desc()).limit(10)
     )
 
     docs = []

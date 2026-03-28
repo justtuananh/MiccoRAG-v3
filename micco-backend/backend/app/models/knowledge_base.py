@@ -15,7 +15,9 @@ class KnowledgeBase(Base):
     kg_language: Mapped[str | None] = mapped_column(String(50), nullable=True, default=None)
     kg_entity_types: Mapped[list | None] = mapped_column(JSON, nullable=True, default=None)
     search_mode: Mapped[str | None] = mapped_column(String(50), nullable=True, default="hybrid")
+    suggested_questions: Mapped[list | None] = mapped_column(JSON, nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )

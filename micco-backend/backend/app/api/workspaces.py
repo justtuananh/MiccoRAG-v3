@@ -15,6 +15,7 @@ from app.schemas.workspace import (
     WorkspaceResponse,
     WorkspaceSummary,
 )
+from app.services.llm.types import LLMMessage, LLMResult
 
 router = APIRouter(prefix="/workspaces", tags=["workspaces"])
 
@@ -38,8 +39,8 @@ async def _enrich_response(db: AsyncSession, kb: KnowledgeBase) -> WorkspaceResp
         kg_language=kb.kg_language,
         kg_entity_types=kb.kg_entity_types,
         search_mode=kb.search_mode,
-        document_count=total.scalar() or 0,
         indexed_count=indexed.scalar() or 0,
+        suggested_questions=kb.suggested_questions,
         created_at=kb.created_at,
         updated_at=kb.updated_at,
     )
@@ -138,6 +139,85 @@ async def update_workspace(
     await db.commit()
     await db.refresh(kb)
     return await _enrich_response(db, kb)
+
+
+@router.get("/{workspace_id}/suggested-questions", response_model=list[str])
+async def get_suggested_questions(
+    workspace_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get or generate 4 suggested questions for this workspace.
+    """
+    result = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == workspace_id))
+    kb = result.scalar_one_or_none()
+    if kb is None:
+        raise NotFoundError("KnowledgeBase", workspace_id)
+
+    if kb.suggested_questions:
+        return kb.suggested_questions
+
+    # Generate if possible
+    try:
+        from app.services.vector_store import get_vector_store
+        vs = get_vector_store(workspace_id)
+        
+        # Get some sample text from vector store
+        # ChromaDB .get() with limit
+        data = vs.collection.get(limit=10, include=["documents"])
+        docs = data.get("documents", [])
+        
+        if not docs:
+            # Fallback defaults
+            return ["Phân tích rủi ro & cơ hội?", "Chiến lược hành động cốt lõi", "Đánh giá hiệu quả hệ thống", "Tối ưu hóa quy trình hiện tại"]
+
+        context = "\n\n".join(docs[:10])
+        
+        from app.services.llm import get_llm_provider
+        llm = get_llm_provider()
+        
+        system_prompt = "Bạn là một trợ lý phân tích tài liệu chuyên nghiệp. Chỉ trả về một mảng JSON chứa các chuỗi ký tự (câu hỏi)."
+        user_prompt = f"""Dựa trên các đoạn văn bản sau trích từ không gian làm việc '{kb.name}', hãy đề xuất 4 câu hỏi tiếng Việt ngắn gọn (dưới 15 từ), súc tích mà người dùng có thể muốn hỏi để tìm hiểu nội dung.
+Yêu cầu:
+- Trả về DUY NHẤT một mảng JSON. Ví dụ: ["Câu hỏi 1?", "Câu hỏi 2?", "Câu hỏi 3?", "Câu hỏi 4?"]
+- Không thêm bất kỳ lời dẫn hay giải thích nào khác.
+
+Nội dung tài liệu:
+{context[:4000]}
+"""
+        response = await llm.acomplete(
+            messages=[
+                LLMMessage(role="system", content=system_prompt),
+                LLMMessage(role="user", content=user_prompt)
+            ],
+            temperature=0.7
+        )
+        
+        # response could be str or LLMResult
+        response_text = response.content if isinstance(response, LLMResult) else response
+        
+        import json
+        import re
+        
+        # Try to find JSON array in response
+        match = re.search(r"\[\s*\".*\"\s*\]", response_text, re.DOTALL)
+        if match:
+            questions = json.loads(match.group(0))
+        else:
+            # Simple fallback if LLM output was messy but contains lines
+            questions = json.loads(response_text) # fallback parse
+
+        if isinstance(questions, list) and len(questions) > 0:
+            kb.suggested_questions = questions[:4]
+            await db.commit()
+            return kb.suggested_questions
+
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Failed to generate suggested questions for WS {workspace_id}: {e}")
+    
+    # Static fallback
+    return ["Phân tích rủi ro & cơ hội?", "Chiến lược hành động cốt lõi", "Đánh giá hiệu quả hệ thống", "Tối ưu hóa quy trình hiện tại"]
 
 
 @router.delete("/{workspace_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -39,6 +39,7 @@ async def lifespan(app: FastAPI):
                     CREATE TABLE IF NOT EXISTS chat_messages (
                         id SERIAL PRIMARY KEY,
                         workspace_id INTEGER NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+                        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
                         message_id VARCHAR(50) NOT NULL,
                         role VARCHAR(20) NOT NULL,
                         content TEXT NOT NULL,
@@ -53,7 +54,13 @@ async def lifespan(app: FastAPI):
                     "CREATE INDEX IF NOT EXISTS ix_chat_messages_workspace_id ON chat_messages(workspace_id)"
                 ))
                 await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_chat_messages_user_id ON chat_messages(user_id)"
+                ))
+                await conn.execute(text(
                     "CREATE INDEX IF NOT EXISTS ix_chat_messages_message_id ON chat_messages(message_id)"
+                ))
+                await conn.execute(text(
+                    "ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE SET NULL"
                 ))
                 await conn.execute(text(
                     "ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS ratings JSON"
@@ -84,7 +91,11 @@ async def lifespan(app: FastAPI):
                 await conn.execute(
                     text("ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS search_mode VARCHAR(50) DEFAULT 'hybrid'")
                 )
-                logger.info("Database migration (search_mode) completed or already up to date")
+                await conn.execute(
+                    text("ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS suggested_questions JSON")
+                )
+                logger.info("Database migration (suggested_questions) completed or already up to date")
+
         except Exception as e:
             logger.error(f"Migration error during startup: {e}")
             # Continue even if migration fails to prevent deadlock/hang
@@ -139,11 +150,12 @@ app = FastAPI(
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex=".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 @app.exception_handler(Exception)

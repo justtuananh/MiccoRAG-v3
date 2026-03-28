@@ -34,7 +34,7 @@ export default function Knowledge() {
         'Quy định', 'Kinh nghiệm', 'Vật tư', 'Nhà cung cấp', 'An toàn', 'Kỹ thuật'
     ];
 
-    const STATUSES = ['Tất cả', 'Hoạt động', 'Bản nháp', 'Lưu trữ'];
+    const STATUSES = ['Tất cả', 'Hoạt động', 'Chờ duyệt', 'Bị từ chối', 'Bản nháp', 'Lưu trữ'];
 
     // Fetch entries
     const fetchEntries = async () => {
@@ -80,11 +80,15 @@ export default function Knowledge() {
             entry.category === categoryFilter;
 
         const matchStatus = statusFilter === 'Tất cả' ||
-            entry.status === statusFilter ||
-            (statusFilter === 'Hoạt động' && entry.status === 'Active');
+            (statusFilter === 'Hoạt động' && (entry.status === 'Active' && entry.approval_status === 'approved')) ||
+            (statusFilter === 'Chờ duyệt' && entry.approval_status === 'pending_approval') ||
+            (statusFilter === 'Bị từ chối' && entry.approval_status === 'rejected') ||
+            (statusFilter === 'Bản nháp' && entry.status === 'Draft' && entry.approval_status !== 'pending_approval') ||
+            (statusFilter === 'Lưu trữ' && entry.status === 'Archived');
 
         return matchSearch && matchCategory && matchStatus;
     });
+
 
     // Create/Update entry
     const handleSave = async (formData) => {

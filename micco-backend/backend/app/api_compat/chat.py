@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,6 +37,7 @@ def _map_sources_to_legacy_strings(sources) -> list[str]:
 @router.post("/send", response_model=LegacyChatMessageResponse)
 async def send_message(
     req: LegacyChatSendRequest,
+    fastapi_req: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -44,7 +45,10 @@ async def send_message(
 
     history_stmt = (
         select(PersistedChatMessage)
-        .where(PersistedChatMessage.workspace_id == workspace.id)
+        .where(
+            PersistedChatMessage.workspace_id == workspace.id,
+            PersistedChatMessage.user_id == current_user.id
+        )
         .order_by(PersistedChatMessage.created_at.asc())
         .limit(30)
     )
@@ -61,7 +65,14 @@ async def send_message(
     )
 
     try:
-        rag_resp = await chat_with_documents(workspace.id, chat_req, db)
+        rag_resp = await chat_with_documents(
+            workspace_id=workspace.id, 
+            request=chat_req, 
+            fastapi_req=fastapi_req,
+            db=db, 
+            user_id=current_user.id,
+            current_user=current_user
+        )
     except HTTPException:
         raise
     except Exception as exc:  # pragma: no cover - fallback for runtime errors
@@ -85,7 +96,10 @@ async def get_history(
 
     stmt = (
         select(PersistedChatMessage)
-        .where(PersistedChatMessage.workspace_id == workspace.id)
+        .where(
+            PersistedChatMessage.workspace_id == workspace.id,
+            PersistedChatMessage.user_id == current_user.id
+        )
         .order_by(PersistedChatMessage.created_at.asc())
     )
     rows = (await db.execute(stmt)).scalars().all()
@@ -115,7 +129,8 @@ async def clear_history(
     workspace = await get_or_create_user_workspace(db, current_user.id)
     await db.execute(
         delete(PersistedChatMessage).where(
-            PersistedChatMessage.workspace_id == workspace.id
+            PersistedChatMessage.workspace_id == workspace.id,
+            PersistedChatMessage.user_id == current_user.id
         )
     )
     await db.commit()
@@ -131,10 +146,9 @@ async def clear_all_user_history(
 
     Used during logout to wipe all per-user AI chat sessions.
     """
-    workspace = await get_or_create_user_workspace(db, current_user.id)
     await db.execute(
         delete(PersistedChatMessage).where(
-            PersistedChatMessage.workspace_id == workspace.id
+            PersistedChatMessage.user_id == current_user.id
         )
     )
     await db.commit()

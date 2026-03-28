@@ -239,7 +239,7 @@ export default function KnowledgeForm({ entry, onSave, onClose, saving = false }
                             ) : (
                                 <Save className="w-4 h-4" />
                             )}
-                            {entry ? 'Cập nhật' : 'Lưu tri thức'}
+                            {entry ? 'Cập nhật' : 'Đề xuất phê duyệt'}
                         </button>
                     </div>
                 </form>

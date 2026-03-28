@@ -88,8 +88,14 @@ export function AuthProvider({ children }) {
             });
 
             if (!res.ok) {
-                const err = await res.json();
-                throw new Error(err.detail || 'Đăng ký thất bại');
+                let msg = 'Đăng ký thất bại';
+                try {
+                    const err = await res.json();
+                    msg = err.detail || err.message || msg;
+                } catch {
+                    // Not JSON — use default
+                }
+                throw new Error(msg);
             }
 
             const data = await res.json();

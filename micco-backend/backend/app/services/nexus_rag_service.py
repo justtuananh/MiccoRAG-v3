@@ -19,7 +19,9 @@ from sqlalchemy import select, delete
 
 from app.core.config import settings
 from app.models.document import Document, DocumentImage, DocumentTable, DocumentStatus
+from app.models.knowledge_entry import KnowledgeEntry
 from app.services.document_parser import get_document_parser
+from app.services.chunker import DocumentChunker, TextChunk
 from app.services.knowledge_graph_service import KnowledgeGraphService
 from app.services.deep_retriever import DeepRetriever
 from app.services.embedder import EmbeddingService, get_embedding_service
@@ -254,6 +256,96 @@ class NexusRAGService:
             logger.error(f"NexusRAG failed for document {document_id}: {e}")
             document.status = DocumentStatus.FAILED
             document.error_message = str(e)[:500]
+            await self.db.commit()
+            raise
+
+    async def process_knowledge_entry(self, entry_id: int) -> int:
+        """
+        Process a knowledge entry (text-based) through the indexing pipeline.
+        
+        This mimics the INDEXING and KG phases of process_document but
+        skips PARSING since we already have the raw text.
+        """
+        result = await self.db.execute(
+            select(KnowledgeEntry).where(KnowledgeEntry.id == entry_id)
+        )
+        entry = result.scalar_one_or_none()
+        if entry is None:
+            raise ValueError(f"Knowledge entry {entry_id} not found")
+
+        start_time = time.time()
+        try:
+            entry.ingest_status = "processing"
+            await self.db.commit()
+
+            # Phase 1: Chunking (mimic DocumentChunker)
+            from app.services.chunker import DocumentChunker
+            chunker = DocumentChunker(chunk_size=500, chunk_overlap=50)
+            
+            # Simple chunking of text
+            chunks = chunker.split_text(
+                text=entry.content_text,
+                source=f"knowledge_{entry_id}",
+                extra_metadata={
+                    "knowledge_id": entry_id,
+                    "title": entry.title,
+                    "category": entry.category,
+                }
+            )
+
+            if not chunks:
+                entry.ingest_status = "indexed"
+                await self.db.commit()
+                return 0
+
+            # Phase 2: Indexing (Vector)
+            import asyncio
+            def _index_sync():
+                chunk_texts = [c.content for c in chunks]
+                embeddings = self.embedder.embed_texts(chunk_texts)
+                
+                ids = [f"kn_{entry_id}_chunk_{i}" for i in range(len(chunks))]
+                
+                metadatas = [
+                    {
+                        "knowledge_id": entry_id,
+                        "chunk_index": c.chunk_index,
+                        "source": entry.title,
+                        "category": entry.category,
+                        "type": "knowledge",
+                    }
+                    for c in chunks
+                ]
+                
+                self.vector_store.add_documents(
+                    ids=ids,
+                    embeddings=embeddings,
+                    documents=chunk_texts,
+                    metadatas=metadatas,
+                )
+            await asyncio.to_thread(_index_sync)
+
+            # Phase 3: KG ingest
+            if self.kg_service:
+                try:
+                    # Ingest the content as markdown (can just be the text)
+                    # We use a special ID format to avoid collision with documents
+                    kg_doc_id = f"kn_{entry_id}"
+                    await self.kg_service.ingest(entry.content_text, document_id=kg_doc_id)
+                except Exception as e:
+                    logger.error(f"KG ingest failed for knowledge {entry_id}: {e}")
+
+            elapsed_ms = int((time.time() - start_time) * 1000)
+            entry.ingest_status = "indexed"
+            await self.db.commit()
+            
+            logger.info(f"NexusRAG processed knowledge {entry_id}: {len(chunks)} chunks in {elapsed_ms}ms")
+            return len(chunks)
+
+        except Exception as e:
+            logger.error(f"NexusRAG failed for knowledge {entry_id}: {e}")
+            entry.ingest_status = "failed"
+            entry.ingest_error = str(e)[:500]
             await self.db.commit()
             raise
 

@@ -23,25 +23,25 @@ USERS_TO_SEED = [
     {
         "name": "Admin Hệ Thống",
         "email": "admin@micco.vn",
-        "password": "Admin@123",
+        "password": os.getenv("SEED_ADMIN_PASSWORD", "Admin_Default_123!"),
         "role": "Admin",
     },
     {
         "name": "Nguyễn Văn A",
         "email": "user1@micco.vn",
-        "password": "User@123",
+        "password": os.getenv("SEED_USER_PASSWORD", "User_Default_123!"),
         "role": "Nhân viên",
     },
     {
         "name": "Trần Thị B",
         "email": "user2@micco.vn",
-        "password": "User@123",
+        "password": os.getenv("SEED_USER_PASSWORD", "User_Default_123!"),
         "role": "Nhân viên",
     },
     {
         "name": "Lê Minh C",
         "email": "user3@micco.vn",
-        "password": "User@123",
+        "password": os.getenv("SEED_USER_PASSWORD", "User_Default_123!"),
         "role": "Nhân viên",
     },
 ]

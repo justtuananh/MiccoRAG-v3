@@ -49,11 +49,16 @@ async def list_knowledge(
         .options(selectinload(KnowledgeEntry.owner), selectinload(KnowledgeEntry.department))
     )
 
+    # RBAC: non-admins only see approved entries + their own (regardless of visibility)
     if current_user.role != "Admin":
         stmt = stmt.where(
             or_(
-                KnowledgeEntry.visibility == "public",
-                KnowledgeEntry.department_id == current_user.department_id,
+                (KnowledgeEntry.approval_status == "approved") & 
+                or_(
+                    KnowledgeEntry.visibility == "public",
+                    KnowledgeEntry.department_id == current_user.department_id,
+                ),
+                KnowledgeEntry.owner_id == current_user.id
             )
         )
 
@@ -120,6 +125,7 @@ async def create_knowledge(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    is_admin = current_user.role == "Admin"
     entry = KnowledgeEntry(
         title=body.title,
         content_html=body.content_html,
@@ -127,7 +133,8 @@ async def create_knowledge(
         category=body.category,
         tags=body.tags,
         visibility=body.visibility if body.visibility in ("internal", "public") else "internal",
-        status=body.status,
+        status="Pending" if not is_admin else body.status,
+        approval_status="approved" if is_admin else "pending_approval",
         owner_id=current_user.id,
         department_id=current_user.department_id,
     )
@@ -167,8 +174,13 @@ async def update_knowledge(
     if entry.owner_id != current_user.id and current_user.role != "Admin":
         raise HTTPException(status_code=403, detail="Permission denied")
 
+    is_admin = current_user.role == "Admin"
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(entry, field, value)
+    
+    if not is_admin:
+        entry.approval_status = "pending_approval"
+        entry.status = "Pending"
 
     await db.commit()
     await db.refresh(entry)

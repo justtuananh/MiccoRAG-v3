@@ -76,12 +76,11 @@ async def list_documents(
 
     stmt = select(Document).where(Document.workspace_id == workspace_id)
 
-    # RBAC: non-admins only see approved docs + their own uploads
-    if current_user.role not in ("Admin", "Trưởng phòng"):
-        stmt = stmt.where(
-            (Document.approval_status == "approved") |
-            (Document.uploader_id == current_user.id)
-        )
+    # RBAC: users only see approved docs + their own uploads in the main list
+    stmt = stmt.where(
+        (Document.approval_status == "approved") |
+        (Document.uploader_id == current_user.id)
+    )
 
     stmt = stmt.order_by(Document.created_at.desc())
     result = await db.execute(stmt)
@@ -135,6 +134,38 @@ async def process_document_background(document_id: int, file_path: str, workspac
                     await db.commit()
             except Exception as recovery_err:
                 logger.error(f"Failed to set FAILED status for doc {document_id}: {recovery_err}")
+
+
+async def process_knowledge_background(entry_id: int, workspace_id: int):
+    """Background task to process knowledge entry for RAG indexing (NexusRAG only)."""
+    from app.core.database import async_session_maker
+    from app.services.rag_service import get_rag_service
+
+    async with async_session_maker() as db:
+        try:
+            rag_service = get_rag_service(db, workspace_id)
+            if hasattr(rag_service, "process_knowledge_entry"):
+                await rag_service.process_knowledge_entry(entry_id)
+                logger.info(f"Knowledge entry {entry_id} processed successfully")
+            else:
+                logger.warning(f"RAG service {type(rag_service)} does not support knowledge entries")
+        except Exception as e:
+            logger.error(f"Failed to process knowledge entry {entry_id}: {e}")
+            try:
+                from sqlalchemy import update
+                from app.models.knowledge_entry import KnowledgeEntry
+                await db.execute(
+                    update(KnowledgeEntry)
+                    .where(KnowledgeEntry.id == entry_id)
+                    .values(
+                        ingest_status="failed",
+                        error_message=str(e)[:500]
+                    )
+                )
+                await db.commit()
+            except Exception as recovery_err:
+                logger.error(f"Failed to set FAILED status for knowledge {entry_id}: {recovery_err}")
+
 
 
 @router.post("/upload/{workspace_id}", response_model=DocumentUploadResponse)

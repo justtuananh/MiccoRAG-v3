@@ -810,6 +810,7 @@ async def get_workspace_analytics(
 async def get_chat_history(
     workspace_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Load persisted chat history for a workspace."""
     await verify_workspace_access(workspace_id, db)
@@ -817,7 +818,10 @@ async def get_chat_history(
     from app.models.chat_message import ChatMessage as ChatMessageModel
     result = await db.execute(
         select(ChatMessageModel)
-        .where(ChatMessageModel.workspace_id == workspace_id)
+        .where(
+            ChatMessageModel.workspace_id == workspace_id,
+            ChatMessageModel.user_id == current_user.id
+        )
         .order_by(ChatMessageModel.created_at.asc())
     )
     messages = result.scalars().all()
@@ -847,6 +851,7 @@ async def get_chat_history(
 async def delete_chat_history(
     workspace_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Clear all chat history for a workspace."""
     await verify_workspace_access(workspace_id, db)
@@ -854,7 +859,10 @@ async def delete_chat_history(
     from app.models.chat_message import ChatMessage as ChatMessageModel
     from sqlalchemy import delete
     await db.execute(
-        delete(ChatMessageModel).where(ChatMessageModel.workspace_id == workspace_id)
+        delete(ChatMessageModel).where(
+            ChatMessageModel.workspace_id == workspace_id,
+            ChatMessageModel.user_id == current_user.id
+        )
     )
     await db.commit()
     return {"status": "cleared", "workspace_id": workspace_id}
@@ -925,9 +933,11 @@ async def chat_with_documents(
     fastapi_req: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    user_id: int | None = None, # For manual calls skipping current_user dep
 ):
     """Chat with documents using NexusRAG retrieval + LLM answer generation."""
     start_time = time.time()
+    effective_user_id = user_id or current_user.id
     kb = await verify_workspace_access(workspace_id, db)
 
     # Apply visibility filter
@@ -1237,6 +1247,7 @@ async def chat_with_documents(
 
         user_row = ChatMessageModel(
             workspace_id=workspace_id,
+            user_id=effective_user_id,
             message_id=str(uuid.uuid4()),
             role="user",
             content=request.message,
@@ -1245,6 +1256,7 @@ async def chat_with_documents(
 
         assistant_row = ChatMessageModel(
             workspace_id=workspace_id,
+            user_id=effective_user_id,
             message_id=str(uuid.uuid4()),
             role="assistant",
             content=answer,

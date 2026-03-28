@@ -52,7 +52,12 @@ export const workspacesApi = {
   /** DELETE /api/v1/workspaces/{id} */
   delete: (id) =>
     ragFetch(`/api/v1/workspaces/${id}`, { method: 'DELETE' }),
+
+  /** GET /api/v1/workspaces/{id}/suggested-questions */
+  getSuggestedQuestions: (id) =>
+    ragFetch(`/api/v1/workspaces/${id}/suggested-questions`),
 };
+
 
 // ─── Documents (MiccoRAG-v2) ────────────────────────────────────────────────
 

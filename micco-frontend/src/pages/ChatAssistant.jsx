@@ -541,6 +541,16 @@ export default function ChatAssistant() {
     const [mode, setMode] = useState('hybrid');
     const [clearConfirm, setClearConfirm] = useState(false);
 
+    // Suggested questions
+    const [suggestedQuestions, setSuggestedQuestions] = useState([
+        'Phân tích rủi ro & cơ hội?', 
+        'Chiến lược hành động cốt lõi', 
+        'Đánh giá hiệu quả hệ thống', 
+        'Tối ưu hóa quy trình hiện tại'
+    ]);
+    const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+
+
     const scrollContainerRef = useRef(null);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
@@ -564,14 +574,34 @@ export default function ChatAssistant() {
 
     // ─── Load history when workspace changes ──────────────────────────────────
     useEffect(() => {
-        if (!selectedWs) { setMessages([]); return; }
+        if (!selectedWs) { 
+            setMessages([]); 
+            return; 
+        }
         loadHistory(selectedWs.id);
+        loadSuggestedQuestions(selectedWs.id);
         
         // Non-admins forced to use workspace default search mode
         if (!isAdmin && selectedWs.search_mode) {
             setMode(selectedWs.search_mode);
         }
     }, [selectedWs?.id, isAdmin]);
+
+    const loadSuggestedQuestions = async (wsId) => {
+        setSuggestionsLoading(true);
+        try {
+            const res = await workspacesApi.getSuggestedQuestions(wsId);
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    setSuggestedQuestions(data);
+                }
+            }
+        } catch { /* use default */ } finally {
+            setSuggestionsLoading(false);
+        }
+    };
+
 
     const loadHistory = async (wsId) => {
         setHistoryLoading(true);
@@ -955,12 +985,12 @@ export default function ChatAssistant() {
                             </p>
                             {/* Suggestion chips */}
                             <div className="flex flex-wrap justify-center gap-2 max-w-md">
-                                {[
-                                    'Phân tích rủi ro & cơ hội?', 
-                                    'Chiến lược hành động cốt lõi', 
-                                    'Đánh giá hiệu quả hệ thống', 
-                                    'Tối ưu hóa quy trình hiện tại'
-                                ].map((q, i) => (
+                                {suggestionsLoading ? (
+                                    <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                        Đang tạo gợi ý...
+                                    </div>
+                                ) : suggestedQuestions.map((q, i) => (
                                     <button
                                         key={q}
                                         onClick={() => setInput(q)}
@@ -971,6 +1001,7 @@ export default function ChatAssistant() {
                                     </button>
                                 ))}
                             </div>
+
                         </div>
                     )}
 

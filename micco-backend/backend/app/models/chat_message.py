@@ -20,6 +20,12 @@ class ChatMessage(Base):
         ForeignKey("knowledge_bases.id", ondelete="CASCADE"),
         index=True,
     )
+    user_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     message_id: Mapped[str] = mapped_column(String(50), index=True)
     role: Mapped[str] = mapped_column(String(20), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
