@@ -39,13 +39,25 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
             detail="Email already registered",
         )
 
-    if req.department_id is not None:
-        dept = await db.execute(select(Department).where(Department.id == req.department_id))
-        if dept.scalar_one_or_none() is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Department not found",
-            )
+    name = req.name.strip()
+    if len(name) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tên phải có ít nhất 2 ký tự"
+        )
+
+    if len(req.password) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Mật khẩu phải có ít nhất 6 ký tự"
+        )
+
+    dept = await db.execute(select(Department).where(Department.id == req.department_id))
+    if dept.scalar_one_or_none() is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Department not found",
+        )
 
     user = User(
         name=req.name,

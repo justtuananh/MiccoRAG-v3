@@ -202,6 +202,10 @@ async def create_user(
     db: AsyncSession = Depends(get_db),
     _admin: User = Depends(_require_admin),
 ):
+    name = (body.get("name") or "").strip()
+    if len(name) < 2:
+        raise HTTPException(status_code=400, detail="Tên phải có ít nhất 2 ký tự")
+
     email = (body.get("email") or "").strip()
     if not email:
         raise HTTPException(status_code=400, detail="Email không được trống")
@@ -210,12 +214,20 @@ async def create_user(
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(status_code=400, detail="Email đã tồn tại")
 
+    password = body.get("password") or "123456"
+    if len(password) < 6:
+        raise HTTPException(status_code=400, detail="Mật khẩu phải có ít nhất 6 ký tự")
+
+    dept_id = body.get("department_id")
+    if not dept_id:
+        raise HTTPException(status_code=400, detail="Phòng ban không được để trống")
+
     user = User(
-        name=body.get("name", ""),
+        name=name,
         email=email,
-        hashed_password=hash_password(body.get("password") or "123456"),
+        hashed_password=hash_password(password),
         role=body.get("role", "Nhân viên"),
-        department_id=body.get("department_id"),
+        department_id=dept_id,
     )
     db.add(user)
     await db.commit()
@@ -237,7 +249,10 @@ async def update_user(
         raise HTTPException(status_code=404, detail="Người dùng không tồn tại")
 
     if "name" in body:
-        user.name = body["name"]
+        name = body["name"].strip()
+        if len(name) < 2:
+            raise HTTPException(status_code=400, detail="Tên phải có ít nhất 2 ký tự")
+        user.name = name
 
     if "email" in body:
         dup = await db.execute(select(User).where(User.email == body["email"], User.id != user_id))
@@ -249,10 +264,16 @@ async def update_user(
         user.role = body["role"]
 
     if "department_id" in body:
-        user.department_id = body["department_id"]
+        dept_id = body["department_id"]
+        if not dept_id:
+            raise HTTPException(status_code=400, detail="Phòng ban không được để trống")
+        user.department_id = dept_id
 
     if body.get("password"):
-        user.hashed_password = hash_password(body["password"])
+        password = body["password"]
+        if len(password) < 6:
+            raise HTTPException(status_code=400, detail="Mật khẩu phải có ít nhất 6 ký tự")
+        user.hashed_password = hash_password(password)
 
     await db.commit()
     await db.refresh(user)

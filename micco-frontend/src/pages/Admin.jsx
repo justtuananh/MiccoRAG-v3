@@ -11,6 +11,7 @@ import UsersTable, { PAGE_SIZE } from '../components/admin/UsersTable';
 import LogsTable, { LOG_PAGE_SIZE, LogDetailModal } from '../components/admin/LogsTable';
 import ConfirmDeleteModal from '../components/shared/ConfirmDeleteModal';
 import Breadcrumb from '../components/shared/Breadcrumb';
+import Departments from './Departments';
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function Admin() {
@@ -24,7 +25,7 @@ export default function Admin() {
     const [roleFilter, setRoleFilter] = useState('Tất cả');
     
     // -- Logs State --
-    const [activeTab, setActiveTab] = useState('users'); // 'users' | 'logs'
+    const [activeTab, setActiveTab] = useState('users'); // 'users' | 'logs' | 'departments'
     const [logs, setLogs] = useState([]);
     const [logTotal, setLogTotal] = useState(0);
     const [logPage, setLogPage] = useState(1);
@@ -265,6 +266,18 @@ export default function Admin() {
                         Lịch sử hệ thống
                     </div>
                 </button>
+                <button
+                    onClick={() => setActiveTab('departments')}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'departments'
+                        ? 'bg-white dark:bg-slate-900 text-primary-600 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        }`}
+                >
+                    <div className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4" />
+                        Phòng ban
+                    </div>
+                </button>
             </div>
 
             {/* ── Table Content ───────────────────────────────────────────── */}
@@ -287,7 +300,7 @@ export default function Admin() {
                     onDelete={setDeleteUser}
                     isActive={isActive}
                 />
-            ) : (
+            ) : activeTab === 'logs' ? (
                 <LogsTable
                     logs={logs}
                     total={logTotal}
@@ -299,7 +312,9 @@ export default function Admin() {
                     onExport={handleExport}
                     onViewDetail={setSelectedLog}
                 />
-            )}
+            ) : activeTab === 'departments' ? (
+                <Departments embedded={true} />
+            ) : null}
 
             {/* ── AI Tools ────────────────────────────────────────────── */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">

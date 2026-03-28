@@ -24,7 +24,7 @@ function ProtectedRoute() {
         );
     }
 
-    return <Outlet />;
+    return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 }
 
 function PublicOnlyRoute() {
@@ -47,16 +47,15 @@ function App() {
       <AuthProvider>
         <Router>
           <Routes>
-            {/* Root → go straight to dashboard */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* Root → go to login */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/landing" element={<Landing />} />
 
             {/* Public-only: redirect to /dashboard if already authenticated */}
-            {/* Bypassed login/register */}
-            {/* <Route element={<PublicOnlyRoute />}>
+            <Route element={<PublicOnlyRoute />}>
               <Route path="/login" element={<AuthPage />} />
               <Route path="/register" element={<AuthPage />} />
-            </Route> */}
+            </Route>
 
             {/* Protected: redirect to /login if not authenticated */}
             <Route element={<ProtectedRoute />}>

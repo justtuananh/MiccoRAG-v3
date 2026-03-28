@@ -37,13 +37,28 @@ export default function UserModal({ open, onClose, onSave, editUser }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        if (form.name.trim().length < 2) {
+            alert('Tên phải có ít nhất 2 ký tự');
+            return;
+        }
+        if (!form.department_id) {
+            alert('Vui lòng chọn phòng ban');
+            return;
+        }
+        if (!editUser && form.password && form.password.length < 6) {
+            alert('Mật khẩu phải có ít nhất 6 ký tự');
+            return;
+        }
+        if (editUser && form.password && form.password.length < 6) {
+            alert('Mật khẩu phải có ít nhất 6 ký tự');
+            return;
+        }
+
         setSaving(true);
         const payload = { ...form };
-        if (payload.department_id === '') {
-            payload.department_id = null;
-        } else {
-            payload.department_id = parseInt(payload.department_id);
-        }
+        payload.department_id = parseInt(payload.department_id);
+        
         await onSave(payload);
         setSaving(false);
     };
@@ -105,8 +120,9 @@ export default function UserModal({ open, onClose, onSave, editUser }) {
                                 value={form.department_id}
                                 onChange={e => setForm(f => ({ ...f, department_id: e.target.value }))}
                                 className="w-full px-3 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-600/30 focus:border-primary-600 transition-all appearance-none cursor-pointer"
+                                required
                             >
-                                <option value="">-- Không --</option>
+                                <option value="">-- Chọn phòng ban * --</option>
                                 {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                             </select>
                         </div>

@@ -347,10 +347,24 @@ function SignUpForm({ onRegister, isDark, toggleTheme, onToggle, mobile }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
+        if (name.trim().length < 2) {
+            setError('Tên phải có ít nhất 2 ký tự');
+            return;
+        }
+        if (!departmentId) {
+            setError('Vui lòng chọn phòng ban');
+            return;
+        }
+        if (password.length < 6) {
+            setError('Mật khẩu phải có ít nhất 6 ký tự');
+            return;
+        }
         if (!passwordsMatch) return;
+        
         setLoading(true);
         setError('');
-        onRegister(name, email, password, departmentId ? parseInt(departmentId) : null, setLoading, setError);
+        onRegister(name.trim(), email, password, parseInt(departmentId), setLoading, setError);
     };
 
     return (
@@ -403,8 +417,9 @@ function SignUpForm({ onRegister, isDark, toggleTheme, onToggle, mobile }) {
                     </div>
                     <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}
                         className="w-full pl-16 pr-5 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-600/10 dark:focus:border-secondary-400 dark:focus:ring-secondary-400/10 transition-all text-sm appearance-none cursor-pointer"
+                        required
                     >
-                        <option value="">-- Chọn phòng ban --</option>
+                        <option value="">-- Chọn phòng ban * --</option>
                         {departments.map(d => (
                             <option key={d.id} value={d.id}>{d.name}</option>
                         ))}

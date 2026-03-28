@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import Breadcrumb from '../components/shared/Breadcrumb';
 import ConfirmDeleteModal from '../components/shared/ConfirmDeleteModal';
 
-export default function Departments() {
+export default function Departments({ embedded = false }) {
     const { authFetch } = useAuth();
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -74,11 +74,13 @@ export default function Departments() {
     );
 
     return (
-        <div className="space-y-8">
-            <Breadcrumb items={[
-                { label: 'Tổng quan', href: '/dashboard' },
-                { label: 'Phòng ban' },
-            ]} />
+        <div className={embedded ? "space-y-6" : "space-y-8"}>
+            {!embedded && (
+                <Breadcrumb items={[
+                    { label: 'Tổng quan', href: '/dashboard' },
+                    { label: 'Phòng ban' },
+                ]} />
+            )}
 
             {/* Toast */}
             {toast && (
@@ -96,19 +98,34 @@ export default function Departments() {
             )}
 
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Quản lý phòng ban</h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Tạo và quản lý các phòng ban trong hệ thống</p>
+            {!embedded && (
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Quản lý phòng ban</h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Tạo và quản lý các phòng ban trong hệ thống</p>
+                    </div>
+                    <button
+                        onClick={() => { setEditDept(null); setModalOpen(true); }}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Thêm phòng ban
+                    </button>
                 </div>
-                <button
-                    onClick={() => { setEditDept(null); setModalOpen(true); }}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
-                >
-                    <Plus className="w-4 h-4" />
-                    Thêm phòng ban
-                </button>
-            </div>
+            )}
+            
+            {/* Embedded Header/Actions */}
+            {embedded && (
+                <div className="flex items-center justify-end">
+                    <button
+                        onClick={() => { setEditDept(null); setModalOpen(true); }}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Thêm phòng ban
+                    </button>
+                </div>
+            )}
 
             {/* Search */}
             <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3.5 py-2.5 max-w-sm shadow-sm">
