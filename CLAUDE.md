@@ -77,3 +77,33 @@ CHUNK_OVERLAP=50
 - Mọi API endpoint phải có docstring
 - Không hardcode API keys — chỉ dùng os.getenv()
 - Log mọi LLM call với: provider, model, tokens used, latency
+
+## Multi-Agent System
+
+### Agent Roles
+| Agent | Working Directory | Responsibilities |
+|-------|------------------|-----------------|
+| **backend-dev** | `/home/kms/MiccoRAG-v3/micco-backend/backend` | FastAPI, Services, Models, DB |
+| **frontend-dev** | `/home/kms/MiccoRAG-v3/micco-frontend` | React, UI, API integration |
+| **qa-tester** | `/home/kms/micco` | Testing, Quality Assurance |
+
+### Workflow
+1. **User giao task** → Main agent analyze và coordinate
+2. **Backend dev** → Implement backend (TDD workflow)
+3. **Frontend dev** → Implement frontend (sau khi backend ready)
+4. **QA tester** → Run tests nhiều lần đến khi **95% pass**
+5. **Report** → Final quality report
+
+### Commands
+```bash
+/coordinate-task  # Phối hợp 2 agent
+/run-qa           # Chạy QA tests đạt 95%
+/backend-dev      # Backend development
+/frontend-dev     # Frontend development
+```
+
+### Quality Gates
+- Test pass rate ≥ 95%
+- Test coverage ≥ 80%
+- Critical bugs = 0
+- No hardcoded secrets

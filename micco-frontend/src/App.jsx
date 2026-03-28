@@ -9,6 +9,7 @@ import DocumentView from './pages/DocumentView';
 import ChatAssistant from './pages/ChatAssistant';
 import Admin from './pages/Admin';
 import Knowledge from './pages/Knowledge';
+import GraphKnowledge from './pages/GraphKnowledge';
 import Departments from './pages/Departments';
 import Approvals from './pages/Approvals';
 import DashboardLayout from './layouts/DashboardLayout';
@@ -65,6 +66,7 @@ function App() {
                 <Route path="/documents/:id" element={<DocumentView />} />
                 <Route path="/chat" element={<ChatAssistant />} />
                 <Route path="/knowledge" element={<Knowledge />} />
+                <Route path="/graph-knowledge" element={<GraphKnowledge />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/departments" element={<Departments />} />
                 <Route path="/approvals" element={<Approvals />} />

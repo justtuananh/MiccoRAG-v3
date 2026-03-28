@@ -37,6 +37,7 @@ async def _enrich_response(db: AsyncSession, kb: KnowledgeBase) -> WorkspaceResp
         system_prompt=kb.system_prompt,
         kg_language=kb.kg_language,
         kg_entity_types=kb.kg_entity_types,
+        search_mode=kb.search_mode,
         document_count=total.scalar() or 0,
         indexed_count=indexed.scalar() or 0,
         created_at=kb.created_at,
@@ -65,6 +66,7 @@ async def create_workspace(
         description=body.description,
         kg_language=body.kg_language,
         kg_entity_types=body.kg_entity_types,
+        search_mode=body.search_mode,
     )
     db.add(kb)
     await db.commit()
@@ -130,6 +132,8 @@ async def update_workspace(
         kb.kg_language = body.kg_language or None
     if body.kg_entity_types is not None:
         kb.kg_entity_types = body.kg_entity_types or None
+    if body.search_mode is not None:
+        kb.search_mode = body.search_mode or "hybrid"
 
     await db.commit()
     await db.refresh(kb)

@@ -10,6 +10,9 @@ from app.models.knowledge_base import KnowledgeBase
 from app.models.document import Document, DocumentImage, DocumentStatus
 import logging
 
+from app.core.security import get_current_user
+from app.models.user import User
+
 from app.schemas.rag import (
     RAGQueryRequest,
     RAGQueryResponse,
@@ -83,25 +86,58 @@ async def verify_workspace_access(
     return kb
 
 
+async def get_allowed_document_ids(
+    db: AsyncSession,
+    current_user: User,
+    workspace_id: int,
+) -> list[int]:
+    """Get list of document IDs that the user has access to."""
+    stmt = select(Document.id).where(
+        Document.workspace_id == workspace_id,
+        Document.status == DocumentStatus.INDEXED,
+        Document.approval_status == 'approved'
+    )
+    
+    if current_user.role != "Admin":
+        from sqlalchemy import or_
+        stmt = stmt.where(
+            or_(
+                Document.visibility == 'public',
+                Document.department_id == current_user.department_id
+            )
+        )
+    
+    result = await db.execute(stmt)
+    return [row[0] for row in result.all()]
+
+
 @router.post("/query/{workspace_id}", response_model=RAGQueryResponse)
 async def query_documents(
     workspace_id: int,
     request: RAGQueryRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    """Query indexed documents using semantic search (+ optional KG)."""
-    await verify_workspace_access(workspace_id, db)
+    # Verify workspace and get KB
+    kb = await verify_workspace_access(workspace_id, db)
+    
+    # Apply visibility filter
+    allowed_ids = await get_allowed_document_ids(db, current_user, workspace_id)
+    # Determine search mode
+    search_mode = request.mode
+    if current_user.role != "Admin" or not search_mode:
+        search_mode = kb.search_mode or "hybrid"
 
     rag_service = get_rag_service(db, workspace_id)
 
     # Try deep query if available
     from app.services.nexus_rag_service import NexusRAGService
-    if isinstance(rag_service, NexusRAGService) and request.mode != "vector_only":
+    if isinstance(rag_service, NexusRAGService) and search_mode != "vector_only":
         result = await rag_service.query_deep(
             question=request.question,
             top_k=request.top_k,
             document_ids=request.document_ids,
-            mode=request.mode,
+            mode=search_mode,
         )
 
         chunks_response = []
@@ -592,13 +628,24 @@ async def get_kg_entities(
     limit: int = 200,
     offset: int = 0,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """List entities in the workspace's knowledge graph."""
     await verify_workspace_access(workspace_id, db)
+    
+    # Note: KG filtering by doc_id is limited. For now, we fetch all, 
+    # but in a production multi-tenant scenario, we'd filter at the storage level.
+    # However, for Graph view, we can filter based on allowed documents if needed.
+    
     kg = await _get_kg_service(workspace_id)
     try:
+        allowed_ids = await get_allowed_document_ids(db, current_user, workspace_id)
         entities = await kg.get_entities(
-            search=search, entity_type=entity_type, limit=limit, offset=offset
+            search=search, 
+            entity_type=entity_type, 
+            limit=limit, 
+            offset=offset,
+            allowed_doc_ids=allowed_ids
         )
         return [KGEntityResponse(**e) for e in entities]
     except Exception as e:
@@ -612,12 +659,18 @@ async def get_kg_relationships(
     entity: str | None = None,
     limit: int = 500,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """List relationships in the workspace's knowledge graph."""
     await verify_workspace_access(workspace_id, db)
     kg = await _get_kg_service(workspace_id)
     try:
-        rels = await kg.get_relationships(entity_name=entity, limit=limit)
+        allowed_ids = await get_allowed_document_ids(db, current_user, workspace_id)
+        rels = await kg.get_relationships(
+            entity_name=entity, 
+            limit=limit,
+            allowed_doc_ids=allowed_ids
+        )
         return [KGRelationshipResponse(**r) for r in rels]
     except Exception as e:
         logger.error(f"Failed to get KG relationships for workspace {workspace_id}: {e}")
@@ -631,13 +684,18 @@ async def get_kg_graph(
     max_depth: int = 3,
     max_nodes: int = 150,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Export knowledge graph data for frontend visualization."""
     await verify_workspace_access(workspace_id, db)
     kg = await _get_kg_service(workspace_id)
     try:
+        allowed_ids = await get_allowed_document_ids(db, current_user, workspace_id)
         data = await kg.get_graph_data(
-            center_entity=center, max_depth=max_depth, max_nodes=max_nodes
+            center_entity=center, 
+            max_depth=max_depth, 
+            max_nodes=max_nodes,
+            allowed_doc_ids=allowed_ids
         )
         return KGGraphResponse(
             nodes=[KGGraphNodeResponse(**n) for n in data["nodes"]],
@@ -866,10 +924,21 @@ async def chat_with_documents(
     request: ChatRequest,
     fastapi_req: Request,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Chat with documents using NexusRAG retrieval + LLM answer generation."""
     start_time = time.time()
     kb = await verify_workspace_access(workspace_id, db)
+
+    # Apply visibility filter
+    allowed_ids = await get_allowed_document_ids(db, current_user, workspace_id)
+    if request.document_ids:
+        request.document_ids = [did for did in request.document_ids if did in allowed_ids]
+    else:
+        request.document_ids = allowed_ids
+
+    if not request.document_ids:
+        return ChatResponse(answer="Bạn chưa có quyền truy cập vào tài liệu nào để đặt câu hỏi.", sources=[], related_entities=[])
 
     rag_service = get_rag_service(db, workspace_id)
 
@@ -878,13 +947,18 @@ async def chat_with_documents(
     citations = []
     kg_summary = ""
 
+    # Determine search mode
+    search_mode = request.mode
+    if current_user.role != "Admin" or not search_mode:
+        search_mode = kb.search_mode or "hybrid"
+
     from app.services.nexus_rag_service import NexusRAGService
     if isinstance(rag_service, NexusRAGService):
         result = await rag_service.query_deep(
             question=request.message,
             top_k=8,
             document_ids=request.document_ids,
-            mode="hybrid",
+            mode=search_mode,
             include_images=False,  # No longer need separate image lookup
         )
         chunks = result.chunks

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
@@ -13,7 +14,6 @@ from app.core.security import get_current_user
 from app.models.user import User
 from app.models.document import Document, DocumentStatus
 from app.schemas.compat import LegacyDocumentVersionResponse
-from app.api.documents import upload_document
 from app.api_compat.utils import (
     format_bytes_to_human,
     get_or_create_default_workspace,
@@ -34,7 +34,24 @@ async def list_documents(
     current_user: User = Depends(get_current_user),
 ):
     workspace = await get_or_create_default_workspace(db)
-    stmt = select(Document).where(Document.workspace_id == workspace.id).order_by(Document.created_at.desc())
+    
+    # Base query: approved documents only, unless you are uploader
+    stmt = select(Document).where(Document.workspace_id == workspace.id)
+    
+    # Filter by approval status: non-admins only see approved ones
+    if current_user.role not in ("Admin", "Trưởng phòng"):
+        stmt = stmt.where(
+            (Document.approval_status == "approved") | 
+            (Document.uploader_id == current_user.id)
+        )
+        # Filter by visibility
+        stmt = stmt.where(
+            (Document.visibility == "public") |
+            (Document.department_id == current_user.department_id) |
+            (Document.uploader_id == current_user.id)
+        )
+    
+    stmt = stmt.order_by(Document.created_at.desc())
     docs = (await db.execute(stmt)).scalars().all()
 
     mapped = [map_rag_doc_to_legacy(doc, owner_name=current_user.name) for doc in docs]
@@ -65,9 +82,29 @@ async def upload_documents(
 ):
     workspace = await get_or_create_default_workspace(db)
 
-    created: list[dict] = []
+    # Admins and Managers get auto-approved; regular users need approval
+    is_admin = current_user.role in ("Admin", "Trưởng phòng")
+    doc_approval_status = "approved" if is_admin else "pending"
+    effective_dept_id = department_id if department_id is not None else current_user.department_id
+
     for f in files:
-        await upload_document(workspace.id, f, db)
+        content = await f.read()
+        ext = Path(f.filename).suffix.lower() if f.filename else ""
+        filename = f"{uuid.uuid4()}{ext}"
+
+        doc = Document(
+            workspace_id=workspace.id,
+            filename=filename,
+            original_filename=f.filename,
+            file_type=ext[1:] if ext else "file",
+            file_size=len(content),
+            status=DocumentStatus.PENDING,
+            uploader_id=current_user.id,
+            department_id=effective_dept_id,
+            visibility=visibility or "internal",
+            approval_status=doc_approval_status,
+        )
+        db.add(doc)
 
     await db.commit()
 
@@ -80,10 +117,8 @@ async def upload_documents(
         )
     ).scalars().all()
 
-    for doc in docs:
-        created.append(map_rag_doc_to_legacy(doc, owner_name=current_user.name))
-
-    return list(reversed(created))
+    created = [map_rag_doc_to_legacy(doc, owner_name=current_user.name) for doc in reversed(docs)]
+    return created
 
 
 @router.get("/{doc_id}")
@@ -176,7 +211,25 @@ async def upload_new_version(
         raise HTTPException(status_code=404, detail="Document not found")
 
     workspace = await get_or_create_default_workspace(db)
-    await upload_document(workspace.id, file, db)
+    is_admin = current_user.role in ("Admin", "Trưởng phòng")
+
+    content = await file.read()
+    ext = Path(file.filename).suffix.lower() if file.filename else ""
+    filename = f"{uuid.uuid4()}{ext}"
+
+    new_doc = Document(
+        workspace_id=workspace.id,
+        filename=filename,
+        original_filename=file.filename,
+        file_type=ext[1:] if ext else "file",
+        file_size=len(content),
+        status=DocumentStatus.PENDING,
+        uploader_id=current_user.id,
+        department_id=current_user.department_id,
+        visibility=old_doc.visibility,
+        approval_status="approved" if is_admin else old_doc.approval_status,
+    )
+    db.add(new_doc)
     await db.commit()
 
     new_doc = (

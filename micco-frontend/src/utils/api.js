@@ -11,12 +11,17 @@ const RAG_V2_BASE = import.meta.env.VITE_RAGV2_BASE_URL || '';
 
 export async function ragFetch(path, options = {}) {
   const url = `${RAG_V2_BASE}${path}`;
+  const token = localStorage.getItem('docvault_token');
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
   const res = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
   });
   return res;
 }
@@ -60,11 +65,21 @@ export const ragDocumentsApi = {
   get: (docId) => ragFetch(`/api/v1/documents/${docId}`),
 
   /** POST /api/v1/documents/upload/{workspaceId}  (multipart) */
-  upload: (workspaceId, file) => {
+  upload: (workspaceId, file, options = {}) => {
     const form = new FormData();
     form.append('file', file);
+    if (options.visibility) form.append('visibility', options.visibility);
+    if (options.department_id) form.append('department_id', options.department_id);
+    
+    const token = localStorage.getItem('docvault_token');
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     return fetch(`${RAG_V2_BASE}/api/v1/documents/upload/${workspaceId}`, {
       method: 'POST',
+      headers,
       body: form,
     });
   },
@@ -105,6 +120,24 @@ export const ragProcessApi = {
   /** GET /api/v1/rag/stats/{workspaceId} */
   stats: (workspaceId) =>
     ragFetch(`/api/v1/rag/stats/${workspaceId}`),
+};
+
+// ─── Approvals (micco-server parity) ──────────────────────────────────────
+export const approvalsApi = {
+  /** GET /api/approvals/count */
+  count: () => ragFetch('/api/approvals/count'),
+
+  /** GET /api/approvals/pending */
+  pending: () => ragFetch('/api/approvals/pending'),
+
+  /** POST /api/approvals/documents/{id}/approve */
+  approveDocument: (id) => ragFetch(`/api/approvals/documents/${id}/approve`, { method: 'POST' }),
+
+  /** POST /api/approvals/documents/{id}/reject */
+  rejectDocument: (id, note) => ragFetch(`/api/approvals/documents/${id}/reject`, { 
+    method: 'POST',
+    body: JSON.stringify({ note }) 
+  }),
 };
 
 // ─── RAG Query (MiccoRAG-v2) ────────────────────────────────────────────────
@@ -158,6 +191,14 @@ export const ragChatApi = {
   /** DELETE /api/v1/rag/chat/{workspaceId}/history */
   clearHistory: (workspaceId) =>
     ragFetch(`/api/v1/rag/chat/${workspaceId}/history`, { method: 'DELETE' }),
+
+  /** DELETE /api/chat/all-history — clears all chat history for every personal workspace of the current user */
+  clearAllHistory: () =>
+    ragFetch('/api/chat/all-history', { method: 'DELETE' }),
+
+  /** GET /api/chat/my-workspace-id — returns { workspace_id } of the current user's personal workspace */
+  getMyWorkspaceId: () =>
+    ragFetch('/api/chat/my-workspace-id'),
 };
 
 // ─── Helper: parse SSE stream ────────────────────────────────────────────────

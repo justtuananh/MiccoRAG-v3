@@ -85,6 +85,7 @@ export default function UsersTable({
                         <tr className="bg-slate-50 dark:bg-slate-800/50">
                             <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tên</th>
                             <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Vai trò</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Phòng ban</th>
                             <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Trạng thái</th>
                             <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ngày tham gia</th>
                             <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Hành động</th>
@@ -93,7 +94,7 @@ export default function UsersTable({
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {users.length === 0 && (
                             <tr>
-                                <td colSpan={5} className="px-6 py-14 text-center">
+                                <td colSpan={6} className="px-6 py-14 text-center">
                                     <Users className="w-10 h-10 text-slate-200 dark:text-slate-700 mx-auto mb-3" />
                                     <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Không tìm thấy người dùng</p>
                                     <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Hãy điều chỉnh bộ lọc hoặc tìm kiếm</p>
@@ -125,6 +126,14 @@ export default function UsersTable({
                                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${ROLE_COLORS[u.role] || ROLE_COLORS['Nhân viên']}`}>
                                             {u.role}
                                         </span>
+                                    </td>
+                                    {/* Department */}
+                                    <td className="px-6 py-4">
+                                        {u.department_name ? (
+                                            <span className="text-sm text-slate-700 dark:text-slate-300">{u.department_name}</span>
+                                        ) : (
+                                            <span className="text-xs text-slate-400 italic">Chưa phân</span>
+                                        )}
                                     </td>
                                     {/* Status */}
                                     <td className="px-6 py-4">

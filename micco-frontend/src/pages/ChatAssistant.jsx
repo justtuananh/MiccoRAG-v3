@@ -8,6 +8,7 @@ import {
     Copy, Check
 } from 'lucide-react';
 import { workspacesApi, ragChatApi, ragDocumentsApi, readSSEStream } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 
 // ─── Default system prompt (mirror of backend DEFAULT_SYSTEM_PROMPT) ──────────
 const DEFAULT_PROMPT = `Bạn là trợ lý AI chuyên nghiệp và hỗ trợ giải đáp các câu hỏi dựa trên tài liệu được cung cấp.
@@ -527,6 +528,9 @@ export default function ChatAssistant() {
     const [showPromptPanel, setShowPromptPanel] = useState(false);
     const [previewDoc, setPreviewDoc] = useState(null);
 
+    const { user } = useAuth();
+    const isAdmin = user?.role === 'Admin';
+
     // Chat
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
@@ -562,7 +566,12 @@ export default function ChatAssistant() {
     useEffect(() => {
         if (!selectedWs) { setMessages([]); return; }
         loadHistory(selectedWs.id);
-    }, [selectedWs?.id]);
+        
+        // Non-admins forced to use workspace default search mode
+        if (!isAdmin && selectedWs.search_mode) {
+            setMode(selectedWs.search_mode);
+        }
+    }, [selectedWs?.id, isAdmin]);
 
     const loadHistory = async (wsId) => {
         setHistoryLoading(true);
@@ -865,19 +874,21 @@ export default function ChatAssistant() {
                         )}
                     </div>
 
-                    {/* Mode selector */}
-                    <select
-                        value={mode}
-                        onChange={e => setMode(e.target.value)}
-                        className="text-xs px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 outline-none"
-                    >
-                        <option value="hybrid">Hybrid</option>
-                        <option value="vector_only">Vector only</option>
-                        <option value="graph_only">Graph only</option>
-                    </select>
+                    {/* Mode selector - Admin only */}
+                    {isAdmin && (
+                        <select
+                            value={mode}
+                            onChange={e => setMode(e.target.value)}
+                            className="text-xs px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 outline-none"
+                        >
+                            <option value="hybrid">Hybrid</option>
+                            <option value="vector_only">Vector only</option>
+                            <option value="graph_only">Graph only</option>
+                        </select>
+                    )}
 
-                    {/* System Prompt Settings */}
-                    {selectedWs && (
+                    {/* System Prompt Settings - Admin only */}
+                    {selectedWs && isAdmin && (
                         <button
                             onClick={() => setShowPromptPanel(true)}
                             className="p-1.5 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:text-violet-400 dark:hover:bg-violet-500/10 transition-colors"

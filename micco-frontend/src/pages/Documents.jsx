@@ -4,10 +4,11 @@ import {
     Upload, X, File, ChevronDown, CheckCircle2,
     ChevronLeft, ChevronRight, Trash2, Search,
     Loader2, RefreshCw, Play, Plus, Database,
-    AlertCircle, Clock, Zap, FolderOpen, Eye, Edit3, Download
+    AlertCircle, Clock, Zap, FolderOpen, Eye, Edit3, Download, Lock
 } from 'lucide-react';
 import Breadcrumb from '../components/shared/Breadcrumb';
 import { workspacesApi, ragDocumentsApi, ragProcessApi } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 
 // ─── Status config ────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -17,12 +18,14 @@ const STATUS_CONFIG = {
     indexing:   { label: 'Đang nạp dữ liệu',   color: 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400', Icon: Loader2 },
     indexed:    { label: 'Đã cập nhật kiến thức',     color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400', Icon: CheckCircle2 },
     failed:     { label: 'Lỗi',          color: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',           Icon: AlertCircle },
+    pending_approval: { label: 'Chờ duyệt', color: 'bg-amber-50 text-amber-600 border border-amber-200', Icon: Lock },
 };
 
-function StatusBadge({ status }) {
-    const cfg = STATUS_CONFIG[status?.toLowerCase()] || STATUS_CONFIG.pending;
+function StatusBadge({ status, approvalStatus }) {
+    const isPendingApproval = approvalStatus === 'pending';
+    const cfg = STATUS_CONFIG[isPendingApproval ? 'pending_approval' : status?.toLowerCase()] || STATUS_CONFIG.pending;
     const Icon = cfg.Icon;
-    const spinning = ['processing', 'parsing', 'indexing'].includes(status?.toLowerCase());
+    const spinning = ['processing', 'parsing', 'indexing'].includes(status?.toLowerCase()) && !isPendingApproval;
     return (
         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.color}`}>
             <Icon className={`w-3 h-3 ${spinning ? 'animate-spin' : ''}`} />
@@ -76,6 +79,7 @@ const ROWS_PER_PAGE = 10;
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function Documents() {
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     // Workspaces
     const [workspaces, setWorkspaces] = useState([]);
@@ -93,6 +97,7 @@ export default function Documents() {
     const [uploading, setUploading] = useState(false);
     const [uploadSuccess, setUploadSuccess] = useState(false);
     const [uploadError, setUploadError] = useState('');
+    const [visibility, setVisibility] = useState('internal');
     const fileInputRef = useRef(null);
 
     // Create workspace
@@ -207,7 +212,10 @@ export default function Documents() {
         setUploadError('');
         try {
             const results = await Promise.allSettled(
-                stagedFiles.map(f => ragDocumentsApi.upload(selectedWs.id, f))
+                stagedFiles.map(f => ragDocumentsApi.upload(selectedWs.id, f, { 
+                    visibility,
+                    department_id: user?.department_id 
+                }))
             );
 
             const errors = [];
@@ -519,6 +527,33 @@ export default function Documents() {
                                         </div>
                                     ) : (
                                         <>
+                                            {/* Visibility Selector */}
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Phạm vi truy cập</label>
+                                                <div className="flex gap-3">
+                                                    <button
+                                                        onClick={() => setVisibility('internal')}
+                                                        className={`flex-1 flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${visibility === 'internal' ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'}`}
+                                                    >
+                                                        <Lock className={`w-5 h-5 ${visibility === 'internal' ? 'text-primary-600' : 'text-gray-400'}`} />
+                                                        <div className="text-center">
+                                                            <div className={`text-xs font-bold ${visibility === 'internal' ? 'text-primary-900 dark:text-primary-100' : 'text-gray-700'}`}>Nội bộ</div>
+                                                            <div className="text-[10px] text-gray-400">Phòng ban</div>
+                                                        </div>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setVisibility('public')}
+                                                        className={`flex-1 flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${visibility === 'public' ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'}`}
+                                                    >
+                                                        <Eye className={`w-5 h-5 ${visibility === 'public' ? 'text-primary-600' : 'text-gray-400'}`} />
+                                                        <div className="text-center">
+                                                            <div className={`text-xs font-bold ${visibility === 'public' ? 'text-primary-900 dark:text-primary-100' : 'text-gray-700'}`}>Công khai</div>
+                                                            <div className="text-[10px] text-gray-400">Toàn công ty</div>
+                                                        </div>
+                                                    </button>
+                                                </div>
+                                            </div>
+
                                             {/* Drop zone */}
                                             <div
                                                 onDragEnter={handleDrag} onDragLeave={handleDrag}
@@ -608,6 +643,7 @@ export default function Documents() {
                                     <tr className="border-b border-gray-100 dark:border-gray-800">
                                         <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tên tệp</th>
                                         <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Loại</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Phạm vi</th>
                                         <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">Kích thước</th>
                                         <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Trạng thái</th>
                                         <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell">Ngày upload</th>
@@ -617,7 +653,9 @@ export default function Documents() {
                                 <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                                     {pageDocs.map(doc => {
                                         const isProcessing = processingIds.has(doc.id) || ['processing', 'parsing', 'indexing'].includes(doc.status?.toLowerCase());
-                                        const canProcess = ['pending', 'failed'].includes(doc.status?.toLowerCase()) && !processingIds.has(doc.id);
+                                        const isApproved = doc.approval_status === 'approved';
+                                        const isAdmin = user?.role === 'Admin';
+                                        const canProcess = isApproved && isAdmin && ['pending', 'failed'].includes(doc.status?.toLowerCase()) && !processingIds.has(doc.id);
                                         return (
                                             <tr key={doc.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
                                                 <td className="px-5 py-3">
@@ -635,11 +673,27 @@ export default function Documents() {
                                                         {doc.file_type || '?'}
                                                     </span>
                                                 </td>
+                                                <td className="px-5 py-3 hidden sm:table-cell">
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 w-fit ${
+                                                        doc.visibility === 'public' 
+                                                        ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' 
+                                                        : 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'
+                                                    }`}>
+                                                        {doc.visibility === 'public' ? (
+                                                            <><Eye className="w-3 h-3" /> Công khai</>
+                                                        ) : (
+                                                            <><Lock className="w-3 h-3" /> Nội bộ</>
+                                                        )}
+                                                    </span>
+                                                </td>
                                                 <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
                                                     {formatBytes(doc.file_size)}
                                                 </td>
                                                 <td className="px-5 py-3">
-                                                    <StatusBadge status={doc.status} />
+                                                    <StatusBadge status={doc.status} approvalStatus={doc.approval_status} />
+                                                    {doc.approval_status === 'pending' && (
+                                                        <p className="text-[10px] text-amber-600 mt-1 font-medium">Chờ Admin phê duyệt để xử lý RAG</p>
+                                                    )}
                                                     {doc.error_message && (
                                                         <p className="text-xs text-red-500 mt-1 max-w-xs truncate" title={doc.error_message}>
                                                             {doc.error_message}

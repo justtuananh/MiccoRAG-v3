@@ -94,6 +94,34 @@ class KnowledgeGraphService:
         self.kg_entity_types = kg_entity_types or settings.NEXUSRAG_KG_ENTITY_TYPES
         self._rag = None
         self._initialized = False
+        self._chunk_to_doc_map: dict[str, str] | None = None
+
+    async def _get_chunk_to_doc_map(self) -> dict[str, str]:
+        """Load chunk-to-document mapping from LightRAG storage."""
+        map_data = self._chunk_to_doc_map
+        if map_data is not None:
+            return map_data
+        
+        mapping: dict[str, str] = {}
+        # Path to kv_storage_text_chunks.json
+        storage_path = Path(self.working_dir) / "kv_storage_text_chunks.json"
+        
+        if storage_path.exists():
+            try:
+                import json
+                with open(storage_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    for chunk_id, chunk_info in data.items():
+                        # In LightRAG, chunk_info usually has 'doc_id' 
+                        # if ingested with ids parameter.
+                        doc_id = chunk_info.get("doc_id")
+                        if doc_id:
+                            mapping[chunk_id] = str(doc_id)
+            except Exception as e:
+                logger.error(f"Failed to load chunk-to-doc mapping: {e}")
+        
+        self._chunk_to_doc_map = mapping
+        return mapping
 
     async def _get_rag(self):
         """Lazy-initialize LightRAG instance."""
@@ -272,11 +300,12 @@ class KnowledgeGraphService:
         entity_type: str | None = None,
         limit: int = 200,
         offset: int = 0,
+        allowed_doc_ids: list[int] | None = None,
     ) -> list[dict]:
         """
         List all entities in the knowledge graph.
-
-        Returns list of dicts with: name, entity_type, description, degree.
+        
+        If allowed_doc_ids is provided, filters entities belonging to those documents.
         """
         rag = await self._get_rag()
         storage = rag.chunk_entity_relation_graph
@@ -287,13 +316,34 @@ class KnowledgeGraphService:
             logger.error(f"Failed to get KG nodes for workspace {self.workspace_id}: {e}")
             return []
 
+        # Build allowed IDs set for fast lookup
+        allowed_ids_str = set(str(id) for id in allowed_doc_ids) if allowed_doc_ids is not None else None
+        chunk_map = await self._get_chunk_to_doc_map() if allowed_ids_str is not None else None
+
         entities = []
         for node in all_nodes:
             node_id = node.get("id", "")
             etype = node.get("entity_type", "Unknown")
             desc = node.get("description", "")
+            source_id = node.get("source_id", "") # e.g. "chunk-ID" or "chunk-ID1,chunk-ID2"
+            
+            # Filtering by allowed document IDs
+            if allowed_ids_str is not None:
+                is_allowed = False
+                # Nodes in LightRAG often have source_id which is a comma-separated list of chunks
+                node_chunks = [c.strip() for c in source_id.split(",") if c.strip()]
+                for chunk in node_chunks:
+                    # Strip "chunk-" prefix if present
+                    cid = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else chunk
+                    doc_id = chunk_map.get(cid)
+                    if doc_id in allowed_ids_str:
+                        is_allowed = True
+                        break
+                
+                if not is_allowed:
+                    continue
 
-            # Filters
+            # Existing filters
             if entity_type and etype.lower() != entity_type.lower():
                 continue
             if search and search.lower() not in node_id.lower():
@@ -321,12 +371,12 @@ class KnowledgeGraphService:
         self,
         entity_name: str | None = None,
         limit: int = 500,
+        allowed_doc_ids: list[int] | None = None,
     ) -> list[dict]:
         """
         List relationships in the knowledge graph.
 
-        If entity_name is provided, returns only relationships involving that entity.
-        Returns list of dicts with: source, target, description, keywords, weight.
+        If allowed_doc_ids is provided, filters relationships belonging to those documents.
         """
         rag = await self._get_rag()
         storage = rag.chunk_entity_relation_graph
@@ -337,10 +387,29 @@ class KnowledgeGraphService:
             logger.error(f"Failed to get KG edges for workspace {self.workspace_id}: {e}")
             return []
 
+        # Build allowed IDs set for fast lookup
+        allowed_ids_str = set(str(id) for id in allowed_doc_ids) if allowed_doc_ids is not None else None
+        chunk_map = await self._get_chunk_to_doc_map() if allowed_ids_str is not None else None
+
         relationships = []
         for edge in all_edges:
             src = edge.get("source", "")
             tgt = edge.get("target", "")
+            source_id = edge.get("source_id", "")
+            
+            # Filtering by allowed document IDs
+            if allowed_ids_str is not None:
+                is_allowed = False
+                edge_chunks = [c.strip() for c in source_id.split(",") if c.strip()]
+                for chunk in edge_chunks:
+                    cid = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else chunk
+                    doc_id = chunk_map.get(cid)
+                    if doc_id in allowed_ids_str:
+                        is_allowed = True
+                        break
+                
+                if not is_allowed:
+                    continue
 
             if entity_name:
                 if entity_name.lower() not in (src.lower(), tgt.lower()):
@@ -361,11 +430,10 @@ class KnowledgeGraphService:
         center_entity: str | None = None,
         max_depth: int = 3,
         max_nodes: int = 150,
+        allowed_doc_ids: list[int] | None = None,
     ) -> dict:
         """
         Export graph data for frontend visualization.
-
-        Returns {nodes: [...], edges: [...], is_truncated: bool}.
         """
         rag = await self._get_rag()
         storage = rag.chunk_entity_relation_graph
@@ -381,26 +449,71 @@ class KnowledgeGraphService:
             logger.error(f"Failed to get KG graph for workspace {self.workspace_id}: {e}")
             return {"nodes": [], "edges": [], "is_truncated": False}
 
+        # Filter nodes and edges based on allowed_doc_ids 
+        allowed_ids_str = set(str(id) for id in allowed_doc_ids) if allowed_doc_ids is not None else None
+        chunk_map = await self._get_chunk_to_doc_map() if allowed_ids_str is not None else None
+        
         nodes = []
+        allowed_node_ids = set()
         for n in kg.nodes:
-            props = n.properties if hasattr(n, "properties") else {}
+            # Type hinting for linter
+            node_id = getattr(n, "id", None)
+            if node_id is None:
+                continue
+                
+            props = getattr(n, "properties", {})
+            # Filtering by allowed domain if requested
+            if allowed_ids_str is not None:
+                source_id = props.get("source_id", "")
+                is_allowed = False
+                chunks = [c.strip() for c in source_id.split(",") if c.strip()]
+                for chunk in chunks:
+                    cid = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else chunk
+                    doc_id = chunk_map.get(cid)
+                    if doc_id in allowed_ids_str:
+                        is_allowed = True
+                        break
+                if not is_allowed:
+                    continue
+            
+            allowed_node_ids.add(node_id)
             try:
-                degree = await storage.node_degree(n.id)
+                degree = await storage.node_degree(node_id)
             except Exception:
                 degree = 0
             nodes.append({
-                "id": n.id,
-                "label": n.id,
+                "id": node_id,
+                "label": node_id,
                 "entity_type": props.get("entity_type", "Unknown"),
                 "degree": degree,
             })
 
         edges = []
         for e in kg.edges:
-            props = e.properties if hasattr(e, "properties") else {}
+            source = getattr(e, "source", None)
+            target = getattr(e, "target", None)
+            
+            # Only include edges where both source and target are allowed (and the edge itself is from allowed doc)
+            if source not in allowed_node_ids or target not in allowed_node_ids:
+                continue
+                
+            props = getattr(e, "properties", {})
+            if allowed_ids_str is not None:
+                source_id = props.get("source_id", "")
+                is_allowed = False
+                chunks = [c.strip() for c in source_id.split(",") if c.strip()]
+                for chunk in chunks:
+                    cid = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else chunk
+                    doc_id = chunk_map.get(cid)
+                    if doc_id in allowed_ids_str:
+                        is_allowed = True
+                        break
+                if not is_allowed:
+                    continue
+
             edges.append({
-                "source": e.source,
-                "target": e.target,
+                "source": source,
+                "target": target,
                 "label": props.get("description", "")[:80],
                 "weight": float(props.get("weight", 1.0)),
             })

@@ -27,59 +27,69 @@ async def lifespan(app: FastAPI):
     import os
     auto_create = os.environ.get("AUTO_CREATE_TABLES", "true").lower() == "true"
     if auto_create:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-            # Auto-migrate: add new columns if missing
-            await conn.execute(
-                text("ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS system_prompt TEXT")
-            )
-            # Ensure chat_messages table + indexes exist (idempotent)
-            await conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS chat_messages (
-                    id SERIAL PRIMARY KEY,
-                    workspace_id INTEGER NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
-                    message_id VARCHAR(50) NOT NULL,
-                    role VARCHAR(20) NOT NULL,
-                    content TEXT NOT NULL,
-                    sources JSON,
-                    related_entities JSON,
-                    image_refs JSON,
-                    thinking TEXT,
-                    created_at TIMESTAMP DEFAULT NOW()
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+                # Auto-migrate: add new columns if missing
+                await conn.execute(
+                    text("ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS system_prompt TEXT")
                 )
-            """))
-            await conn.execute(text(
-                "CREATE INDEX IF NOT EXISTS ix_chat_messages_workspace_id ON chat_messages(workspace_id)"
-            ))
-            await conn.execute(text(
-                "CREATE INDEX IF NOT EXISTS ix_chat_messages_message_id ON chat_messages(message_id)"
-            ))
-            await conn.execute(text(
-                "ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS ratings JSON"
-            ))
-            await conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS system_chat_logs (
-                    id SERIAL PRIMARY KEY,
-                    workspace_id INTEGER NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
-                    ip_address VARCHAR(50),
-                    timestamp TIMESTAMPTZ DEFAULT NOW(),
-                    response_time FLOAT NOT NULL,
-                    question TEXT NOT NULL,
-                    answer TEXT NOT NULL,
-                    method VARCHAR(50) NOT NULL
+                # Ensure chat_messages table + indexes exist (idempotent)
+                await conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS chat_messages (
+                        id SERIAL PRIMARY KEY,
+                        workspace_id INTEGER NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+                        message_id VARCHAR(50) NOT NULL,
+                        role VARCHAR(20) NOT NULL,
+                        content TEXT NOT NULL,
+                        sources JSON,
+                        related_entities JSON,
+                        image_refs JSON,
+                        thinking TEXT,
+                        created_at TIMESTAMP DEFAULT NOW()
+                    )
+                """))
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_chat_messages_workspace_id ON chat_messages(workspace_id)"
+                ))
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_chat_messages_message_id ON chat_messages(message_id)"
+                ))
+                await conn.execute(text(
+                    "ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS ratings JSON"
+                ))
+                await conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS system_chat_logs (
+                        id SERIAL PRIMARY KEY,
+                        workspace_id INTEGER NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+                        ip_address VARCHAR(50),
+                        timestamp TIMESTAMPTZ DEFAULT NOW(),
+                        response_time FLOAT NOT NULL,
+                        question TEXT NOT NULL,
+                        answer TEXT NOT NULL,
+                        method VARCHAR(50) NOT NULL
+                    )
+                """))
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_system_chat_logs_workspace_id ON system_chat_logs(workspace_id)"
+                ))
+                # Auto-migrate: add workspace settings columns with safety timeouts
+                await conn.execute(text("SET lock_timeout = '5s'"))
+                await conn.execute(
+                    text("ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS kg_language VARCHAR(50)")
                 )
-            """))
-            await conn.execute(text(
-                "CREATE INDEX IF NOT EXISTS ix_system_chat_logs_workspace_id ON system_chat_logs(workspace_id)"
-            ))
-            # Auto-migrate: add workspace settings columns
-            await conn.execute(
-                text("ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS kg_language VARCHAR(50)")
-            )
-            await conn.execute(
-                text("ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS kg_entity_types JSON")
-            )
-        logger.info("Database tables created/verified")
+                await conn.execute(
+                    text("ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS kg_entity_types JSON")
+                )
+                await conn.execute(
+                    text("ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS search_mode VARCHAR(50) DEFAULT 'hybrid'")
+                )
+                logger.info("Database migration (search_mode) completed or already up to date")
+        except Exception as e:
+            logger.error(f"Migration error during startup: {e}")
+            # Continue even if migration fails to prevent deadlock/hang
+        
+        logger.info("Lifespan: Database tables created/verified")
 
         # Recover stale processing documents (stuck from previous runs)
         from app.models.document import Document, DocumentStatus

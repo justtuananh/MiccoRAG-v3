@@ -67,9 +67,9 @@ CREATE INDEX IF NOT EXISTS idx_knowledge_status ON knowledge_entries (status);
 -- DASHBOARD FUNCTIONS
 -- ═══════════════════════════════════════════════════════════════════════════
 
--- ─── get_dashboard_stats ──────────────────────────────────────────────────
--- Returns key system-wide metrics (counts for files, users in workspace)
--- Using knowledge_bases (NexusRAG's workspace table) + users
+/*
+-- ─── DASHBOARD FUNCTIONS (Depends on 'documents' table) ───────────────────────────
+-- These are handled by the backend migration if needed.
 CREATE OR REPLACE FUNCTION get_dashboard_stats(p_department_id INTEGER DEFAULT NULL)
 RETURNS TABLE (
     total_files     BIGINT,
@@ -80,26 +80,13 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT
-        -- total indexed documents from NexusRAG's 'documents' table
-        (SELECT COUNT(*)
-           FROM documents
-           WHERE p_department_id IS NULL)::BIGINT,
-        -- total file size
-        (SELECT COALESCE(SUM(file_size), 0)
-           FROM documents
-           WHERE p_department_id IS NULL)::BIGINT,
-        -- uploaded in last 7 days
-        (SELECT COUNT(*)
-           FROM documents
-           WHERE created_at >= NOW() - INTERVAL '7 days')::BIGINT,
-        -- total users
-        (SELECT COUNT(*)
-           FROM users
-           WHERE (p_department_id IS NULL OR department_id = p_department_id))::BIGINT;
+        (SELECT COUNT(*) FROM documents WHERE p_department_id IS NULL)::BIGINT,
+        (SELECT COALESCE(SUM(file_size), 0) FROM documents WHERE p_department_id IS NULL)::BIGINT,
+        (SELECT COUNT(*) FROM documents WHERE created_at >= NOW() - INTERVAL '7 days')::BIGINT,
+        (SELECT COUNT(*) FROM users WHERE (p_department_id IS NULL OR department_id = p_department_id))::BIGINT;
 END;
 $$ LANGUAGE plpgsql;
 
--- ─── get_uploads_over_time ────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION get_uploads_over_time(p_department_id INTEGER DEFAULT NULL)
 RETURNS TABLE (
     month_name   TEXT,
@@ -127,7 +114,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- ─── get_storage_by_type ──────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION get_storage_by_type(p_department_id INTEGER DEFAULT NULL)
 RETURNS TABLE (
     doc_type    VARCHAR,
@@ -147,10 +133,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- ─── System Chat Logs (for optimization) ──────────────────────────────────
+-- ─── System Chat Logs (Depends on 'knowledge_bases' table) ────────────────────────
+-- Handled by backend app.main lifespan
 CREATE TABLE IF NOT EXISTS system_chat_logs (
     id            SERIAL PRIMARY KEY,
-    workspace_id  INTEGER      NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+    workspace_id  INTEGER      NOT NULL,
     ip_address    VARCHAR(50),
     timestamp     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     response_time FLOAT        NOT NULL,
@@ -158,9 +145,7 @@ CREATE TABLE IF NOT EXISTS system_chat_logs (
     answer        TEXT         NOT NULL,
     method        VARCHAR(50)  NOT NULL
 );
-
-CREATE INDEX IF NOT EXISTS idx_system_logs_workspace ON system_chat_logs (workspace_id);
-CREATE INDEX IF NOT EXISTS idx_system_logs_timestamp ON system_chat_logs (timestamp);
+*/
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- SEED DATA — default departments

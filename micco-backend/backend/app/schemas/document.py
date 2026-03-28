@@ -32,6 +32,11 @@ class DocumentResponse(DocumentBase):
     table_count: int = 0
     parser_version: str | None = None
     processing_time_ms: int = 0
+    # RBAC / approval fields
+    uploader_id: int | None = None
+    department_id: int | None = None
+    visibility: str = "internal"
+    approval_status: str = "approved"
 
     model_config = {"from_attributes": True}
 

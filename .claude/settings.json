@@ -1,20 +1,65 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "command": "cd backend && python -m pytest tests/ -x --tb=short -q 2>&1 | tail -30"
-      }
-    ]
-  },
   "permissions": {
     "allow": [
-      "Bash(pytest:*)",
-      "Bash(uvicorn:*)",
-      "Bash(alembic:*)",
-      "Bash(pip:*)",
-      "Bash(npm:*)",
-      "Bash(docker-compose:*)"
+      "Read(//home/kms/MiccoRAG-v3/**)",
+      "Read(//home/kms/**)",
+      "Write(//home/kms/MiccoRAG-v3/**)",
+      "Write(//home/kms/**)"
+    ]
+  },
+  "agents": {
+    "backend-dev": {
+      "name": "Backend Developer Agent",
+      "description": "Agent phụ trách phát triển backend code trong micco-backend/backend. Chịu trách nhiệm implement API endpoints, services, models, và đảm bảo code quality theo CLAUDE.md rules.",
+      "working_directory": "/home/kms/MiccoRAG-v3/micco-backend/backend",
+      "instructions_file": ".claude/backend-agent.md",
+      "capabilities": [
+        "Implement FastAPI endpoints",
+        "Write unit/integration tests",
+        "Database migrations",
+        "LLM integration",
+        "RAG pipeline development"
+      ]
+    },
+    "frontend-dev": {
+      "name": "Frontend Developer Agent",
+      "description": "Agent phụ trách phát triển frontend code trong micco-frontend. Chịu trách nhiệm implement UI components, API calls, state management, và đảm bảo responsive design.",
+      "working_directory": "/home/kms/MiccoRAG-v3/micco-frontend",
+      "instructions_file": ".claude/frontend-agent.md",
+      "capabilities": [
+        "React/Vite component development",
+        "API integration",
+        "State management",
+        "Responsive design",
+        "Performance optimization"
+      ]
+    },
+    "qa-tester": {
+      "name": "QA Tester Agent",
+      "description": "Agent phụ trách testing và quality assurance. Chạy tests nhiều lần, đảm bảo chất lượng đạt 95% yêu cầu trước khi bàn giao.",
+      "working_directory": "/home/kms/MiccoRAG-v3",
+      "instructions_file": ".claude/qa-agent.md",
+      "capabilities": [
+        "Run unit tests",
+        "Run integration tests",
+        "E2E testing",
+        "Quality reporting",
+        "Performance testing"
+      ]
+    }
+  },
+  "hooks": {
+    "onTaskStart": [
+      {
+        "match": "**/*",
+        "run": "echo 'Task started at $(date)'"
+      }
+    ],
+    "onTaskComplete": [
+      {
+        "match": "**/*",
+        "run": "echo 'Task completed at $(date)'"
+      }
     ]
   }
 }

@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db
@@ -13,7 +13,7 @@ from app.models.chat_message import ChatMessage as PersistedChatMessage
 from app.schemas.rag import ChatRequest, ChatMessageSchema
 from app.schemas.compat import LegacyChatMessageResponse, LegacyChatSendRequest
 from app.api.rag import chat_with_documents
-from app.api_compat.utils import get_or_create_default_workspace
+from app.api_compat.utils import get_or_create_user_workspace
 
 router = APIRouter(prefix="/api/chat", tags=["Chat Assistant"])
 
@@ -40,7 +40,7 @@ async def send_message(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    workspace = await get_or_create_default_workspace(db)
+    workspace = await get_or_create_user_workspace(db, current_user.id)
 
     history_stmt = (
         select(PersistedChatMessage)
@@ -81,7 +81,7 @@ async def get_history(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    workspace = await get_or_create_default_workspace(db)
+    workspace = await get_or_create_user_workspace(db, current_user.id)
 
     stmt = (
         select(PersistedChatMessage)
@@ -104,3 +104,49 @@ async def get_history(
         )
 
     return out
+
+
+@router.delete("/history")
+async def clear_history(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Clear all chat history for the current user's personal workspace."""
+    workspace = await get_or_create_user_workspace(db, current_user.id)
+    await db.execute(
+        delete(PersistedChatMessage).where(
+            PersistedChatMessage.workspace_id == workspace.id
+        )
+    )
+    await db.commit()
+    return {"status": "cleared", "workspace_id": workspace.id}
+
+
+@router.delete("/all-history")
+async def clear_all_user_history(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Clear all chat history for every workspace the current user owns.
+
+    Used during logout to wipe all per-user AI chat sessions.
+    """
+    workspace = await get_or_create_user_workspace(db, current_user.id)
+    await db.execute(
+        delete(PersistedChatMessage).where(
+            PersistedChatMessage.workspace_id == workspace.id
+        )
+    )
+    await db.commit()
+    return {"status": "cleared"}
+
+
+@router.get("/my-workspace-id")
+async def get_my_workspace_id(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return the current user's personal workspace ID (for frontend logout cleanup)."""
+    workspace = await get_or_create_user_workspace(db, current_user.id)
+    return {"workspace_id": workspace.id}
+

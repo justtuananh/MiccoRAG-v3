@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
     Users, HardDrive, Zap,
     Plus,
-    CheckCircle2, AlertCircle, Brain, RefreshCw,
+    CheckCircle2, AlertCircle, Brain, RefreshCw, Building2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import StatCard from '../components/admin/StatCard';

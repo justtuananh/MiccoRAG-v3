@@ -1,9 +1,0 @@
-feat: admin chat logs, cohere reranker & cross-platform docs
-
-- [Admin] Implemented searchable/paginated system chat history in Admin panel.
-- [RAG] Standardized Cohere (rerank-multilingual-v3.0) as default reranker.
-- [Logging] Configured GMT+7 (Vietnam) time for interaction logging.
-- [Docs] Complete README.md rewrite with Windows & Ubuntu setup guides.
-- [UI] Polished and compacted Dashboard & Chat for premium visual density.
-- [Fix] Fixed NameError in rag.py and missing cohere dependency.
-- [Setup] Updated setup.sh to remove local BGE reranker download.

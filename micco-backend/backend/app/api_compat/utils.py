@@ -11,6 +11,7 @@ from app.models.knowledge_base import KnowledgeBase
 
 
 async def get_or_create_default_workspace(db: AsyncSession) -> KnowledgeBase:
+    """Return the global default workspace (for backward compat)."""
     ws_id = settings.COMPAT_DEFAULT_WORKSPACE_ID
     result = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == ws_id))
     workspace = result.scalar_one_or_none()
@@ -24,6 +25,34 @@ async def get_or_create_default_workspace(db: AsyncSession) -> KnowledgeBase:
         id=ws_id,
         name=settings.COMPAT_DEFAULT_WORKSPACE_NAME,
         description=settings.COMPAT_DEFAULT_WORKSPACE_DESCRIPTION,
+    )
+    db.add(workspace)
+    await db.commit()
+    await db.refresh(workspace)
+    return workspace
+
+
+async def get_or_create_user_workspace(db: AsyncSession, user_id: int) -> KnowledgeBase:
+    """Create a per-user workspace for AI chat sessions.
+
+    Workspace is named "Không gian cá nhân - {user_name}" but since we don't
+    have user_name here, we just use user_id as part of the slug.
+    A separate admin-created workspace can be used for shared documents.
+    """
+    # Try to find existing personal workspace for this user
+    # Use a naming convention: "personal-{user_id}"
+    result = await db.execute(
+        select(KnowledgeBase).where(
+            KnowledgeBase.name == f"personal-{user_id}"
+        )
+    )
+    workspace = result.scalar_one_or_none()
+    if workspace:
+        return workspace
+
+    workspace = KnowledgeBase(
+        name=f"personal-{user_id}",
+        description=f"Không gian cá nhân của người dùng #{user_id}",
     )
     db.add(workspace)
     await db.commit()
@@ -57,10 +86,12 @@ def map_rag_doc_to_legacy(doc: Any, owner_name: str = "System") -> dict[str, Any
         "date": doc.created_at.strftime("%Y-%m-%d") if doc.created_at else "",
         "tags": [],
         "thumbnail": None,
-        "visibility": "internal",
-        "approval_status": "approved",
-        "approval_note": None,
-        "status": "Active",
+        "visibility": getattr(doc, "visibility", "internal"),
+        "approval_status": getattr(doc, "approval_status", "approved"),
+        "approval_note": getattr(doc, "approval_note", None),
+        "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
+        # Extra RBAC fields for frontend
+        "uploader_id": getattr(doc, "uploader_id", None),
     }
 
 

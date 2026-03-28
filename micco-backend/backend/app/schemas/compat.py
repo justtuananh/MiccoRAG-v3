@@ -31,6 +31,11 @@ class UserResponse(BaseModel):
     avatar: str | None = None
 
 
+class UserUpdateRequest(BaseModel):
+    name: str | None = None
+    password: str | None = None
+
+
 class DepartmentResponse(BaseModel):
     id: int
     name: str

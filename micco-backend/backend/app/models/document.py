@@ -34,6 +34,13 @@ class Document(Base):
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
 
+    # Approvals & Access Control
+    uploader_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id", ondelete="SET NULL"), nullable=True)
+    visibility: Mapped[str] = mapped_column(String(20), default="internal") # "internal" or "public"
+    approval_status: Mapped[str] = mapped_column(String(20), default="approved") # "pending", "approved", "rejected"
+    approval_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     # NexusRAG fields
     markdown_content: Mapped[str | None] = mapped_column(Text, nullable=True)
     page_count: Mapped[int] = mapped_column(Integer, default=0)

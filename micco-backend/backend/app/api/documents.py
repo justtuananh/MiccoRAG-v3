@@ -13,8 +13,10 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.deps import get_db
+from app.core.security import get_current_user
 from app.core.exceptions import NotFoundError
 from app.models.knowledge_base import KnowledgeBase
+from app.models.user import User
 from app.models.document import Document, DocumentImage, DocumentStatus
 from app.schemas.document import DocumentResponse, DocumentUploadResponse, DocumentUpdate
 from app.schemas.rag import DocumentImageResponse
@@ -59,17 +61,30 @@ MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 async def list_documents(
     workspace_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    """List all documents in a knowledge base."""
+    """List documents in a workspace.
+
+    Non-admin users only see approved documents OR documents they uploaded.
+    Admin / Trưởng phòng see all documents in their workspaces.
+    """
     result = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == workspace_id))
     kb = result.scalar_one_or_none()
 
     if kb is None:
         raise NotFoundError("KnowledgeBase", workspace_id)
 
-    result = await db.execute(
-        select(Document).where(Document.workspace_id == workspace_id).order_by(Document.created_at.desc())
-    )
+    stmt = select(Document).where(Document.workspace_id == workspace_id)
+
+    # RBAC: non-admins only see approved docs + their own uploads
+    if current_user.role not in ("Admin", "Trưởng phòng"):
+        stmt = stmt.where(
+            (Document.approval_status == "approved") |
+            (Document.uploader_id == current_user.id)
+        )
+
+    stmt = stmt.order_by(Document.created_at.desc())
+    result = await db.execute(stmt)
     return result.scalars().all()
 
 
@@ -127,6 +142,9 @@ async def upload_document(
     workspace_id: int,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    department_id: int | None = None,
+    visibility: str = "internal",
 ):
     """Upload a document to a knowledge base. Processing must be triggered separately."""
     result = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == workspace_id))
@@ -156,6 +174,10 @@ async def upload_document(
     async with aiofiles.open(file_path, "wb") as f:
         await f.write(content)
 
+    # Non-admin uploads start as pending approval; admin uploads are pre-approved
+    is_admin = current_user.role in ("Admin", "Trưởng phòng")
+    doc_approval_status = "approved" if is_admin else "pending"
+
     document = Document(
         workspace_id=workspace_id,
         filename=filename,
@@ -163,6 +185,10 @@ async def upload_document(
         file_type=ext[1:],
         file_size=len(content),
         status=DocumentStatus.PENDING,
+        uploader_id=current_user.id,
+        department_id=department_id or current_user.department_id,
+        visibility=visibility,
+        approval_status=doc_approval_status,
     )
     db.add(document)
     await db.commit()
@@ -172,7 +198,9 @@ async def upload_document(
         id=document.id,
         filename=document.original_filename,
         status=document.status,
-        message="Document uploaded. Click 'Process' to extract and index content."
+        message="Tải lên thành công! Đang chờ phê duyệt."
+        if doc_approval_status == "pending"
+        else "Document uploaded. Click 'Process' to extract and index content.",
     )
 
 

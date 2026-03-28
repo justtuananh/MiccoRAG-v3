@@ -334,7 +334,7 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{title}</p>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                            <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-md">
                                 <User className="w-3 h-3" />{item.owner}
                             </span>
                             {item.department && (
@@ -481,7 +481,10 @@ function ApprovalCard({ item, type, actionLoading, previewLoading, onPreview, on
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
                                 <span className="text-xs text-gray-500 dark:text-gray-400">{item.category}</span>
                                 <span className="text-gray-300 dark:text-gray-600">·</span>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">{item.owner}</span>
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 rounded-md">
+                                    <User className="w-3 h-3" />
+                                    {item.owner}
+                                </span>
                                 {item.department && (
                                     <>
                                         <span className="text-gray-300 dark:text-gray-600">·</span>

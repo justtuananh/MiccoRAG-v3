@@ -172,6 +172,7 @@ class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=5000)
     history: list[ChatMessageSchema] = []
     document_ids: list[int] | None = None
+    mode: str | None = Field(default=None, description="Search mode override (Admin only)")
     enable_thinking: bool = False
     force_search: bool = False  # Pre-search before LLM call; injects sources as context directly
 

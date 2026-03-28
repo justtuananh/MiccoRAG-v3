@@ -99,3 +99,42 @@ async def get_me(current_user: User = Depends(get_current_user)):
         department_name=current_user.department.name if current_user.department else None,
         avatar=current_user.avatar,
     )
+
+
+from app.schemas.compat import UserUpdateRequest
+
+@router.put("/me", response_model=UserResponse)
+async def update_me(
+    req: UserUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if req.name is not None:
+        name = req.name.strip()
+        if len(name) < 2:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Tên phải có ít nhất 2 ký tự"
+            )
+        current_user.name = name
+
+    if req.password is not None:
+        if len(req.password) < 6:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Mật khẩu phải có ít nhất 6 ký tự"
+            )
+        current_user.hashed_password = hash_password(req.password)
+
+    await db.commit()
+    await db.refresh(current_user)
+
+    return UserResponse(
+        id=current_user.id,
+        name=current_user.name,
+        email=current_user.email,
+        role=current_user.role,
+        department_id=current_user.department_id,
+        department_name=current_user.department.name if current_user.department else None,
+        avatar=current_user.avatar,
+    )

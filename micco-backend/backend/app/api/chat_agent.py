@@ -231,6 +231,7 @@ async def _execute_search_documents(
     top_k: int,
     db: AsyncSession,
     existing_ids: set[str],
+    mode: str = "hybrid",
 ) -> tuple[str, list[ChatSourceChunk], list[ChatImageRef], list[dict]]:
     """Execute document search and return formatted context + structured sources.
 
@@ -250,7 +251,7 @@ async def _execute_search_documents(
         result = await rag_service.query_deep(
             question=query,
             top_k=min(top_k, 10),
-            mode="hybrid",
+            mode=mode,
             include_images=False,
         )
         chunks = result.chunks
@@ -394,6 +395,7 @@ async def agent_chat_stream(
     db: AsyncSession,
     system_prompt: str,
     force_search: bool = False,
+    mode: str = "hybrid",
 ) -> AsyncGenerator[dict, None]:
     """Semi-agentic chat loop with streaming.
 
@@ -435,7 +437,7 @@ async def agent_chat_stream(
         yield {"event": "status", "data": {"step": "retrieving", "detail": f"Searching: {message[:80]}..."}}
 
         context, sources, images, img_parts = await _execute_search_documents(
-            workspace_id, message, 8, db, existing_ids,
+            workspace_id, message, 8, db, existing_ids, mode=mode,
         )
         all_sources.extend(sources)
         all_images.extend(images)
@@ -547,7 +549,7 @@ async def agent_chat_stream(
                 }}
 
                 context, sources, images, img_parts = await _execute_search_documents(
-                    workspace_id, query, top_k, db, existing_ids,
+                    workspace_id, query, top_k, db, existing_ids, mode=mode,
                 )
                 all_sources.extend(sources)
                 all_images.extend(images)
@@ -692,7 +694,7 @@ async def agent_chat_stream(
         }}
 
         context, sources, images, img_parts = await _execute_search_documents(
-            workspace_id, message, 8, db, existing_ids,
+            workspace_id, message, 8, db, existing_ids, mode=mode,
         )
         all_sources.extend(sources)
         all_images.extend(images)
@@ -800,6 +802,18 @@ async def chat_stream_endpoint(
             detail="Knowledge base not found",
         )
 
+    # Determine search mode
+    from app.core.security import get_current_user
+    try:
+        current_user = await get_current_user(fastapi_req, db)
+        is_admin = current_user.role == "Admin"
+    except Exception:
+        is_admin = False
+
+    search_mode = getattr(request, 'mode', None)
+    if not is_admin or not search_mode:
+        search_mode = kb.search_mode or "hybrid"
+
     # Build system prompt
     from app.api.chat_prompt import DEFAULT_SYSTEM_PROMPT, HARD_SYSTEM_PROMPT
     system_prompt = (kb.system_prompt or DEFAULT_SYSTEM_PROMPT) + HARD_SYSTEM_PROMPT
@@ -845,6 +859,7 @@ async def chat_stream_endpoint(
                 db=db,
                 system_prompt=system_prompt,
                 force_search=request.force_search,
+                mode=search_mode,
             ):
                 event_type = event["event"]
                 event_data = event["data"]

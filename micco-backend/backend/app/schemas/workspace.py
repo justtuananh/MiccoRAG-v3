@@ -10,6 +10,7 @@ class WorkspaceCreate(BaseModel):
     description: str | None = None
     kg_language: str | None = None
     kg_entity_types: list[str] | None = None
+    search_mode: str | None = "hybrid"
 
 
 class WorkspaceUpdate(BaseModel):
@@ -18,6 +19,7 @@ class WorkspaceUpdate(BaseModel):
     system_prompt: str | None = None
     kg_language: str | None = None
     kg_entity_types: list[str] | None = None
+    search_mode: str | None = None
 
 
 class WorkspaceResponse(BaseModel):
@@ -27,6 +29,7 @@ class WorkspaceResponse(BaseModel):
     system_prompt: str | None = None
     kg_language: str | None = None
     kg_entity_types: list[str] | None = None
+    search_mode: str | None = "hybrid"
     document_count: int = 0
     indexed_count: int = 0
     created_at: datetime
