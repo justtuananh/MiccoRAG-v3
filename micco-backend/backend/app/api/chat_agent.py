@@ -455,6 +455,10 @@ async def agent_chat_stream(
                 "IMPORTANT:\n"
                 "- Read EVERY source above carefully. Answers often require "
                 "combining data from MULTIPLE sources.\n"
+                "- FULL DETAIL RULE: You MUST reproduce the COMPLETE content from sources, "
+                "including every step, sub-point, condition, document name, person/role mentioned, "
+                "and procedural detail. Do NOT shorten, paraphrase, or skip any part of the source. "
+                "If the source uses 4 bullet points with detailed descriptions, your answer must also contain those 4 points with their full descriptions.\n"
                 "- TABLE DATA: Sources may contain table data as 'Key, Year = Value' pairs. "
                 "Example: 'ROE, 2023 = 12,8%' means ROE was 12.8% in 2023.\n"
                 "- If no source contains relevant information, say: "
@@ -567,6 +571,10 @@ async def agent_chat_stream(
                     "IMPORTANT:\n"
                     "- Read EVERY source above carefully. Answers often require "
                     "combining data from MULTIPLE sources.\n"
+                    "- FULL DETAIL RULE: You MUST reproduce the COMPLETE content from sources, "
+                    "including every step, sub-point, condition, document name, person/role mentioned, "
+                    "and procedural detail. Do NOT shorten, paraphrase, or skip any part of the source. "
+                    "If the source uses 4 bullet points with detailed descriptions, your answer must also contain those 4 points with their full descriptions.\n"
                     "- TABLE DATA: Sources may contain table data as 'Key, Year = Value' pairs. "
                     "Example: 'ROE, 2023 = 12,8%' means ROE was 12.8% in 2023.\n"
                     "- If no source contains relevant information, say: "
@@ -707,6 +715,9 @@ async def agent_chat_stream(
                 "=== END SOURCES ===\n",
                 "IMPORTANT:\n"
                 "- Read EVERY source above carefully.\n"
+                "- FULL DETAIL RULE: You MUST reproduce the COMPLETE content from sources, "
+                "including every step, sub-point, condition, document name, person/role mentioned, "
+                "and procedural detail. Do NOT shorten, paraphrase, or skip any part of the source.\n"
                 "- If no source contains relevant information, say: "
                 "\"Tài liệu không chứa thông tin này.\"\n",
             ]
