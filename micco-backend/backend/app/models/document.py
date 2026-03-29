@@ -4,6 +4,7 @@ from datetime import datetime
 import enum
 
 from app.core.database import Base
+from app.models.document_version import DocumentVersion  # noqa: F401
 
 
 class DocumentStatus(str, enum.Enum):
@@ -49,6 +50,11 @@ class Document(Base):
     parser_version: Mapped[str | None] = mapped_column(String(50), nullable=True)  # "docling" | "legacy"
     processing_time_ms: Mapped[int] = mapped_column(Integer, default=0)
 
+    # Metadata
+    category: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    tags: Mapped[str | None] = mapped_column(Text, nullable=True)  # comma-separated
+    thumbnail: Mapped[str | None] = mapped_column(String(255), nullable=True)  # filename of thumbnail
+
     # Relationships
     workspace: Mapped["KnowledgeBase"] = relationship(back_populates="documents")
     images: Mapped[list["DocumentImage"]] = relationship(
@@ -56,6 +62,11 @@ class Document(Base):
     )
     tables: Mapped[list["DocumentTable"]] = relationship(
         back_populates="document", cascade="all, delete-orphan"
+    )
+    versions: Mapped[list["DocumentVersion"]] = relationship(
+        back_populates="document",
+        cascade="all, delete-orphan",
+        order_by="DocumentVersion.version_number.desc()",
     )
 
 

@@ -163,3 +163,1183 @@ INFO: [] Subgraph query successful | Node count: 150 | Edge count: 155
 [32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
 [32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
 [32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/pending HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/pending HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces/1/suggested-questions HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/rag/chat/1/history HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/workspaces/1/suggested-questions HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/v1/rag/chat/1/history HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/admin/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/admin/users?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/admin/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/admin/users?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/admin/chat-logs?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/admin/chat-logs?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/admin/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/admin/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/admin/users?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+2026-03-28T10:30:19Z ERR  error="Incoming request ended abruptly: context canceled" connIndex=0 event=1 ingressRule=0 originService=http://localhost:8888
+2026-03-28T10:30:19Z ERR  error="Incoming request ended abruptly: context canceled" connIndex=0 event=1 ingressRule=0 originService=http://localhost:8888
+2026-03-28T10:30:19Z ERR Request failed error="Incoming request ended abruptly: context canceled" connIndex=0 dest=https://scripts-michigan-weed-controversial.trycloudflare.com/@react-refresh event=0 ip=198.41.200.13 type=http
+2026-03-28T10:30:19Z ERR  error="Incoming request ended abruptly: context canceled" connIndex=0 event=1 ingressRule=0 originService=http://localhost:8888
+2026-03-28T10:30:19Z ERR Request failed error="Incoming request ended abruptly: context canceled" connIndex=0 dest=https://scripts-michigan-weed-controversial.trycloudflare.com/@vite/client event=0 ip=198.41.200.13 type=http
+2026-03-28T10:30:19Z ERR Request failed error="Incoming request ended abruptly: context canceled" connIndex=0 dest=https://scripts-michigan-weed-controversial.trycloudflare.com/src/main.jsx?t=1774681199371 event=0 ip=198.41.200.13 type=http
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mPOST /api/auth/login HTTP/1.1[0m" [31m401 Unauthorized[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mPOST /api/auth/login HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces/1/suggested-questions HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/rag/chat/1/history HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+INFO: [] Loaded graph from /home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/graph_chunk_entity_relation.graphml with 606 nodes, 254 edges
+INFO:nano-vectordb:Load (606, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_entities.json'} 606 data
+INFO:nano-vectordb:Load (254, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_relationships.json'} 254 data
+INFO:nano-vectordb:Load (59, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_chunks.json'} 59 data
+INFO:app.services.knowledge_graph_service:LightRAG initialized for workspace 1 (embedding_dim=3072)
+INFO: [] Graph truncated: 606 nodes found, limited to 150
+INFO: [] Subgraph query successful | Node count: 150 | Edge count: 155
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/rag/graph/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+INFO: [] Loaded graph from /home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/graph_chunk_entity_relation.graphml with 606 nodes, 254 edges
+INFO:nano-vectordb:Load (606, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_entities.json'} 606 data
+INFO:nano-vectordb:Load (254, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_relationships.json'} 254 data
+INFO:nano-vectordb:Load (59, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_chunks.json'} 59 data
+INFO:app.services.knowledge_graph_service:LightRAG initialized for workspace 1 (embedding_dim=3072)
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+INFO: [] Graph truncated: 606 nodes found, limited to 150
+INFO: [] Subgraph query successful | Node count: 150 | Edge count: 155
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/rag/graph/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.169:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mDELETE /api/chat/all-history HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mDELETE /api/chat/all-history HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mPOST /api/auth/login HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+INFO: [] Loaded graph from /home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/graph_chunk_entity_relation.graphml with 606 nodes, 254 edges
+INFO:nano-vectordb:Load (606, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_entities.json'} 606 data
+INFO:nano-vectordb:Load (254, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_relationships.json'} 254 data
+INFO:nano-vectordb:Load (59, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_chunks.json'} 59 data
+INFO:app.services.knowledge_graph_service:LightRAG initialized for workspace 1 (embedding_dim=3072)
+INFO: [] Graph truncated: 606 nodes found, limited to 150
+INFO: [] Subgraph query successful | Node count: 150 | Edge count: 155
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/rag/graph/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces/1/suggested-questions HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/rag/chat/1/history HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/admin/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/admin/users?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/admin/chat-logs?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/admin/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/admin/users?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/admin/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/admin/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/admin/users?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/admin/chat-logs?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/admin/users?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/pending HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/pending HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+2026-03-28T11:26:24Z ERR  error="stream 3029 canceled by remote with error code 0" connIndex=0 event=1 ingressRule=0 originService=http://localhost:8888
+2026-03-28T11:26:24Z ERR Request failed error="stream 3029 canceled by remote with error code 0" connIndex=0 dest=https://scripts-michigan-weed-controversial.trycloudflare.com/api/approvals/count event=0 ip=198.41.200.13 type=http
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+2026-03-28T11:38:13Z ERR  error="Incoming request ended abruptly: context canceled" connIndex=0 event=1 ingressRule=0 originService=http://localhost:8888
+2026-03-28T11:38:13Z ERR Request failed error="Incoming request ended abruptly: context canceled" connIndex=0 dest=https://scripts-michigan-weed-controversial.trycloudflare.com/ event=0 ip=198.41.200.13 type=http
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:83f6:4552:216b:6f00:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:8a:5bd8:bb6b:bb8:dd96:67ea:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.106.98.174:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mPOST /api/auth/login HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/v1/documents/4/markdown HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/v1/documents/4/download HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+INFO: [] Loaded graph from /home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/graph_chunk_entity_relation.graphml with 606 nodes, 254 edges
+INFO:nano-vectordb:Load (606, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_entities.json'} 606 data
+INFO:nano-vectordb:Load (254, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_relationships.json'} 254 data
+INFO:nano-vectordb:Load (59, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_chunks.json'} 59 data
+INFO:app.services.knowledge_graph_service:LightRAG initialized for workspace 1 (embedding_dim=3072)
+INFO: [] Graph truncated: 606 nodes found, limited to 150
+INFO: [] Subgraph query successful | Node count: 150 | Edge count: 155
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/v1/rag/graph/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+INFO: [] Loaded graph from /home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/graph_chunk_entity_relation.graphml with 606 nodes, 254 edges
+INFO:nano-vectordb:Load (606, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_entities.json'} 606 data
+INFO:nano-vectordb:Load (254, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_relationships.json'} 254 data
+INFO:nano-vectordb:Load (59, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_chunks.json'} 59 data
+INFO:app.services.knowledge_graph_service:LightRAG initialized for workspace 1 (embedding_dim=3072)
+INFO: [] Graph truncated: 606 nodes found, limited to 150
+INFO: [] Subgraph query successful | Node count: 150 | Edge count: 155
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/v1/rag/graph/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/pending HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/pending HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/admin/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/admin/users?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/admin/chat-logs?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/admin/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/admin/users?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/pending HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/pending HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/v1/workspaces/1/suggested-questions HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/v1/rag/chat/1/history HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+WARNING:app.api.chat_agent:Failed to persist user message: cannot access local variable 'current_user' where it is not associated with a value
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mPOST /api/v1/rag/chat/1/stream HTTP/1.1[0m" [32m200 OK[0m
+INFO: [] Loaded graph from /home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/graph_chunk_entity_relation.graphml with 606 nodes, 254 edges
+INFO:nano-vectordb:Load (606, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_entities.json'} 606 data
+INFO:nano-vectordb:Load (254, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_relationships.json'} 254 data
+INFO:nano-vectordb:Load (59, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_chunks.json'} 59 data
+INFO:app.services.knowledge_graph_service:LightRAG initialized for workspace 1 (embedding_dim=3072)
+INFO:app.services.embedder:Loading embedding model: BAAI/bge-m3
+INFO:app.services.knowledge_graph_service:KG raw context: 20 entities, 23 relationships for workspace 1
+/home/kms/MiccoRAG-v3/micco-backend/venv/lib/python3.13/site-packages/torch/cuda/__init__.py:180: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 12020). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at /pytorch/c10/cuda/CUDAFunctions.cpp:119.)
+  return torch._C._cuda_getDeviceCount() > 0
+INFO:sentence_transformers.SentenceTransformer:Use pytorch device_name: cpu
+INFO:sentence_transformers.SentenceTransformer:Load pretrained SentenceTransformer: BAAI/bge-m3
+INFO:app.services.embedder:Embedding model loaded: BAAI/bge-m3 (dim=1024)
+Batches:   0%|                                            | 0/1 [00:00<?, ?it/s][32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+Batches: 100%|████████████████████████████████████| 1/1 [00:07<00:00,  7.47s/it]Batches: 100%|████████████████████████████████████| 1/1 [00:07<00:00,  7.47s/it]
+INFO:app.services.vector_store:Connecting to ChromaDB at 127.0.0.1:8003
+INFO:app.services.vector_store:Connected to ChromaDB successfully
+INFO:app.services.reranker:Init Cohere Client for reranker: rerank-multilingual-v3.0
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+INFO:app.services.deep_retriever:Reranked 24 → 2 chunks (scores: 0.999 → 0.194)
+INFO: [] Loaded graph from /home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/graph_chunk_entity_relation.graphml with 606 nodes, 254 edges
+INFO:nano-vectordb:Load (606, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_entities.json'} 606 data
+INFO:nano-vectordb:Load (254, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_relationships.json'} 254 data
+INFO:nano-vectordb:Load (59, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_chunks.json'} 59 data
+INFO:app.services.knowledge_graph_service:LightRAG initialized for workspace 1 (embedding_dim=3072)
+WARNING:app.api.chat_agent:Failed to persist assistant message: cannot access free variable 'current_user' where it is not associated with a value in enclosing scope
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mPOST /api/auth/login HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/auth/me HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/workspaces/1/suggested-questions HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/rag/chat/1/history HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+INFO: [] Loaded graph from /home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/graph_chunk_entity_relation.graphml with 606 nodes, 254 edges
+INFO:nano-vectordb:Load (606, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_entities.json'} 606 data
+INFO:nano-vectordb:Load (254, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_relationships.json'} 254 data
+INFO:nano-vectordb:Load (59, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_chunks.json'} 59 data
+INFO:app.services.knowledge_graph_service:LightRAG initialized for workspace 1 (embedding_dim=3072)
+INFO: [] Graph truncated: 606 nodes found, limited to 150
+INFO: [] Subgraph query successful | Node count: 150 | Edge count: 155
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/rag/graph/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+INFO: [] Loaded graph from /home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/graph_chunk_entity_relation.graphml with 606 nodes, 254 edges
+INFO:nano-vectordb:Load (606, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_entities.json'} 606 data
+INFO:nano-vectordb:Load (254, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_relationships.json'} 254 data
+INFO:nano-vectordb:Load (59, 3072) data
+INFO:nano-vectordb:Init {'embedding_dim': 3072, 'metric': 'cosine', 'storage_file': '/home/kms/MiccoRAG-v3/micco-backend/backend/data/lightrag/kb_1/vdb_chunks.json'} 59 data
+INFO:app.services.knowledge_graph_service:LightRAG initialized for workspace 1 (embedding_dim=3072)
+INFO: [] Graph truncated: 606 nodes found, limited to 150
+INFO: [] Subgraph query successful | Node count: 150 | Edge count: 155
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/rag/graph/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/knowledge HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/admin/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/admin/users?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/admin/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/admin/chat-logs?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/admin/users?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/admin/chat-logs?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/admin/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/admin/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/document-status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/recent-documents HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/workspace-stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/uploads-over-time HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/dashboard/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/workspaces HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mPOST /api/v1/documents/upload/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mPOST /api/v1/documents/upload/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mPOST /api/v1/documents/upload/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mPOST /api/v1/rag/process/7 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mPOST /api/v1/rag/process/6 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mPOST /api/v1/rag/process/5 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+INFO:app.services.document_parser.docling_parser:Docling converting: uploads/ed7360dc-7ce3-4bf6-9466-f676af6284ec.docx
+INFO:app.services.document_parser.docling_parser:Docling converting: uploads/eba4ccb0-85f1-4305-baa6-a1fb8d4f93f9.pdf
+INFO:app.services.document_parser.docling_parser:Docling converting: uploads/51d84bec-eeab-4c7b-aeb8-0aa0c31d7479.docx
+INFO:docling.datamodel.document:detected formats: [<InputFormat.DOCX: 'docx'>]
+INFO:docling.datamodel.document:detected formats: [<InputFormat.DOCX: 'docx'>]
+INFO:docling.datamodel.document:detected formats: [<InputFormat.PDF: 'pdf'>]
+INFO:docling.document_converter:Going to convert document batch...
+INFO:docling.document_converter:Initializing pipeline for StandardPdfPipeline with options hash 40fa421ba1bdb1a29d13787c5edc34d1
+INFO:docling.document_converter:Going to convert document batch...
+INFO:docling.document_converter:Going to convert document batch...
+INFO:docling.models.factories.base_factory:Loading plugin 'docling_defaults'
+INFO:docling.models.factories:Registered picture descriptions: ['picture_description_vlm_engine', 'vlm', 'api']
+INFO:docling.models.factories.base_factory:Loading plugin 'docling_defaults'
+INFO:docling.models.factories:Registered ocr engines: ['auto', 'easyocr', 'ocrmac', 'rapidocr', 'tesserocr', 'tesseract']
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/admin/chat-logs?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/admin/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/admin/users?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/auth/departments HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/admin/users?page=1&page_size=10 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/admin/stats HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+INFO:docling.utils.accelerator_utils:Accelerator device: 'cpu'
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/v1/documents/workspace/1 HTTP/1.1[0m" [32m200 OK[0m
+[32m[INFO] 2026-03-28 20:46:11,086 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-03-28 20:46:11,169 [RapidOCR] download_file.py:60: File exists and is valid: /home/kms/MiccoRAG-v3/micco-backend/venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_det_infer.onnx[0m
+[32m[INFO] 2026-03-28 20:46:11,170 [RapidOCR] main.py:53: Using /home/kms/MiccoRAG-v3/micco-backend/venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_det_infer.onnx[0m
+[32m[INFO] 2026-03-28 20:46:11,495 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-03-28 20:46:11,502 [RapidOCR] download_file.py:60: File exists and is valid: /home/kms/MiccoRAG-v3/micco-backend/venv/lib/python3.13/site-packages/rapidocr/models/ch_ppocr_mobile_v2.0_cls_infer.onnx[0m
+[32m[INFO] 2026-03-28 20:46:11,502 [RapidOCR] main.py:53: Using /home/kms/MiccoRAG-v3/micco-backend/venv/lib/python3.13/site-packages/rapidocr/models/ch_ppocr_mobile_v2.0_cls_infer.onnx[0m
+[32m[INFO] 2026-03-28 20:46:11,592 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-03-28 20:46:11,698 [RapidOCR] download_file.py:60: File exists and is valid: /home/kms/MiccoRAG-v3/micco-backend/venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_rec_infer.onnx[0m
+[32m[INFO] 2026-03-28 20:46:11,698 [RapidOCR] main.py:53: Using /home/kms/MiccoRAG-v3/micco-backend/venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_rec_infer.onnx[0m
+INFO:docling.models.stages.ocr.auto_ocr_model:Auto OCR model selected rapidocr with onnxruntime.
+INFO:docling.models.factories.base_factory:Loading plugin 'docling_defaults'
+INFO:docling.models.factories:Registered layout engines: ['layout_object_detection', 'docling_layout_default', 'docling_experimental_table_crops_layout']
+INFO:docling.utils.accelerator_utils:Accelerator device: 'cpu'
+INFO:docling.models.factories.base_factory:Loading plugin 'docling_defaults'
+INFO:docling.models.factories:Registered table structure engines: ['docling_tableformer', 'docling_tableformer_v2']
+INFO:docling.utils.accelerator_utils:Accelerator device: 'cpu'
+INFO:docling.models.stages.code_formula.code_formula_vlm_model:Initializing CodeFormulaVlmModel with runtime system: model=docling-project/CodeFormulaV2, engine=auto_inline
+INFO:docling.models.inference_engines.vlm.auto_inline_engine:Initializing auto-inline VLM inference engine...
+INFO:docling.utils.accelerator_utils:Accelerator device: 'cpu'
+INFO:docling.models.inference_engines.vlm.auto_inline_engine:Auto-selecting engine for system=Linux, device=cpu
+INFO:docling.models.inference_engines.vlm.auto_inline_engine:Selected Transformers engine (default)
+INFO:docling.models.inference_engines.vlm.auto_inline_engine:Generated config for transformers: repo_id=docling-project/CodeFormulaV2, extra_config={'transformers_model_type': <TransformersModelType.AUTOMODEL_IMAGETEXTTOTEXT: 'automodel-imagetexttotext'>, 'extra_generation_config': {'skip_special_tokens': False}, 'torch_dtype': 'bfloat16'}
+INFO:docling.models.inference_engines.vlm.transformers_engine:Initializing Transformers VLM inference engine...
+INFO:docling.utils.accelerator_utils:Accelerator device: 'cpu'
+INFO:docling.models.inference_engines.vlm.transformers_engine:Using device: cpu
+INFO:docling.models.inference_engines.vlm.transformers_engine:Loading model docling-project/CodeFormulaV2 (revision: main, model_type: automodel-imagetexttotext)
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+INFO:docling.models.inference_engines.vlm.transformers_engine:Loaded model docling-project/CodeFormulaV2 (revision: main)
+INFO:docling.models.inference_engines.vlm.auto_inline_engine:Auto-inline engine initialized with transformers
+INFO:docling.models.stages.code_formula.code_formula_vlm_model:CodeFormulaVlmModel initialized successfully
+INFO:docling.pipeline.base_pipeline:Processing document eba4ccb0-85f1-4305-baa6-a1fb8d4f93f9.pdf
+INFO:docling.document_converter:Initializing pipeline for SimplePipeline with options hash 2d9476a27fcaef36a7b7dc80210d99aa
+INFO:docling.pipeline.base_pipeline:Processing document ed7360dc-7ce3-4bf6-9466-f676af6284ec.docx
+INFO:docling.document_converter:Initializing pipeline for SimplePipeline with options hash 2d9476a27fcaef36a7b7dc80210d99aa
+INFO:docling.pipeline.base_pipeline:Processing document 51d84bec-eeab-4c7b-aeb8-0aa0c31d7479.docx
+WARNING:docling.backend.msword_backend:Found DrawingML elements in document, but no DOCX to PDF converters. If you want these exported, make sure you have LibreOffice binary in PATH or specify its path with DOCLING_LIBREOFFICE_CMD.
+[32mINFO[0m:     2401:d800:9162:89c9:3440:f778:1a25:a355:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+INFO:docling.document_converter:Finished converting document 51d84bec-eeab-4c7b-aeb8-0aa0c31d7479.docx in 113.96 sec.
+INFO:app.services.document_parser.docling_parser:Extracted 28 tables from document 5
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:docling.document_converter:Finished converting document ed7360dc-7ce3-4bf6-9466-f676af6284ec.docx in 117.72 sec.
+INFO:app.services.document_parser.docling_parser:Extracted 4 images from document 6
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:app.services.document_parser.docling_parser:Extracted 5 tables from document 6
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+2026-03-28T13:49:07Z ERR  error="Incoming request ended abruptly: context canceled" connIndex=0 event=1 ingressRule=0 originService=http://localhost:8888
+2026-03-28T13:49:07Z ERR  error="Incoming request ended abruptly: context canceled" connIndex=0 event=1 ingressRule=0 originService=http://localhost:8888
+2026-03-28T13:49:07Z ERR failed to accept incoming stream requests error="failed to accept QUIC stream: timeout: no recent network activity" connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:49:07Z ERR Request failed error="Incoming request ended abruptly: context canceled" connIndex=0 dest=https://scripts-michigan-weed-controversial.trycloudflare.com/api/approvals/count event=0 ip=198.41.200.13 type=http
+2026-03-28T13:49:07Z ERR Request failed error="Incoming request ended abruptly: context canceled" connIndex=0 dest=https://scripts-michigan-weed-controversial.trycloudflare.com/api/approvals/count event=0 ip=198.41.200.13 type=http
+2026-03-28T13:49:07Z ERR failed to run the datagram handler error="timeout: no recent network activity" connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:49:07Z ERR failed to serve tunnel connection error="accept stream listener encountered a failure while serving" connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:49:07Z ERR Serve tunnel error error="accept stream listener encountered a failure while serving" connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:49:07Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:49:09Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:49:11Z INF Registered tunnel connection connIndex=0 connection=87df1543-df0f-4c78-b6ce-8945fe4eb85e event=0 ip=198.41.200.13 location=hkg13 protocol=quic
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:app.services.document_parser.docling_parser:Injecting 4 image URLs into 4 placeholders
+INFO:app.services.document_parser.docling_parser:Injected 4/4 image references
+INFO:app.services.document_parser.base:Injected 1/5 table captions into markdown
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+2026-03-28T13:49:53Z ERR failed to run the datagram handler error="timeout: no recent network activity" connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:49:53Z ERR failed to accept incoming stream requests error="failed to accept QUIC stream: timeout: no recent network activity" connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:49:54Z ERR failed to serve tunnel connection error="datagram manager encountered a failure while serving" connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:49:54Z ERR Serve tunnel error error="datagram manager encountered a failure while serving" connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:49:54Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:49:54Z ERR  error="Incoming request ended abruptly: context canceled" connIndex=0 event=1 ingressRule=0 originService=http://localhost:8888
+2026-03-28T13:49:54Z ERR Request failed error="Incoming request ended abruptly: context canceled" connIndex=0 dest=https://scripts-michigan-weed-controversial.trycloudflare.com/api/approvals/count event=0 ip=198.41.200.13 type=http
+2026-03-28T13:49:55Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:49:56Z INF Registered tunnel connection connIndex=0 connection=6e81a296-355e-4e51-8573-65e6f80038fd event=0 ip=198.41.200.13 location=hkg13 protocol=quic
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+Token indices sequence length is longer than the specified maximum sequence length for this model (10790 > 512). Running this sequence through the model will result in indexing errors
+INFO:app.services.document_parser.docling_parser:Image-aware chunking: 0/4 images assigned to 25 chunks
+INFO:app.services.document_parser.docling_parser:Table-aware chunking: 0/5 tables assigned to 25 chunks
+INFO:app.services.document_parser.docling_parser:[docling] Parsed document 6 (1. Quy trình ANFO- Đông Triều.docx) in 313209ms: 0 pages, 25 chunks, 4 images, 5 tables
+Batches:   0%|                                            | 0/1 [00:00<?, ?it/s]INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+INFO:google_genai.models:AFC is enabled with max remote calls: 10.
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+INFO:app.services.document_parser.base:Injected 22/28 table captions into markdown
+Token indices sequence length is longer than the specified maximum sequence length for this model (1208 > 512). Running this sequence through the model will result in indexing errors
+INFO:app.services.document_parser.docling_parser:Table-aware chunking: 0/28 tables assigned to 98 chunks
+INFO:app.services.document_parser.docling_parser:[docling] Parsed document 5 (Quy dinh giao, nhan VLNCN (gốc).docx-1.docx) in 345794ms: 0 pages, 98 chunks, 0 images, 28 tables
+INFO:app.services.chunk_dedup:Near dedup (threshold=0.85): removed 4/98 near-duplicate chunks
+INFO:app.services.chunk_dedup:Dedup pipeline: 98 → 94 chunks (-4: noise=0, exact=0, near=4)
+INFO:app.services.nexus_rag_service:Dedup for doc 5: 98→94 chunks (noise=0, exact=0, near=4)
+
+Batches:   0%|                                            | 0/3 [00:00<?, ?it/s][A[32mINFO[0m:     116.98.242.6:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     2402:800:62d2:5fd5:78b6:b8fb:5c72:6321:0 - "[1mGET /api/approvals/count HTTP/1.1[0m" [32m200 OK[0m
+2026-03-28T13:51:54Z ERR failed to accept incoming stream requests error="failed to accept QUIC stream: timeout: no recent network activity" connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:51:54Z ERR failed to run the datagram handler error="timeout: no recent network activity" connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:51:54Z ERR failed to serve tunnel connection error="accept stream listener encountered a failure while serving" connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:51:54Z ERR Serve tunnel error error="accept stream listener encountered a failure while serving" connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:51:54Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:51:54Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.13
+2026-03-28T13:51:55Z INF Registered tunnel connection connIndex=0 connection=760892f0-7f4e-476c-8da1-d01fa82b0ee8 event=0 ip=198.41.200.13 location=hkg13 protocol=quic
+exit
+^C

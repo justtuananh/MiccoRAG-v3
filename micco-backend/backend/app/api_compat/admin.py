@@ -11,6 +11,15 @@ from app.models.department import Department
 from app.models.user import User
 from app.models.document import Document
 from app.models.system_chat_log import SystemChatLog
+from app.schemas.compat import (
+    AdminCreateUserRequest,
+    AdminUpdateUserRequest,
+    AdminUserResponse,
+    AdminListUsersResponse,
+    DepartmentCreateRequest,
+    DepartmentUpdateRequest,
+    DepartmentResponse,
+)
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -29,7 +38,7 @@ async def _require_admin(current_user: User = Depends(get_current_user)) -> User
     return current_user
 
 
-@router.get("/departments")
+@router.get("/departments", response_model=list[DepartmentResponse])
 async def list_departments(
     db: AsyncSession = Depends(get_db),
     _admin: User = Depends(_require_admin),
@@ -41,24 +50,24 @@ async def list_departments(
     )
     depts = result.scalars().all()
     return [
-        {
-            "id": d.id,
-            "name": d.name,
-            "description": d.description,
-            "created_at": d.created_at,
-            "user_count": len(d.users),
-        }
+        DepartmentResponse(
+            id=d.id,
+            name=d.name,
+            description=d.description,
+            created_at=d.created_at,
+            user_count=len(d.users),
+        )
         for d in depts
     ]
 
 
-@router.post("/departments", status_code=201)
+@router.post("/departments", status_code=201, response_model=DepartmentResponse)
 async def create_department(
-    body: dict,
+    req: DepartmentCreateRequest,
     db: AsyncSession = Depends(get_db),
     _admin: User = Depends(_require_admin),
 ):
-    name = (body.get("name") or "").strip()
+    name = req.name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="Tên phòng ban không được trống")
 
@@ -66,24 +75,24 @@ async def create_department(
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(status_code=400, detail="Phòng ban đã tồn tại")
 
-    dept = Department(name=name, description=body.get("description", ""))
+    dept = Department(name=name, description=req.description or "")
     db.add(dept)
     await db.commit()
     await db.refresh(dept)
 
-    return {
-        "id": dept.id,
-        "name": dept.name,
-        "description": dept.description,
-        "created_at": dept.created_at,
-        "user_count": 0,
-    }
+    return DepartmentResponse(
+        id=dept.id,
+        name=dept.name,
+        description=dept.description,
+        created_at=dept.created_at,
+        user_count=0,
+    )
 
 
-@router.put("/departments/{dept_id}")
+@router.put("/departments/{dept_id}", response_model=DepartmentResponse)
 async def update_department(
     dept_id: int,
-    body: dict,
+    req: DepartmentUpdateRequest,
     db: AsyncSession = Depends(get_db),
     _admin: User = Depends(_require_admin),
 ):
@@ -92,11 +101,10 @@ async def update_department(
     if not dept:
         raise HTTPException(status_code=404, detail="Phòng ban không tồn tại")
 
-    if "name" in body:
-        new_name = (body["name"] or "").strip()
+    if req.name is not None:
+        new_name = req.name.strip()
         if not new_name:
             raise HTTPException(status_code=400, detail="Tên phòng ban không được trống")
-
         dup = await db.execute(
             select(Department).where(Department.name == new_name, Department.id != dept_id)
         )
@@ -104,20 +112,20 @@ async def update_department(
             raise HTTPException(status_code=400, detail="Tên phòng ban đã tồn tại")
         dept.name = new_name
 
-    if "description" in body:
-        dept.description = body["description"]
+    if req.description is not None:
+        dept.description = req.description
 
     await db.commit()
     await db.refresh(dept)
 
     user_count = await db.execute(select(func.count(User.id)).where(User.department_id == dept.id))
-    return {
-        "id": dept.id,
-        "name": dept.name,
-        "description": dept.description,
-        "created_at": dept.created_at,
-        "user_count": user_count.scalar() or 0,
-    }
+    return DepartmentResponse(
+        id=dept.id,
+        name=dept.name,
+        description=dept.description,
+        created_at=dept.created_at,
+        user_count=user_count.scalar() or 0,
+    )
 
 
 @router.delete("/departments/{dept_id}", status_code=204)
@@ -141,20 +149,27 @@ async def admin_stats(
     db: AsyncSession = Depends(get_db),
     _admin: User = Depends(_require_admin),
 ):
-    total_users = await db.execute(select(func.count(User.id)))
-    total_docs = await db.execute(select(func.coalesce(func.sum(Document.file_size), 0)))
+    """Return admin dashboard statistics."""
+    total_users = (await db.execute(select(func.count(User.id)))).scalar() or 0
+    total_docs = (await db.execute(select(func.count(Document.id)))).scalar() or 0
+    total_bytes = (await db.execute(select(func.coalesce(func.sum(Document.file_size), 0)))).scalar() or 0
+    from app.models.knowledge_entry import KnowledgeEntry
+    total_knowledge = (await db.execute(select(func.count(KnowledgeEntry.id)))).scalar() or 0
+    from app.models.department import Department
+    total_departments = (await db.execute(select(func.count(Department.id)))).scalar() or 0
 
     return {
-        "totalUsers": total_users.scalar() or 0,
-        "storageUsed": _fmt_storage(total_docs.scalar() or 0),
+        "totalUsers": total_users,
+        "totalDocuments": total_docs,
+        "totalKnowledge": total_knowledge,
+        "totalDepartments": total_departments,
+        "storageUsed": _fmt_storage(total_bytes),
+        "storageBytes": total_bytes,
         "activeSessions": 0,
-        "totalUsersChange": "",
-        "storageChange": "",
-        "activeSessionsChange": "",
     }
 
 
-@router.get("/users")
+@router.get("/users", response_model=AdminListUsersResponse)
 async def list_users(
     search: str | None = Query(None),
     role: str | None = Query(None),
@@ -176,58 +191,47 @@ async def list_users(
     stmt = stmt.order_by(User.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
     users = (await db.execute(stmt)).scalars().all()
 
-    return {
-        "users": [
-            {
-                "id": u.id,
-                "name": u.name,
-                "email": u.email,
-                "role": u.role,
-                "department_id": u.department_id,
-                "department_name": u.department.name if u.department else None,
-                "avatar": u.avatar,
-                "created_at": u.created_at.isoformat() if u.created_at else None,
-            }
+    return AdminListUsersResponse(
+        users=[
+            AdminUserResponse(
+                id=u.id,
+                name=u.name,
+                email=u.email,
+                role=u.role,
+                department_id=u.department_id,
+                department_name=u.department.name if u.department else None,
+                avatar=u.avatar,
+                created_at=u.created_at,
+            )
             for u in users
         ],
-        "total": total,
-        "page": page,
-        "page_size": page_size,
-    }
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.post("/users", status_code=201)
 async def create_user(
-    body: dict,
+    req: AdminCreateUserRequest,
     db: AsyncSession = Depends(get_db),
     _admin: User = Depends(_require_admin),
 ):
-    name = (body.get("name") or "").strip()
-    if len(name) < 2:
-        raise HTTPException(status_code=400, detail="Tên phải có ít nhất 2 ký tự")
-
-    email = (body.get("email") or "").strip()
-    if not email:
-        raise HTTPException(status_code=400, detail="Email không được trống")
-
-    existing = await db.execute(select(User).where(User.email == email))
+    """Admin creates a new user account."""
+    existing = await db.execute(select(User).where(User.email == req.email))
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(status_code=400, detail="Email đã tồn tại")
 
-    password = body.get("password") or "123456"
+    password = req.password or "123456"
     if len(password) < 6:
         raise HTTPException(status_code=400, detail="Mật khẩu phải có ít nhất 6 ký tự")
 
-    dept_id = body.get("department_id")
-    if not dept_id:
-        raise HTTPException(status_code=400, detail="Phòng ban không được để trống")
-
     user = User(
-        name=name,
-        email=email,
+        name=req.name,
+        email=req.email,
         hashed_password=hash_password(password),
-        role=body.get("role", "Nhân viên"),
-        department_id=dept_id,
+        role=req.role,
+        department_id=req.department_id,
     )
     db.add(user)
     await db.commit()
@@ -239,41 +243,38 @@ async def create_user(
 @router.put("/users/{user_id}")
 async def update_user(
     user_id: int,
-    body: dict,
+    req: AdminUpdateUserRequest,
     db: AsyncSession = Depends(get_db),
     _admin: User = Depends(_require_admin),
 ):
+    """Admin updates an existing user."""
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="Người dùng không tồn tại")
 
-    if "name" in body:
-        name = body["name"].strip()
+    if req.name is not None:
+        name = req.name.strip()
         if len(name) < 2:
             raise HTTPException(status_code=400, detail="Tên phải có ít nhất 2 ký tự")
         user.name = name
 
-    if "email" in body:
-        dup = await db.execute(select(User).where(User.email == body["email"], User.id != user_id))
+    if req.email is not None:
+        dup = await db.execute(select(User).where(User.email == req.email, User.id != user_id))
         if dup.scalar_one_or_none() is not None:
             raise HTTPException(status_code=400, detail="Email đã tồn tại")
-        user.email = body["email"]
+        user.email = req.email
 
-    if "role" in body:
-        user.role = body["role"]
+    if req.role is not None:
+        user.role = req.role
 
-    if "department_id" in body:
-        dept_id = body["department_id"]
-        if not dept_id:
-            raise HTTPException(status_code=400, detail="Phòng ban không được để trống")
-        user.department_id = dept_id
+    if req.department_id is not None:
+        user.department_id = req.department_id
 
-    if body.get("password"):
-        password = body["password"]
-        if len(password) < 6:
+    if req.password is not None:
+        if len(req.password) < 6:
             raise HTTPException(status_code=400, detail="Mật khẩu phải có ít nhất 6 ký tự")
-        user.hashed_password = hash_password(password)
+        user.hashed_password = hash_password(req.password)
 
     await db.commit()
     await db.refresh(user)
@@ -295,6 +296,8 @@ async def delete_user(
     await db.delete(user)
     await db.commit()
     return None
+
+
 @router.get("/chat-logs")
 async def list_chat_logs(
     search: str | None = Query(None),

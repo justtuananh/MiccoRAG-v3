@@ -30,21 +30,21 @@ function AnimatedNumber({ value, suffix = '', prefix = '' }) {
 // ─── Stat Card ─────────────────────────────────────────────────────────────────
 function StatCard({ label, value, numValue, icon: Icon, gradient, suffix = '', prefix = '', sub }) {
     return (
-        <div className="relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 overflow-hidden shadow-sm transition-all group">
-            <div className={`absolute top-0 right-0 w-24 h-24 rounded-bl-full opacity-5 bg-gradient-to-br ${gradient}`} />
+        <div className="relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 overflow-hidden shadow-sm transition-all group">
+            <div className={`absolute top-0 right-0 w-28 h-28 rounded-bl-full opacity-5 bg-gradient-to-br ${gradient}`} />
             <div className="flex items-start gap-4">
-                <div className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center bg-gradient-to-br ${gradient} shadow-sm`}>
+                <div className={`w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center bg-gradient-to-br ${gradient} shadow-md`}>
                     <Icon className="w-5 h-5 text-white" />
                 </div>
                 <div className="min-w-0">
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-0.5">{label}</p>
-                    <p className="text-xl font-bold text-gray-900 dark:text-white truncate">
+                    <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">{label}</p>
+                    <p className="text-2xl font-black text-gray-900 dark:text-white truncate">
                         {numValue !== undefined
                             ? <AnimatedNumber value={numValue} suffix={suffix} prefix={prefix} />
                             : value
                         }
                     </p>
-                    {sub && <p className="text-[10px] text-gray-400 dark:text-gray-500 truncate">{sub}</p>}
+                    {sub && <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-1">{sub}</p>}
                 </div>
             </div>
         </div>
@@ -149,8 +149,8 @@ export default function Dashboard() {
     ] : [];
 
     return (
-        <div className="space-y-6 pb-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-6 pb-6 px-2 md:px-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2 md:px-2 pt-4 md:pt-6">
                 <div>
                     <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Tổng quan hệ thống</h1>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -187,10 +187,10 @@ export default function Dashboard() {
             {activeTab === 'overview' ? (
                 <>
                     {/* Stat Cards */}
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 px-2 md:px-2">
                         {loading && !stats ? (
                             [...Array(4)].map((_, i) => (
-                                <div key={i} className="h-20 bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse" />
+                                <div key={i} className="h-24 bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse" />
                             ))
                         ) : (
                             statCards.map(c => <StatCard key={c.label} {...c} />)
@@ -198,10 +198,10 @@ export default function Dashboard() {
                     </div>
 
                     {/* Row 1 Charts */}
-                    <div className="grid lg:grid-cols-3 gap-4">
+                    <div className="grid lg:grid-cols-3 gap-5 px-2 md:px-2">
                         <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Lượt tải lên</h3>
-                            <ResponsiveContainer width="100%" height={180}>
+                            <ResponsiveContainer width="100%" height={200}>
                                 <AreaChart data={uploadsData} margin={{ top: 5, right: 10, left: -30, bottom: 0 }}>
                                     <XAxis dataKey="month" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                                     <YAxis hide />
@@ -212,9 +212,9 @@ export default function Dashboard() {
                         </div>
                         <div className="lg:col-span-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Trạng thái</h3>
-                            <ResponsiveContainer width="100%" height={180}>
+                            <ResponsiveContainer width="100%" height={200}>
                                 <PieChart>
-                                    <Pie data={statusData} dataKey="count" nameKey="status" innerRadius={45} outerRadius={65} paddingAngle={4}>
+                                    <Pie data={statusData} dataKey="count" nameKey="status" innerRadius={50} outerRadius={75} paddingAngle={4}>
                                         {statusData.map((entry, i) => <Cell key={i} fill={entry.fill} stroke="transparent" />)}
                                     </Pie>
                                     <Tooltip />
@@ -225,22 +225,22 @@ export default function Dashboard() {
 
                     {/* Workspace Chart */}
                     {workspaceData.length > 0 && (
-                        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+                        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm mx-2 md:mx-2">
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Workspace</h3>
-                            <ResponsiveContainer width="100%" height={150}>
+                            <ResponsiveContainer width="100%" height={180}>
                                 <BarChart data={workspaceData} margin={{ top: 5, right: 10, left: -30, bottom: 0 }}>
                                     <XAxis dataKey="workspace" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                                     <YAxis hide />
                                     <Tooltip content={<CustomTooltip />} />
-                                    <Bar dataKey="documents" name="Tài liệu" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={20} />
-                                    <Bar dataKey="chunks" name="Chunks" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
+                                    <Bar dataKey="documents" name="Tài liệu" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={24} />
+                                    <Bar dataKey="chunks" name="Chunks" fill="#10b981" radius={[4, 4, 0, 0]} barSize={24} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
                     )}
                 </>
             ) : (
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden mx-2 md:mx-2">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>

@@ -9,7 +9,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, BackgroundTasks
 from fastapi.responses import PlainTextResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, or_
 
 from app.core.config import settings
 from app.core.deps import get_db
@@ -65,8 +65,11 @@ async def list_documents(
 ):
     """List documents in a workspace.
 
-    Non-admin users only see approved documents OR documents they uploaded.
-    Admin / Trưởng phòng see all documents in their workspaces.
+    Non-admin users only see approved documents that are:
+      - public, OR
+      - belong to their department, OR
+      - were uploaded by themselves.
+    Admin / Trưởng phòng see all approved documents in the workspace.
     """
     result = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == workspace_id))
     kb = result.scalar_one_or_none()
@@ -74,13 +77,20 @@ async def list_documents(
     if kb is None:
         raise NotFoundError("KnowledgeBase", workspace_id)
 
-    stmt = select(Document).where(Document.workspace_id == workspace_id)
-
-    # RBAC: users only see approved docs + their own uploads in the main list
-    stmt = stmt.where(
-        (Document.approval_status == "approved") |
-        (Document.uploader_id == current_user.id)
+    stmt = select(Document).where(
+        Document.workspace_id == workspace_id,
+        Document.approval_status == "approved"
     )
+
+    # RBAC: non-admin users are scoped by visibility + department + own uploads
+    if current_user.role not in ("Admin", "Trưởng phòng"):
+        stmt = stmt.where(
+            or_(
+                Document.visibility == "public",
+                Document.department_id == current_user.department_id,
+                Document.uploader_id == current_user.id,
+            )
+        )
 
     stmt = stmt.order_by(Document.created_at.desc())
     result = await db.execute(stmt)
@@ -239,13 +249,32 @@ async def upload_document(
 async def get_document(
     document_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    """Get document by ID"""
+    """Get document by ID.
+
+    Users can only access approved documents that are:
+      - public, OR
+      - belong to their department, OR
+      - were uploaded by themselves.
+    Admin / Trưởng phòng bypass these restrictions.
+    """
     result = await db.execute(select(Document).where(Document.id == document_id))
     document = result.scalar_one_or_none()
 
     if document is None:
         raise NotFoundError("Document", document_id)
+
+    if document.approval_status != "approved":
+        raise HTTPException(status_code=403, detail="Document chưa được phê duyệt")
+
+    if current_user.role not in ("Admin", "Trưởng phòng"):
+        if (
+            document.visibility != "public"
+            and document.department_id != current_user.department_id
+            and document.uploader_id != current_user.id
+        ):
+            raise HTTPException(status_code=403, detail="Không có quyền truy cập tài liệu này")
 
     return document
 
@@ -254,6 +283,7 @@ async def get_document(
 async def get_document_markdown(
     document_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Get the full structured markdown content of a document (NexusRAG parsed)."""
     result = await db.execute(select(Document).where(Document.id == document_id))
@@ -261,6 +291,17 @@ async def get_document_markdown(
 
     if document is None:
         raise NotFoundError("Document", document_id)
+
+    # Access check
+    if document.approval_status != "approved":
+        raise HTTPException(status_code=403, detail="Document chưa được phê duyệt")
+    if current_user.role not in ("Admin", "Trưởng phòng"):
+        if (
+            document.visibility != "public"
+            and document.department_id != current_user.department_id
+            and document.uploader_id != current_user.id
+        ):
+            raise HTTPException(status_code=403, detail="Không có quyền truy cập tài liệu này")
 
     if not document.markdown_content:
         raise HTTPException(
@@ -291,6 +332,7 @@ async def get_document_markdown(
 async def get_document_images(
     document_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """List all extracted images for a document."""
     result = await db.execute(select(Document).where(Document.id == document_id))
@@ -298,6 +340,17 @@ async def get_document_images(
 
     if document is None:
         raise NotFoundError("Document", document_id)
+
+    # Access check
+    if document.approval_status != "approved":
+        raise HTTPException(status_code=403, detail="Document chưa được phê duyệt")
+    if current_user.role not in ("Admin", "Trưởng phòng"):
+        if (
+            document.visibility != "public"
+            and document.department_id != current_user.department_id
+            and document.uploader_id != current_user.id
+        ):
+            raise HTTPException(status_code=403, detail="Không có quyền truy cập tài liệu này")
 
     result = await db.execute(
         select(DocumentImage)
@@ -325,13 +378,18 @@ async def update_document(
     document_id: int,
     payload: DocumentUpdate,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    """Update document properties (e.g., rename)"""
+    """Update document properties (e.g., rename). Only owner or admin can update."""
     result = await db.execute(select(Document).where(Document.id == document_id))
     document = result.scalar_one_or_none()
 
     if document is None:
         raise NotFoundError("Document", document_id)
+
+    # Only uploader or admin/trưởng phòng can update
+    if current_user.role not in ("Admin", "Trưởng phòng") and document.uploader_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Không có quyền sửa tài liệu này")
 
     document.original_filename = payload.original_filename
     await db.commit()
@@ -345,6 +403,7 @@ from fastapi.responses import FileResponse
 async def download_original_document(
     document_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Download the original uploaded file."""
     result = await db.execute(select(Document).where(Document.id == document_id))
@@ -352,6 +411,17 @@ async def download_original_document(
 
     if document is None:
         raise NotFoundError("Document", document_id)
+
+    # Access check
+    if document.approval_status != "approved":
+        raise HTTPException(status_code=403, detail="Document chưa được phê duyệt")
+    if current_user.role not in ("Admin", "Trưởng phòng"):
+        if (
+            document.visibility != "public"
+            and document.department_id != current_user.department_id
+            and document.uploader_id != current_user.id
+        ):
+            raise HTTPException(status_code=403, detail="Không có quyền truy cập tài liệu này")
 
     file_path = UPLOAD_DIR / document.filename
     if not file_path.exists():
@@ -371,13 +441,27 @@ async def download_original_document(
 async def delete_document(
     document_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    """Delete a document and its chunks from vector store"""
+    """Delete a document and its chunks from vector store.
+
+    Only the uploader, Trưởng phòng of the doc's department, or Admin can delete.
+    """
     result = await db.execute(select(Document).where(Document.id == document_id))
     document = result.scalar_one_or_none()
 
     if document is None:
         raise NotFoundError("Document", document_id)
+
+    # Only uploader, trưởng phòng of the doc's dept, or admin can delete
+    is_owner = document.uploader_id == current_user.id
+    is_dept_manager = (
+        current_user.role == "Trưởng phòng"
+        and document.department_id == current_user.department_id
+    )
+    is_admin = current_user.role == "Admin"
+    if not (is_owner or is_dept_manager or is_admin):
+        raise HTTPException(status_code=403, detail="Không có quyền xóa tài liệu này")
 
     if document.status == DocumentStatus.INDEXED:
         try:

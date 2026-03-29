@@ -22,4 +22,3 @@ class User(Base):
 
     department: Mapped["Department | None"] = relationship(back_populates="users")
     knowledge_entries: Mapped[list["KnowledgeEntry"]] = relationship(back_populates="owner")
-    knowledge_entries: Mapped[list["KnowledgeEntry"]] = relationship(back_populates="owner")

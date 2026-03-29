@@ -93,6 +93,38 @@ def map_rag_doc_to_legacy(doc: Any, owner_name: str = "System") -> dict[str, Any
         "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
         # Extra RBAC fields for frontend
         "uploader_id": getattr(doc, "uploader_id", None),
+        "department_id": getattr(doc, "department_id", None),
+        "department_name": None,
+    }
+
+
+def map_rag_doc_to_legacy_with_dept(
+    doc: Any,
+    owner_name: str = "System",
+    dept_name: str | None = None,
+) -> dict[str, Any]:
+    """Like map_rag_doc_to_legacy but includes department info for the frontend."""
+    tags_raw = getattr(doc, "tags", None) or ""
+    tags = [t.strip() for t in tags_raw.split(",") if t.strip()] if tags_raw else []
+    return {
+        "id": doc.id,
+        "name": doc.original_filename,
+        "type": doc.file_type.upper(),
+        "category": getattr(doc, "category", None) or "Tài liệu",
+        "size": format_bytes_to_human(doc.file_size or 0),
+        "owner": owner_name,
+        "department": dept_name,
+        "date": doc.created_at.strftime("%Y-%m-%d") if doc.created_at else "",
+        "tags": tags,
+        "thumbnail": getattr(doc, "thumbnail", None),
+        "visibility": getattr(doc, "visibility", "internal"),
+        "approval_status": getattr(doc, "approval_status", "approved"),
+        "approval_note": getattr(doc, "approval_note", None),
+        "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
+        # Extra RBAC fields for frontend
+        "uploader_id": getattr(doc, "uploader_id", None),
+        "department_id": getattr(doc, "department_id", None),
+        "department_name": dept_name,
     }
 
 

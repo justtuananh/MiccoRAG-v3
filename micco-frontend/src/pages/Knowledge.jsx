@@ -142,12 +142,14 @@ export default function Knowledge() {
     };
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="space-y-6 px-2 md:px-4">
             {/* Breadcrumb */}
-            <Breadcrumb items={[
-                { label: 'Tổng quan', href: '/dashboard' },
-                { label: 'Tri thức' },
-            ]} />
+            <div className="px-2 pt-4">
+                <Breadcrumb items={[
+                    { label: 'Tổng quan', href: '/dashboard' },
+                    { label: 'Tri thức' },
+                ]} />
+            </div>
 
             {/* Toast */}
             {toast && (
@@ -165,7 +167,7 @@ export default function Knowledge() {
             )}
 
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-2">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Quản lý Tri thức</h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
@@ -182,7 +184,7 @@ export default function Knowledge() {
             </div>
 
             {/* Filters & Search */}
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 px-2">
                 {/* Search */}
                 <div className="relative flex-1 min-w-[200px] max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -235,6 +237,7 @@ export default function Knowledge() {
             </div>
 
             {/* Content */}
+            <div className="px-2">
             {loading ? (
                 <div className="flex items-center justify-center py-20">
                     <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
@@ -306,6 +309,7 @@ export default function Knowledge() {
                     onConfirm={handleDelete}
                 />
             )}
+            </div>
         </div>
     );
 }

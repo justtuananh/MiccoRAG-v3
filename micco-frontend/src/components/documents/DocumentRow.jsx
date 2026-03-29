@@ -78,7 +78,7 @@ export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDow
                         <span className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[160px] lg:max-w-xs block" title={doc.name}>
                             {doc.name}
                         </span>
-                        {doc.approval_status === 'pending_approval' && (
+                        {doc.approval_status === 'pending' && (
                             <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 mt-0.5">
                                 <Clock className="w-3 h-3" /> Chờ duyệt
                             </span>

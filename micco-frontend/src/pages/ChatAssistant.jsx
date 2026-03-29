@@ -415,7 +415,7 @@ function ChatMessage({ msg, onSourceClick }) {
                 {/* Bubble */}
                 {(msg.content || !isStreaming) && (
                     <div className="flex flex-col gap-1 w-full relative">
-                        <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                        <div className={`rounded-2xl px-5 py-4 text-sm leading-relaxed ${
                             isUser
                                 ? 'bg-primary-600 text-white rounded-tr-sm'
                                 : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-sm shadow-sm'
@@ -852,7 +852,7 @@ export default function ChatAssistant() {
 
     // ─── Render ───────────────────────────────────────────────────────────────
     return (
-        <div className="flex flex-col lg:flex-row h-full bg-white dark:bg-gray-900 overflow-hidden relative p-1 lg:p-2 gap-2 lg:gap-3">
+        <div className="flex flex-col lg:flex-row h-full bg-white dark:bg-gray-900 overflow-hidden relative p-2 lg:p-3 gap-3">
             
             {/* ─── Left Pane (Chat Zone) ─── */}
             <div className={`flex flex-col h-full bg-gray-50 dark:bg-gray-950 transition-all duration-300 ease-in-out ${
@@ -860,13 +860,13 @@ export default function ChatAssistant() {
             } ${previewDoc ? 'hidden lg:flex' : 'flex'}`}>
 
                 {/* ─── Header ─── */}
-                <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-2 flex items-center justify-between flex-shrink-0">
-                <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
-                        <Sparkles className="w-4 h-4 text-white" />
+                <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between flex-shrink-0 rounded-t-2xl">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md flex-shrink-0">
+                        <Sparkles className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-xs font-bold text-gray-900 dark:text-white">Micco AI Chat</h1>
+                        <h1 className="text-base font-bold text-gray-900 dark:text-white">Micco AI Chat</h1>
                     </div>
                 </div>
 
@@ -953,7 +953,7 @@ export default function ChatAssistant() {
                 ref={scrollContainerRef}
                 className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 scroll-smooth relative custom-scrollbar"
             >
-                <div className="max-w-4xl mx-auto w-full flex flex-col p-3 lg:p-4 pb-16">
+                <div className="max-w-4xl mx-auto w-full flex flex-col p-4 lg:p-6 pb-20">
                     {/* No workspace */}
                     {!wsLoading && workspaces.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-20 gap-3 text-center animate-fade-in-up">
@@ -1020,9 +1020,9 @@ export default function ChatAssistant() {
 
             {/* ─── Input Area (Footer) ─── */}
             {selectedWs && (
-                <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 p-2 lg:p-3 flex-shrink-0">
+                <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 p-3 lg:p-4 flex-shrink-0 rounded-b-2xl">
                     <div className="max-w-4xl mx-auto w-full">
-                        <div className="flex items-center justify-between mb-1.5 px-1">
+                        <div className="flex items-center justify-between mb-2 px-1">
                             {!historyLoading && messages.length > 0 && (
                                 <button
                                     onClick={() => loadHistory(selectedWs.id)}

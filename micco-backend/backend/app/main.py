@@ -1,5 +1,5 @@
 """
-NexusRAG — standalone Knowledge Base + RAG application.
+MiccoRAG — standalone Knowledge Base + RAG application.
 """
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting NexusRAG API...")
+    logger.info("Starting MiccoRAG API...")
     import os
     auto_create = os.environ.get("AUTO_CREATE_TABLES", "true").lower() == "true"
     if auto_create:
@@ -139,7 +139,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.APP_NAME,
-    description="NexusRAG — Knowledge Base with semantic search, knowledge graph, and LLM chat",
+    description="MiccoRAG — Knowledge Base with semantic search, knowledge graph, and LLM chat",
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/docs",
@@ -200,7 +200,7 @@ if settings.COMPAT_ENABLE_LEGACY_ROUTES:
     if getattr(settings, "COMPAT_LEGACY_DASHBOARD_ENABLE", True):
         app.include_router(dashboard_router)
 
-# Static files — document images extracted by NexusRAG (Docling)
+# Static files — document images extracted by MiccoRAG (Docling)
 _docling_data = Path(__file__).resolve().parent.parent / "data" / "docling"
 _docling_data.mkdir(parents=True, exist_ok=True)
 app.mount("/static/doc-images", StaticFiles(directory=str(_docling_data)), name="static_doc_images")

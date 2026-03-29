@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import os
+import uuid
+import aiofiles
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,8 +25,14 @@ from app.schemas.compat import (
     TokenResponse,
     UserResponse,
 )
+from app.core.config import settings
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+
+AVATAR_DIR = settings.BASE_DIR / "uploads" / "avatars"
+AVATAR_DIR.mkdir(parents=True, exist_ok=True)
+AVATAR_MAX_SIZE = 5 * 1024 * 1024  # 5MB
+AVATAR_ALLOWED = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 
 
 @router.get("/departments", response_model=list[DepartmentResponse])
@@ -140,3 +151,114 @@ async def update_me(
         department_name=current_user.department.name if current_user.department else None,
         avatar=current_user.avatar,
     )
+
+
+# ─── Avatar Upload ─────────────────────────────────────────────────
+
+@router.post("/me/avatar")
+async def upload_avatar(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Upload a new avatar image for the current user."""
+    content = await file.read()
+    if len(content) > AVATAR_MAX_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Avatar vượt quá giới hạn {AVATAR_MAX_SIZE // (1024*1024)}MB",
+        )
+
+    ext = (file.filename or ".jpg").rsplit(".", 1)[-1].lower()
+    if f".{ext}" not in AVATAR_ALLOWED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Định dạng avatar không được hỗ trợ. Chỉ chấp nhận: {', '.join(AVATAR_ALLOWED)}",
+        )
+
+    # Delete old avatar if exists
+    old_avatar = current_user.avatar
+    if old_avatar:
+        old_path = AVATAR_DIR / old_avatar
+        if old_path.exists():
+            os.remove(old_path)
+
+    # Save new avatar
+    stored_name = f"avatar_{current_user.id}_{uuid.uuid4().hex}.{ext}"
+    file_path = AVATAR_DIR / stored_name
+    async with aiofiles.open(file_path, "wb") as out:
+        await out.write(content)
+
+    current_user.avatar = stored_name
+    await db.commit()
+
+    return {"avatar": stored_name}
+
+
+@router.get("/me/avatar")
+async def get_my_avatar(
+    current_user: User = Depends(get_current_user),
+):
+    """Serve the current user's avatar image."""
+    if not current_user.avatar:
+        raise HTTPException(status_code=404, detail="Avatar not found")
+
+    file_path = AVATAR_DIR / current_user.avatar
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Avatar file not found")
+
+    ext = current_user.avatar.rsplit(".", 1)[-1].lower()
+    media_types = {
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "gif": "image/gif",
+        "webp": "image/webp",
+    }
+    media_type = media_types.get(ext, "image/jpeg")
+
+    return FileResponse(path=str(file_path), media_type=media_type)
+
+
+@router.delete("/me/avatar")
+async def delete_avatar(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete the current user's avatar."""
+    old_avatar = current_user.avatar
+    if old_avatar:
+        old_path = AVATAR_DIR / old_avatar
+        if old_path.exists():
+            os.remove(old_path)
+        current_user.avatar = None
+        await db.commit()
+
+    return {"message": "Đã xóa avatar"}
+
+
+@router.get("/users/{user_id}/avatar")
+async def get_user_avatar(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """Serve a user's avatar image (public endpoint)."""
+    user = (await db.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
+    if not user or not user.avatar:
+        raise HTTPException(status_code=404, detail="Avatar not found")
+
+    file_path = AVATAR_DIR / user.avatar
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Avatar file not found")
+
+    ext = user.avatar.rsplit(".", 1)[-1].lower()
+    media_types = {
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "gif": "image/gif",
+        "webp": "image/webp",
+    }
+    media_type = media_types.get(ext, "image/jpeg")
+
+    return FileResponse(path=str(file_path), media_type=media_type)

@@ -285,6 +285,32 @@ class DebugRetrievedSource(BaseModel):
     source_type: str = "vector"
 
 
+# ---------------------------------------------------------------------------
+# Expert Recommendation schemas
+# ---------------------------------------------------------------------------
+
+class ExpertRecommendation(BaseModel):
+    """An expert user recommendation based on relevant documents."""
+    user_id: int
+    name: str
+    email: str
+    role: str
+    department: str
+    document_count: int = Field(..., description="Số document liên quan đã upload")
+    avg_relevance: float = Field(..., ge=0.0, le=1.0, description="Relevance trung bình")
+
+    model_config = {"from_attributes": True}
+
+
+class ExpertRecommendResponse(BaseModel):
+    """Response for expert recommendation endpoint."""
+    experts: list[ExpertRecommendation]
+
+
+# ---------------------------------------------------------------------------
+# Debug / QA schemas
+# ---------------------------------------------------------------------------
+
 class DebugChatResponse(BaseModel):
     """Full debug response — retrieval + LLM answer for quality inspection."""
     # Query

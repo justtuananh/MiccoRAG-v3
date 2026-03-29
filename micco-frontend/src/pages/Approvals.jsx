@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     ClipboardCheck, FileText, BookOpen, Check, X,
     Clock, Globe, Lock, ChevronDown, Loader2, RefreshCw,
-    Eye, Tag, User, Building2,
+    Eye, Tag, User, Building2, AlertCircle, CheckCircle2, FileSearch,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { approvalsApi } from '../utils/api';
 import Breadcrumb from '../components/shared/Breadcrumb';
 
 const PREVIEWABLE = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'docx', 'txt', 'md'];
@@ -12,6 +13,21 @@ const MIME_MAP = {
     pdf: 'application/pdf',
     jpg: 'image/jpeg', jpeg: 'image/jpeg',
     png: 'image/png', gif: 'image/gif', webp: 'image/webp',
+};
+
+// Trạng thái processing theo thứ tự
+const PROCESSING_STEPS = [
+    { key: 'pending',    label: 'Chờ xử lý',    icon: Clock },
+    { key: 'parsing',    label: 'Đang phân tích', icon: FileSearch },
+    { key: 'processing', label: 'Đang xử lý',    icon: Loader2 },
+    { key: 'indexing',   label: 'Đang lập chỉ mục', icon: Loader2 },
+    { key: 'indexed',   label: 'Hoàn tất',       icon: CheckCircle2 },
+    { key: 'failed',    label: 'Thất bại',       icon: AlertCircle },
+];
+
+const getStepIndex = (status) => {
+    const idx = PROCESSING_STEPS.findIndex(s => s.key === (status?.toLowerCase?.() || status));
+    return idx === -1 ? 0 : idx;
 };
 
 export default function Approvals() {
@@ -23,8 +39,15 @@ export default function Approvals() {
     const [rejectModal, setRejectModal] = useState(null);
     const [rejectNote, setRejectNote] = useState('');
     const [toast, setToast] = useState(null);
-    const [preview, setPreview] = useState(null); // { item, type, blobUrl?, html? }
+    const [preview, setPreview] = useState(null);
     const [previewLoading, setPreviewLoading] = useState(null);
+
+    // Map docId → processing state after approval
+    // { status, chunk_count, error_message, updated_at }
+    const [processingState, setProcessingState] = useState({});
+    // List of docIds being processed (shown in a separate "Processing" section)
+    const [processingDocs, setProcessingDocs] = useState([]);
+    const pollingRef = useRef({});
 
     const showToast = (msg, type = 'success') => {
         setToast({ msg, type });
@@ -39,6 +62,54 @@ export default function Approvals() {
         } catch { /* silent */ }
         finally { setLoading(false); }
     }, [authFetch]);
+
+    // Poll processing status for a document
+    const startPolling = useCallback((docId) => {
+        if (pollingRef.current[docId]) return; // already polling
+        pollingRef.current[docId] = true;
+
+        const poll = async () => {
+            if (!pollingRef.current[docId]) return;
+            try {
+                const res = await approvalsApi.getDocumentStatus(docId);
+                if (res.ok) {
+                    const st = await res.json();
+                    setProcessingState(prev => ({ ...prev, [docId]: st }));
+                    // Stop polling when done or failed
+                    if (st.status === 'indexed' || st.status === 'failed') {
+                        pollingRef.current[docId] = false;
+                        // Remove from processing list after short delay (so user sees completion)
+                        setTimeout(() => {
+                            setProcessingDocs(prev => prev.filter(d => d.id !== docId));
+                            setProcessingState(prev => {
+                                const next = { ...prev };
+                                delete next[docId];
+                                return next;
+                            });
+                        }, 3000);
+                        return;
+                    }
+                }
+            } catch { /* silent */ }
+            if (pollingRef.current[docId]) {
+                setTimeout(poll, 3000);
+            }
+        };
+        poll();
+    }, []);
+
+    const stopPolling = useCallback((docId) => {
+        pollingRef.current[docId] = false;
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            // Cleanup all polling on unmount
+            Object.keys(pollingRef.current).forEach(id => {
+                pollingRef.current[id] = false;
+            });
+        };
+    }, []);
 
     useEffect(() => { fetchPending(); }, [fetchPending]);
 
@@ -98,9 +169,29 @@ export default function Approvals() {
                 body: JSON.stringify({}),
             });
             if (res.ok) {
-                showToast('Đã phê duyệt thành công');
+                const json = await res.json();
                 closePreview();
-                fetchPending();
+                if (type === 'documents') {
+                    showToast(json.message || 'Đã phê duyệt — đang xử lý tài liệu...', 'success');
+                    // Move doc from pending list → processing list
+                    const doc = data.documents.find(d => d.id === id);
+                    if (doc) {
+                        setProcessingDocs(prev => [...prev, doc]);
+                    }
+                    setData(prev => ({
+                        ...prev,
+                        documents: prev.documents.filter(d => d.id !== id),
+                    }));
+                    // Start polling processing status
+                    setProcessingState(prev => ({ ...prev, [id]: { status: 'processing', chunk_count: 0 } }));
+                    startPolling(id);
+                } else {
+                    showToast(json.message || 'Đã phê duyệt thành công');
+                    setData(prev => ({
+                        ...prev,
+                        knowledge: prev.knowledge.filter(k => k.id !== id),
+                    }));
+                }
             } else {
                 const err = await res.json();
                 showToast(err.detail || 'Thao tác thất bại', 'error');
@@ -138,11 +229,13 @@ export default function Approvals() {
     const totalPending = docCount + knCount;
 
     return (
-        <div className="space-y-6">
-            <Breadcrumb items={[
-                { label: 'Tổng quan', href: '/dashboard' },
-                { label: 'Phê duyệt' },
-            ]} />
+        <div className="space-y-6 px-2 md:px-4">
+            <div className="px-2 pt-4">
+                <Breadcrumb items={[
+                    { label: 'Tổng quan', href: '/dashboard' },
+                    { label: 'Phê duyệt' },
+                ]} />
+            </div>
 
             {/* Toast */}
             {toast && (
@@ -221,48 +314,98 @@ export default function Approvals() {
                 <div className="flex items-center justify-center py-20">
                     <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
                 </div>
-            ) : totalPending === 0 ? (
-                <div className="text-center py-20">
-                    <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
-                        <Check className="w-8 h-8 text-emerald-500" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">Không có gì cần phê duyệt</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Tất cả nội dung đã được xử lý</p>
-                </div>
             ) : (
-                <div className="space-y-3">
-                    {tab === 'documents' && (
-                        data.documents.length === 0
-                            ? <p className="text-center py-12 text-sm text-gray-400">Không có tài liệu chờ phê duyệt</p>
-                            : data.documents.map(doc => (
-                                <ApprovalCard
-                                    key={doc.id}
-                                    item={doc}
-                                    type="documents"
-                                    actionLoading={actionLoading}
-                                    previewLoading={previewLoading}
-                                    onPreview={() => handlePreview('documents', doc)}
-                                    onApprove={() => handleApprove('documents', doc.id)}
-                                    onReject={() => { setRejectModal({ type: 'documents', id: doc.id }); setRejectNote(''); }}
-                                />
-                            ))
+                <div className="space-y-6">
+                    {/* Section: Đang xử lý */}
+                    {processingDocs.length > 0 && tab === 'documents' && (
+                        <div className="px-2">
+                            <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+                                <Loader2 className="w-4 h-4 text-primary-500 animate-spin" />
+                                Đang xử lý
+                            </h3>
+                            <div className="space-y-3">
+                                {processingDocs.map(doc => (
+                                    <ApprovalCard
+                                        key={doc.id}
+                                        item={doc}
+                                        type="documents"
+                                        actionLoading={null}
+                                        previewLoading={null}
+                                        processingStatus={processingState[doc.id]}
+                                        onPreview={null}
+                                        onApprove={null}
+                                        onReject={null}
+                                    />
+                                ))}
+                            </div>
+                        </div>
                     )}
-                    {tab === 'knowledge' && (
-                        data.knowledge.length === 0
-                            ? <p className="text-center py-12 text-sm text-gray-400">Không có tri thức chờ phê duyệt</p>
-                            : data.knowledge.map(entry => (
-                                <ApprovalCard
-                                    key={entry.id}
-                                    item={entry}
-                                    type="knowledge"
-                                    actionLoading={actionLoading}
-                                    previewLoading={previewLoading}
-                                    onPreview={() => handlePreview('knowledge', entry)}
-                                    onApprove={() => handleApprove('knowledge', entry.id)}
-                                    onReject={() => { setRejectModal({ type: 'knowledge', id: entry.id }); setRejectNote(''); }}
-                                />
-                            ))
-                    )}
+
+                    {/* Section: Chờ phê duyệt */}
+                    <div className="px-2">
+                        {totalPending === 0 && processingDocs.length === 0 && (
+                            <div className="text-center py-20">
+                                <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+                                    <Check className="w-8 h-8 text-emerald-500" />
+                                </div>
+                                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">Không có gì cần phê duyệt</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Tất cả nội dung đã được xử lý</p>
+                            </div>
+                        )}
+                        {tab === 'documents' && (
+                            data.documents.length > 0 ? (
+                                <>
+                                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+                                        <Clock className="w-4 h-4 text-amber-500" />
+                                        Chờ phê duyệt
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {data.documents.map(doc => (
+                                            <ApprovalCard
+                                                key={doc.id}
+                                                item={doc}
+                                                type="documents"
+                                                actionLoading={actionLoading}
+                                                previewLoading={previewLoading}
+                                                processingStatus={null}
+                                                onPreview={() => handlePreview('documents', doc)}
+                                                onApprove={() => handleApprove('documents', doc.id)}
+                                                onReject={() => { setRejectModal({ type: 'documents', id: doc.id }); setRejectNote(''); }}
+                                            />
+                                        ))}
+                                    </div>
+                                </>
+                            ) : processingDocs.length === 0 && (
+                                <p className="text-center py-8 text-sm text-gray-400">Không có tài liệu chờ phê duyệt</p>
+                            )
+                        )}
+                        {tab === 'knowledge' && (
+                            data.knowledge.length > 0 ? (
+                                <>
+                                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+                                        <Clock className="w-4 h-4 text-amber-500" />
+                                        Chờ phê duyệt
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {data.knowledge.map(entry => (
+                                            <ApprovalCard
+                                                key={entry.id}
+                                                item={entry}
+                                                type="knowledge"
+                                                actionLoading={actionLoading}
+                                                previewLoading={previewLoading}
+                                                onPreview={() => handlePreview('knowledge', entry)}
+                                                onApprove={() => handleApprove('knowledge', entry.id)}
+                                                onReject={() => { setRejectModal({ type: 'knowledge', id: entry.id }); setRejectNote(''); }}
+                                            />
+                                        ))}
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="text-center py-8 text-sm text-gray-400">Không có tri thức chờ phê duyệt</p>
+                            )
+                        )}
+                    </div>
                 </div>
             )}
 
@@ -471,11 +614,15 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
 
 // ─── Approval Card ────────────────────────────────────────────
 
-function ApprovalCard({ item, type, actionLoading, previewLoading, onPreview, onApprove, onReject }) {
+function ApprovalCard({ item, type, actionLoading, previewLoading, processingStatus, onPreview, onApprove, onReject }) {
     const [expanded, setExpanded] = useState(false);
     const isDoc = type === 'documents';
     const isLoading = actionLoading === `${type}-${item.id}`;
     const isPreviewLoading = previewLoading === `${type}-${item.id}`;
+    const isProcessing = !!processingStatus;
+
+    // Show pending approval badge
+    const isPending = !isProcessing && item.approval_status !== 'approved';
 
     return (
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
@@ -515,24 +662,38 @@ function ApprovalCard({ item, type, actionLoading, previewLoading, onPreview, on
                                     {item.created_at ? new Date(item.created_at).toLocaleString('vi-VN') : '—'}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-2 mt-1.5">
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
-                                    <Clock className="w-3 h-3" />
-                                    Chờ phê duyệt
-                                </span>
-                                {item.visibility === 'public' ? (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-                                        <Globe className="w-3 h-3" /> Công khai
+
+                            {/* Processing status bar — shown after approval */}
+                            {isDoc && isProcessing && (
+                                <ProcessingProgressBar
+                                    status={processingStatus.status}
+                                    chunkCount={processingStatus.chunk_count}
+                                    errorMessage={processingStatus.error_message}
+                                />
+                            )}
+
+                            {/* Pending badge — shown before approval */}
+                            {!isProcessing && (
+                                <div className="flex items-center gap-2 mt-1.5">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+                                        <Clock className="w-3 h-3" />
+                                        Chờ phê duyệt
                                     </span>
-                                ) : (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-                                        <Lock className="w-3 h-3" /> Nội bộ
-                                    </span>
-                                )}
-                                {isDoc && item.size && (
-                                    <span className="text-xs text-gray-400">{item.size}</span>
-                                )}
-                            </div>
+                                    {item.visibility === 'public' ? (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                                            <Globe className="w-3 h-3" /> Công khai
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                                            <Lock className="w-3 h-3" /> Nội bộ
+                                        </span>
+                                    )}
+                                    {isDoc && item.size && (
+                                        <span className="text-xs text-gray-400">{item.size}</span>
+                                    )}
+                                </div>
+                            )}
+
                             {/* Short text preview for knowledge */}
                             {!isDoc && item.content_text && (
                                 <div className="mt-2">
@@ -552,42 +713,110 @@ function ApprovalCard({ item, type, actionLoading, previewLoading, onPreview, on
                             )}
                         </div>
 
-                        {/* Action buttons */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                            <button
-                                onClick={onPreview}
-                                disabled={isPreviewLoading}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
-                                title="Xem trước"
-                            >
-                                {isPreviewLoading
-                                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                    : <Eye className="w-3.5 h-3.5" />
-                                }
-                                Xem trước
-                            </button>
-                            <button
-                                onClick={onReject}
-                                disabled={isLoading}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-medium hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-50"
-                            >
-                                <X className="w-3.5 h-3.5" />
-                                Từ chối
-                            </button>
-                            <button
-                                onClick={onApprove}
-                                disabled={isLoading}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors disabled:opacity-50"
-                            >
-                                {isLoading
-                                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                    : <Check className="w-3.5 h-3.5" />
-                                }
-                                Phê duyệt
-                            </button>
-                        </div>
+                        {/* Action buttons — hidden when processing */}
+                        {!isProcessing && onApprove && (
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                                <button
+                                    onClick={onPreview}
+                                    disabled={isPreviewLoading}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                                    title="Xem trước"
+                                >
+                                    {isPreviewLoading
+                                        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        : <Eye className="w-3.5 h-3.5" />
+                                    }
+                                    Xem trước
+                                </button>
+                                <button
+                                    onClick={onReject}
+                                    disabled={isLoading}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-medium hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                    Từ chối
+                                </button>
+                                <button
+                                    onClick={onApprove}
+                                    disabled={isLoading}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors disabled:opacity-50"
+                                >
+                                    {isLoading
+                                        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        : <Check className="w-3.5 h-3.5" />
+                                    }
+                                    Phê duyệt
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
+            </div>
+        </div>
+    );
+}
+
+
+// ─── Processing Progress Bar ─────────────────────────────────────────────
+
+function ProcessingProgressBar({ status, chunkCount, errorMessage }) {
+    const stepIdx = getStepIndex(status);
+    const isDone = status === 'indexed';
+    const isFailed = status === 'failed';
+
+    return (
+        <div className="mt-2 flex items-center gap-3">
+            {/* Step dots */}
+            <div className="flex items-center gap-1">
+                {PROCESSING_STEPS.filter(s => s.key !== 'pending').map((step, i) => {
+                    const sIdx = i + 1; // offset from 'pending'
+                    const isActive = sIdx === stepIdx;
+                    const isPast = sIdx < stepIdx || isDone;
+                    const StepIcon = step.icon;
+                    return (
+                        <div key={step.key} className="flex items-center gap-1">
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                                isDone
+                                    ? 'bg-emerald-500'
+                                    : isFailed && isActive
+                                    ? 'bg-red-500'
+                                    : isPast || isActive
+                                    ? 'bg-primary-500'
+                                    : 'bg-gray-200 dark:bg-gray-700'
+                            }`}>
+                                <StepIcon className={`w-3 h-3 ${
+                                    isDone ? 'text-white' : isFailed && isActive ? 'text-white' : isPast || isActive ? 'text-white' : 'text-gray-400'
+                                } ${isActive && !isFailed ? 'animate-spin' : ''}`} />
+                            </div>
+                            {i < PROCESSING_STEPS.length - 2 && (
+                                <div className={`w-4 h-0.5 ${isPast || isDone ? 'bg-primary-400' : 'bg-gray-200 dark:bg-gray-700'}`} />
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Label */}
+            <div className="flex items-center gap-1.5">
+                {isDone ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                ) : isFailed ? (
+                    <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+                ) : (
+                    <Loader2 className="w-3.5 h-3.5 text-primary-500 animate-spin" />
+                )}
+                <span className={`text-xs font-medium ${
+                    isDone ? 'text-emerald-600 dark:text-emerald-400'
+                    : isFailed ? 'text-red-600 dark:text-red-400'
+                    : 'text-primary-600 dark:text-primary-400'
+                }`}>
+                    {isDone
+                        ? `Hoàn tất · ${chunkCount} chunks`
+                        : isFailed
+                        ? `Lỗi: ${errorMessage || 'Xử lý thất bại'}`
+                        : `${PROCESSING_STEPS[stepIdx]?.label || 'Đang xử lý'}${chunkCount > 0 ? ` · ${chunkCount} chunks` : ''}`
+                    }
+                </span>
             </div>
         </div>
     );

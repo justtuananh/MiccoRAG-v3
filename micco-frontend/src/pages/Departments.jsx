@@ -74,12 +74,14 @@ export default function Departments({ embedded = false }) {
     );
 
     return (
-        <div className={embedded ? "space-y-6" : "space-y-8"}>
+        <div className={embedded ? "space-y-6 px-2 md:px-4" : "space-y-6 px-2 md:px-4"}>
             {!embedded && (
-                <Breadcrumb items={[
+                <div className="px-2 pt-4">
+                    <Breadcrumb items={[
                     { label: 'Tổng quan', href: '/dashboard' },
                     { label: 'Phòng ban' },
                 ]} />
+                </div>
             )}
 
             {/* Toast */}

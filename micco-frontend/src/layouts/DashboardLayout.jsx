@@ -8,13 +8,16 @@ import {
     LayoutDashboard, FolderOpen, Upload, MessageSquare, BookOpen, Building2,
     X, Sun, Moon, Bell,
     Search, LogOut, ChevronDown, FileText, User, Key,
-    ChevronLeft, ChevronRight, ShieldCheck, ClipboardCheck, GitBranch
+    ChevronLeft, ChevronRight, ShieldCheck, ClipboardCheck, GitBranch,
+    Activity, Users
 } from 'lucide-react';
 
 const sidebarItems = [
     { label: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard, desc: 'Thống kê & tổng hợp' },
     { label: 'Tài liệu', path: '/documents', icon: FolderOpen, desc: 'Tất cả tệp của bạn' },
+    { label: 'Tiến trình', path: '/processing-status', icon: Activity, desc: 'Theo dõi xử lý tài liệu' },
     { label: 'Trợ lý AI', path: '/chat', icon: MessageSquare, desc: 'Trò chuyện với tài liệu' },
+    { label: 'Chuyên gia', path: '/expert', icon: Users, desc: 'Tìm & kết nối chuyên gia' },
     { label: 'Tri thức', path: '/knowledge', icon: BookOpen, desc: 'Quản lý bài viết tri thức' },
     { label: 'Đồ thị tri thức', path: '/graph-knowledge', icon: GitBranch, desc: 'Sơ đồ tri thức dạng graph' },
 ];

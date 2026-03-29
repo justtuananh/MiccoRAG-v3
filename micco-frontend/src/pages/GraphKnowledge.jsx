@@ -260,7 +260,7 @@ export default function GraphKnowledge() {
 
 
     return (
-        <div className="flex flex-col h-full bg-white dark:bg-gray-900 overflow-hidden relative p-1 lg:p-2 gap-2 lg:gap-3">
+        <div className="flex flex-col h-full bg-white dark:bg-gray-900 overflow-hidden relative p-2 lg:p-3 gap-3">
 
             {/* Top Bar */}
             <div className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2 flex items-center justify-between shrink-0 shadow-sm">
