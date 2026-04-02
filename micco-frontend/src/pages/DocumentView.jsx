@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import Breadcrumb from '../components/shared/Breadcrumb';
 import { documentsApi } from '../utils/api';
 import { formatBytes, formatDate, timeAgo, getInitials, avatarColor } from '../utils/formatters';
+import { renderAsync } from 'docx-preview';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -48,9 +49,13 @@ export default function DocumentView() {
     const [uploadingVersion, setUploadingVersion] = useState(false);
     const [versionError, setVersionError] = useState('');
 
-    // Preview URL
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [previewText, setPreviewText] = useState(null);
+    const [previewHtml, setPreviewHtml] = useState(null);
+    const [previewError, setPreviewError] = useState(null);
+    const [docxBuffer, setDocxBuffer] = useState(null);
     const previewUrlRef = useRef(null);
+    const docxContainerRef = useRef(null);
 
     const isAdmin = user?.role === 'Admin';
     const canEdit = isAdmin || doc?.uploader_id === user?.id;
@@ -67,9 +72,15 @@ export default function DocumentView() {
             if (!res.ok) { navigate('/documents'); return; }
             const data = await res.json();
             setDoc(data);
+            
+            const extStr = (data.type || '').toLowerCase();
+            const type = extStr.startsWith('.') ? extStr.slice(1) : extStr;
+            
             // Load preview if applicable
-            if (['pdf', 'png', 'jpg', 'jpeg'].includes((data.type || '').toLowerCase())) {
-                fetchPreview(id, data.type);
+            if (['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'].includes(type)) {
+                fetchPreview(id, type);
+            } else if (['docx', 'txt', 'md'].includes(type)) {
+                fetchTextPreview(id, type);
             }
         } catch { navigate('/documents'); }
         finally { setLoading(false); }
@@ -91,13 +102,10 @@ export default function DocumentView() {
 
     const fetchPreview = async (docId, type) => {
         try {
-            const token = localStorage.getItem('docvault_token');
-            const res = await fetch(documentsApi.downloadUrl(docId), {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await authFetch(`/api/documents/${docId}/download`);
             if (!res.ok) return;
             const blob = await res.blob();
-            const mime = type?.toLowerCase() === 'pdf' ? 'application/pdf' : `image/${(type || 'png').toLowerCase()}`;
+            const mime = type === 'pdf' ? 'application/pdf' : `image/${type}`;
             const url = URL.createObjectURL(new Blob([blob], { type: mime }));
             if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
             previewUrlRef.current = url;
@@ -105,14 +113,53 @@ export default function DocumentView() {
         } catch { /* silent */ }
     };
 
+    const fetchTextPreview = async (docId, type) => {
+        try {
+            if (type === 'docx') {
+                const res = await authFetch(`/api/documents/${docId}/download`);
+                if (!res.ok) throw new Error('Cannot download docx');
+                const arrayBuffer = await res.arrayBuffer();
+                setDocxBuffer(arrayBuffer);
+            } else {
+                const res = await authFetch(`/api/documents/${docId}/preview`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.supported) {
+                    setPreviewText(data.content);
+                } else {
+                    setPreviewError(data.message || 'Không hỗ trợ xem trước');
+                }
+            }
+        } catch (err) {
+            setPreviewError('Lỗi tải bản xem trước');
+        }
+    };
+
+    // Render DOCX natively when buffer is ready
+    useEffect(() => {
+        if (!docxBuffer || !docxContainerRef.current) return;
+        const container = docxContainerRef.current;
+        container.innerHTML = '';
+        renderAsync(docxBuffer, container, undefined, {
+            className: 'docx-preview',
+            inWrapper: true,
+            ignoreWidth: false,
+            ignoreHeight: false,
+            ignoreFonts: false,
+            breakPages: true,
+            useBase64URL: true,
+            renderHeaders: true,
+            renderFooters: true,
+        }).catch(err => {
+            setPreviewError('Lỗi hiển thị nội dung DOCX: ' + err.message);
+        });
+    }, [docxBuffer]);
+
     // ─── Actions ─────────────────────────────────────────────────────────────
 
     const handleDownload = async () => {
         try {
-            const token = localStorage.getItem('docvault_token');
-            const res = await fetch(documentsApi.downloadUrl(doc.id), {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await authFetch(`/api/documents/${doc.id}/download`);
             if (!res.ok) return;
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
@@ -126,10 +173,7 @@ export default function DocumentView() {
 
     const handleDownloadVersion = async (versionId, label) => {
         try {
-            const token = localStorage.getItem('docvault_token');
-            const res = await fetch(documentsApi.downloadVersionUrl(doc.id, versionId), {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await authFetch(`/api/documents/${doc.id}/versions/${versionId}/download`);
             if (!res.ok) return;
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
@@ -280,19 +324,38 @@ export default function DocumentView() {
             {/* ── Main body ─────────────────────────────────────────── */}
             <div className="flex flex-1 overflow-hidden">
                 {/* Left: Preview */}
-                <div className="flex-1 p-8 bg-slate-200 dark:bg-slate-950 overflow-y-auto flex items-center justify-center">
-                    {previewUrl && ['pdf', 'png', 'jpg', 'jpeg'].includes((doc?.type || '').toLowerCase()) ? (
-                        <iframe src={previewUrl} className="w-full h-full rounded-xl shadow-lg border-0 bg-white"
-                            title={doc?.name} />
+                <div className="flex-1 bg-slate-200 dark:bg-slate-950 overflow-y-auto flex flex-col items-center justify-start">
+                    {previewUrl && ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'].includes((doc?.type || '').toLowerCase().replace(/^\./, '')) ? (
+                        <iframe src={previewUrl} className="w-full h-full border-0 bg-white"
+                            title={doc?.name} style={{ minHeight: 'calc(100vh - 12rem)' }} />
+                    ) : docxBuffer ? (
+                        <div
+                            ref={docxContainerRef}
+                            className="w-full overflow-auto"
+                            style={{ minHeight: 'calc(100vh - 12rem)', background: '#f1f5f9' }}
+                        />
+                    ) : previewText ? (
+                        <div className="w-full h-full p-8 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 overflow-y-auto">
+                            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                                <Eye className="w-4 h-4 text-primary-600" />
+                                Bản xem trước
+                            </h3>
+                            <pre className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300 font-sans leading-relaxed">
+                                {previewText}
+                            </pre>
+                        </div>
                     ) : (
                         <div className="text-center py-24">
                             <div className="w-20 h-20 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
                                 <File className="w-10 h-10 text-slate-400" />
                             </div>
-                            <h4 className="text-base font-bold text-slate-700 dark:text-slate-200 mb-2">
+                            <h4 className="text-base font-bold text-slate-700 dark:text-slate-200 mb-1">
                                 {ext ? `${ext} — không thể xem trực tiếp` : 'Không có bản xem trước'}
                             </h4>
-                            <p className="text-sm text-slate-400 mb-6">Tải xuống để đọc nội dung</p>
+                            {(previewError) && (
+                                <p className="text-xs text-red-500 mb-3">{previewError}</p>
+                            )}
+                            <p className="text-sm text-slate-400 mb-6 mt-2">Tải xuống để đọc toàn bộ nội dung</p>
                             <button onClick={handleDownload}
                                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors">
                                 <Download className="w-4 h-4" /> Tải xuống

@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { File, Eye, Download, Share2, Trash2, MoreVertical } from 'lucide-react';
+import { File, Eye, Download, Share2, Trash2, MoreVertical, Clock, XCircle, Loader2 } from 'lucide-react';
 import { fileTypeIconMap, fileTypeColors, fileTypeBgColors, thumbnailBg } from './fileTypes';
 import { getExt, formatDate, getCategoryLabel } from '../../utils/formatters';
 
@@ -111,6 +111,21 @@ export default function DocumentCard({ doc, onView, onDownload, onDelete }) {
                 >
                     {doc.name}
                 </p>
+                {doc.approval_status === 'pending' && (
+                    <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">
+                        <Clock className="w-3 h-3" /> Chờ duyệt
+                    </span>
+                )}
+                {doc.approval_status === 'rejected' && (
+                    <span className="inline-flex items-center gap-1 text-[10px] text-red-500 dark:text-red-400 mt-0.5">
+                        <XCircle className="w-3 h-3" /> Từ chối
+                    </span>
+                )}
+                {doc.approval_status === 'approved' && ['parsing', 'processing', 'indexing'].includes(doc.status) && (
+                    <span className="inline-flex items-center gap-1 text-[10px] text-primary-500 dark:text-primary-400 mt-0.5">
+                        <Loader2 className="w-3 h-3 animate-spin" /> {doc.status === 'indexing' ? 'Đang lập chỉ mục' : 'Đang xử lý'}
+                    </span>
+                )}
 
                 {/* Modified date + three-dot menu */}
                 <div className="flex items-center justify-between mt-0.5">

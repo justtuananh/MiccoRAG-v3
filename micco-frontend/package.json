@@ -26,6 +26,7 @@
     "@tiptap/react": "^3.20.4",
     "@tiptap/starter-kit": "^3.20.4",
     "autoprefixer": "^10.4.24",
+    "docx-preview": "^0.3.7",
     "lucide-react": "^0.575.0",
     "mammoth": "^1.12.0",
     "playwright": "^1.58.2",

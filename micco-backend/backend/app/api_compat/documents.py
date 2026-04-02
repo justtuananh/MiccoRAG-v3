@@ -23,6 +23,7 @@ from app.models.user import User
 from app.models.department import Department
 from app.models.document import Document, DocumentStatus
 from app.models.document_version import DocumentVersion
+from docx import Document as DocxDocument
 from app.schemas.compat import (
     LegacyDocumentVersionResponse,
     ProcessingStatusResponse,
@@ -322,6 +323,54 @@ async def download_document(
         filename=doc.original_filename or doc.filename,
         media_type="application/octet-stream",
     )
+
+
+# ─── Preview Text Document ─────────────────────────────────────────
+
+from docx import Document as DocxDocument
+
+@router.get("/{doc_id}/preview")
+async def preview_document_text(
+    doc_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Preview first few paragraphs/chars of text-based documents (docx, txt, md).
+    Respects access controls.
+    """
+    doc = (await db.execute(select(Document).where(Document.id == doc_id))).scalar_one_or_none()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    _check_doc_access(current_user, doc)
+
+    file_path = UPLOAD_DIR / doc.filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found on disk")
+
+    ext = doc.file_type.lower()
+    text_content = ""
+
+    try:
+        if ext == "docx":
+            d = DocxDocument(str(file_path))
+            text_content = "\n".join([p.text for p in d.paragraphs[:30]])
+            if len(d.paragraphs) > 30:
+                text_content += "\n\n...(Còn tiếp)..."
+        elif ext in ("txt", "md"):
+            async with aiofiles.open(file_path, mode='r', encoding='utf-8', errors='ignore') as f:
+                text_content = await f.read(5000)
+                if len(text_content) == 5000:
+                    text_content += "\n\n...(Còn tiếp)..."
+        else:
+            return {"supported": False, "message": "Preview not supported for this type"}
+
+        return {"supported": True, "content": text_content, "file_type": ext}
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Error previewing file {file_path}: {str(e)}")
+        return {"supported": False, "message": f"Lỗi rách tệp hoặc mất nội dung: {str(e)}"}
 
 
 # ─── Document Thumbnail ────────────────────────────────────────────

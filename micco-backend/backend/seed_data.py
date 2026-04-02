@@ -11,19 +11,23 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 from app.models.user import User
 from app.models.department import Department
+from app.models.knowledge_base import KnowledgeBase
 from app.core.database import Base
 
+# Departments hiện tại trong DB
 DEPTS = [
-    {"name": "Hành chính Nhân sự", "description": "Quản lý nhân sự và hành chính"},
-    {"name": "Phòng Chuyên môn", "description": "Nghiệp vụ chuyên môn"},
-    {"name": "Phòng Kỹ thuật", "description": "Hỗ trợ và triển khai kỹ thuật"},
-    {"name": "Phòng An toàn", "description": "Quản lý an toàn và bảo mật"},
+    {"name": "Ban Giám đốc", "description": "Ban lãnh đạo công ty"},
+    {"name": "Kinh doanh", "description": "Phòng Kinh doanh - Marketing"},
+    {"name": "Kế toán", "description": "Phòng Kế toán - Tài chính"},
+    {"name": "Kỹ thuật", "description": "Phòng Kỹ thuật - Công nghệ"},
+    {"name": "Nhân sự", "description": "Phòng Nhân sự"},
+    {"name": "Pháp chế", "description": "Phòng Pháp chế - Hợp đồng"},
 ]
 
 USER_ASSIGNMENTS = {
-    "user1@micco.vn": "Hành chính Nhân sự",
-    "user2@micco.vn": "Phòng Kỹ thuật",
-    "user3@micco.vn": "Phòng Chuyên môn",
+    "user1@micco.vn": "Kế toán",
+    "user2@micco.vn": "Kỹ thuật",
+    "user3@micco.vn": "Kinh doanh",
 }
 
 async def seed():
@@ -55,7 +59,27 @@ async def seed():
                 print(f"  [OK] Gán {email} vào {dept_name}")
             else:
                 print(f"  [WARN] Không tìm thấy user {email}")
-        
+
+        # 3. Create Workspace cho mỗi Department
+        for dept_name, dept_id in dept_map.items():
+            existing_kb = await db.execute(
+                select(KnowledgeBase).where(KnowledgeBase.department_id == dept_id)
+            )
+            kb = existing_kb.scalar_one_or_none()
+            if not kb:
+                kb = KnowledgeBase(
+                    name=f"KB {dept_name}",
+                    description=f"Kiến thức của phòng {dept_name}",
+                    department_id=dept_id,
+                    search_mode="hybrid",
+                )
+                db.add(kb)
+                await db.commit()
+                await db.refresh(kb)
+                print(f"  [OK] Tạo workspace cho: {dept_name}")
+            else:
+                print(f"  [SKIP] Workspace cho {dept_name} đã tồn tại")
+
         await db.commit()
 
     await engine.dispose()

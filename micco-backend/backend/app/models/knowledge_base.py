@@ -1,4 +1,4 @@
-from sqlalchemy import String, DateTime, Text, Integer, JSON
+from sqlalchemy import String, DateTime, Text, Integer, JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
@@ -22,7 +22,16 @@ class KnowledgeBase(Base):
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
 
+    # Department relationship - mỗi department có 1 workspace duy nhất
+    department_id: Mapped[int | None] = mapped_column(
+        ForeignKey("departments.id", ondelete="SET NULL"),
+        nullable=True,
+        unique=True,  # 1:1 relationship - mỗi department chỉ có 1 workspace
+        index=True
+    )
+
     # Relationships
     documents: Mapped[list["Document"]] = relationship(
         back_populates="workspace", cascade="all, delete-orphan"
     )
+    department: Mapped["Department | None"] = relationship(back_populates="workspace")

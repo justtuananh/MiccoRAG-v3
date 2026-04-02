@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//home/kms/micco/**)",
+      "Read(//home/kms/**)",
+      "WebFetch(domain:joshua-savings-worker-var.trycloudflare.com)",
+      "Bash(curl -s http://localhost:8089/openapi.json)",
+      "Bash(python3 -c \"import sys, json; data=json.load\\(sys.stdin\\); print\\(json.dumps\\(list\\(data.get\\(''''paths'''', {}\\).keys\\(\\)\\), indent=2\\)\\)\")",
+      "Bash(curl -s http://localhost:8089/api/admin/departments)",
+      "Bash(python3 -m json.tool)",
+      "Bash(python -c \"from app.api.documents import router; print\\(''OK''\\)\")",
+      "Bash(.venv/bin/python -c \"from app.api.documents import router; print\\('OK'\\)\" 2>&1)",
+      "Bash(.venv/bin/pip show:*)",
+      "Bash(.venv/bin/python -c \"import sys; print\\(sys.path\\)\")",
+      "Bash(.venv/bin/python -m pip install fastapi sqlalchemy)",
+      "Bash(conda env:*)",
+      "Bash(pip list:*)",
+      "Bash(source ~/miniconda3/bin/activate micco)",
+      "Bash(python -c \"from app.api.documents import router; print\\(''''OK''''\\)\")",
+      "Bash(ls:*)",
+      "Bash(source ~/miniconda3/bin/activate miccorag-v2)",
+      "Bash(pip install:*)",
+      "Bash(python -c \"from app.api_compat.documents import router; print\\(''OK''\\)\")",
+      "Bash(python -m py_compile app/api_compat/documents.py)"
+    ]
+  }
+}

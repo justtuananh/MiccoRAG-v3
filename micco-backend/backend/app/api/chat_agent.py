@@ -785,6 +785,7 @@ async def chat_stream_endpoint(
     request: ChatRequest,
     fastapi_req: Request,
     db: AsyncSession,
+    current_user,
 ):
     """SSE streaming chat endpoint.
 
@@ -803,12 +804,7 @@ async def chat_stream_endpoint(
         )
 
     # Determine search mode
-    from app.core.security import get_current_user
-    try:
-        current_user = await get_current_user(fastapi_req, db)
-        is_admin = current_user.role == "Admin"
-    except Exception:
-        is_admin = False
+    is_admin = current_user.role == "Admin" if current_user else False
 
     search_mode = getattr(request, 'mode', None)
     if not is_admin or not search_mode:

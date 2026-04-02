@@ -245,6 +245,13 @@ class NexusRAGService:
             document.processing_time_ms = elapsed_ms
             await self.db.commit()
 
+            # Auto-generate suggested questions based on this newest document
+            try:
+                from app.services.suggested_questions_service import generate_suggested_questions
+                await generate_suggested_questions(self.db, self.workspace_id, document_id=document_id)
+            except Exception as sq_err:
+                logger.warning(f"Failed to generate suggested questions for doc {document_id}: {sq_err}")
+
             logger.info(
                 f"NexusRAG processed document {document_id}: "
                 f"{chunk_count} chunks, {len(parsed.images)} images, "

@@ -84,7 +84,7 @@ class Settings(BaseSettings):
     NEXUSRAG_DEDUP_NEAR_THRESHOLD: float = 0.85     # Jaccard similarity cutoff
 
     # NexusRAG Retrieval Quality
-    NEXUSRAG_EMBEDDING_MODEL: str = "BAAI/bge-m3"
+    NEXUSRAG_EMBEDDING_MODEL: str = "gemini"
     NEXUSRAG_RERANKER_MODEL: str = "rerank-multilingual-v3.0"
     COHERE_API_KEY: str = Field(default="")
     NEXUSRAG_VECTOR_PREFETCH: int = 20

@@ -17,3 +17,4 @@ class Department(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     users: Mapped[list["User"]] = relationship(back_populates="department")
+    workspace: Mapped["KnowledgeBase | None"] = relationship(back_populates="department", uselist=False)

@@ -1,0 +1,524 @@
+{
+  "$schema": "./skill-rules.schema.json",
+  "version": "1.1",
+  "config": {
+    "minConfidenceScore": 3,
+    "showMatchReasons": true,
+    "maxSkillsToShow": 5
+  },
+  "scoring": {
+    "keyword": 2,
+    "keywordPattern": 3,
+    "pathPattern": 4,
+    "directoryMatch": 5,
+    "intentPattern": 4,
+    "contentPattern": 3,
+    "contextPattern": 2
+  },
+  "directoryMappings": {
+    "micco-backend/backend/app/api": "api-design",
+    "micco-backend/backend/app/services/llm": "llm-integration",
+    "micco-backend/backend/app/services/rag": "rag-pipeline",
+    "micco-backend/backend/app/services/document": "rag-pipeline",
+    "micco-backend/backend/tests": "testing-patterns",
+    "micco-frontend/src": "frontend",
+    "micco-frontend/src/pages": "frontend",
+    "micco-frontend/src/components": "frontend",
+    "ai-research-skills": "ai-research-catalog"
+  },
+  "skills": {
+    "systematic-debugging": {
+      "description": "Four-phase debugging methodology with root cause analysis. Use when investigating bugs, fixing test failures, or troubleshooting unexpected behavior. Emphasizes NO FIXES WITHOUT ROOT CAUSE FIRST.",
+      "priority": 9,
+      "triggers": {
+        "keywords": [
+          "bug", "debug", "fix", "error", "issue", "broken", "crash", "failing", "unexpected behavior"
+        ],
+        "keywordPatterns": [
+          "\\bbug\\b", "\\bfix\\b", "\\berror\\b", "doesn't work", "not working"
+        ],
+        "intentPatterns": [
+          "(?:fix|debug|resolve|investigate).*(?:bug|error|issue|problem)",
+          "(?:why).*(?:not working|broken|failing|crash)",
+          "(?:something).*(?:wrong|broken)"
+        ]
+      },
+      "excludePatterns": ["fix typo", "fix formatting", "fix lint"]
+    },
+    "testing-patterns": {
+      "description": "pytest testing patterns, factory fixtures, mocking strategies, and TDD workflow. Use when writing unit tests, creating test fixtures, or following TDD red-green-refactor cycle.",
+      "priority": 9,
+      "triggers": {
+        "keywords": [
+          "test", "pytest", "fixture", "mock", "tdd", "factory", "unit test", "integration test"
+        ],
+        "keywordPatterns": [
+          "\\btest\\b", "\\bpytest\\b", "\\btdd\\b", "unit test"
+        ],
+        "pathPatterns": [
+          "**/tests/**/*.py", "**/test_*.py", "**/*_test.py", "**/conftest.py"
+        ],
+        "intentPatterns": [
+          "(?:write|add|create|fix).*(?:test|spec)",
+          "(?:test|spec).*(?:for|of|the)",
+          "(?:red.green.refactor|tdd)"
+        ],
+        "contentPatterns": [
+          "def test_", "@pytest", "pytest.mark", "async with", "MagicMock", "AsyncMock"
+        ]
+      },
+      "excludePatterns": ["e2e", "end-to-end"]
+    },
+    "rag-pipeline": {
+      "description": "RAG pipeline for document processing: chunking, embedding, vector retrieval, reranking, and knowledge graph extraction. Use when working with document upload, semantic search, or chat with context.",
+      "priority": 9,
+      "triggers": {
+        "keywords": [
+          "rag", "retrieval", "chunking", "embedding", "vector", "chroma", "pgvector",
+          "rerank", "knowledge graph", "document processing"
+        ],
+        "keywordPatterns": [
+          "\\brag\\b", "\\bembedding\\b", "\\bvector\\b", "\\bchroma\\b", "\\bchunk\\b"
+        ],
+        "pathPatterns": [
+          "**/services/rag/**", "**/services/llm/**", "**/services/document/**", "**/rag*.py"
+        ],
+        "intentPatterns": [
+          "(?:process|upload|index).*(?:document|pdf|docx)",
+          "(?:retrieve|search|query).*(?:context|vector|embedding)",
+          "(?:build|implement).*(?:rag|retrieval)"
+        ],
+        "contentPatterns": [
+          "RecursiveCharacterTextSplitter", "chromadb", "pgvector", "embed_query", "rerank"
+        ]
+      }
+    },
+    "llm-integration": {
+      "description": "LLM provider integration for OpenAI and Gemini with streaming, token tracking, and error handling. Use when working with LLM calls, chat endpoints, or prompt engineering.",
+      "priority": 8,
+      "triggers": {
+        "keywords": [
+          "llm", "openai", "gemini", "chat", "streaming", "sse", "prompt", "token", "model", "ollama"
+        ],
+        "keywordPatterns": [
+          "\\bllm\\b", "\\bopenai\\b", "\\bgemini\\b", "\\bstream\\b", "\\bsse\\b"
+        ],
+        "pathPatterns": [
+          "**/services/llm/**", "**/llm*.py"
+        ],
+        "intentPatterns": [
+          "(?:call|invoke|query).*(?:llm|openai|gemini|model)",
+          "(?:implement|add).*(?:chat|streaming|sse)"
+        ],
+        "contentPatterns": [
+          "AsyncOpenAI", "genai", "get_llm_provider", "stream_events", "chat.completions"
+        ]
+      }
+    },
+    "api-design": {
+      "description": "FastAPI REST API design with Pydantic v2, async endpoints, response wrapping, and JWT auth. Use when creating or modifying API endpoints.",
+      "priority": 8,
+      "triggers": {
+        "keywords": [
+          "api", "endpoint", "router", "fastapi", "pydantic", "request", "response", "schema"
+        ],
+        "keywordPatterns": [
+          "\\bapi\\b", "\\bendpoint\\b", "\\brouter\\b", "\\bfastapi\\b"
+        ],
+        "pathPatterns": [
+          "**/api/*.py", "**/schemas/*.py"
+        ],
+        "intentPatterns": [
+          "(?:create|add|modify).*(?:endpoint|api|router)",
+          "(?:define).*(?:request|response|schema)"
+        ],
+        "contentPatterns": [
+          "@router", "APIRouter", "BaseModel", "async def", "/api/v1/"
+        ]
+      }
+    },
+    "frontend": {
+      "description": "React + Vite frontend with streaming SSE, file upload, and shadcn/ui components. Use when working on UI, components, pages, or API integration in the frontend.",
+      "priority": 7,
+      "triggers": {
+        "keywords": [
+          "react", "component", "page", "ui", "frontend", "jsx", "tsx", "tailwind", "shadcn"
+        ],
+        "keywordPatterns": [
+          "\\breact\\b", "\\bjsx\\b", "\\btsx\\b", "\\btailwind\\b"
+        ],
+        "pathPatterns": [
+          "micco-frontend/**", "**/*.jsx", "**/*.tsx", "**/components/**"
+        ],
+        "intentPatterns": [
+          "(?:create|add|modify).*(?:component|page|ui)",
+          "(?:work on|implement).*(?:frontend|react)"
+        ],
+        "contentPatterns": [
+          "from 'react'", "useState", "useEffect", "export default", "function "
+        ]
+      }
+    },
+    "security": {
+      "description": "Security best practices: no hardcoded secrets, proper auth checks, input validation, SQL injection prevention. Use when handling authentication, authorization, or sensitive data.",
+      "priority": 8,
+      "triggers": {
+        "keywords": [
+          "security", "auth", "jwt", "password", "secret", "api key", "permission", "injection"
+        ],
+        "keywordPatterns": [
+          "\\bauth\\b", "\\bjwt\\b", "\\bsecurity\\b", "\\bsecret\\b"
+        ],
+        "intentPatterns": [
+          "(?:add|implement).*(?:auth|security|permission)",
+          "(?:check|verify).*(?:permission|authorization)"
+        ],
+        "contentPatterns": [
+          "jwt", "bcrypt", "hash_password", "get_current_user", "os.getenv"
+        ]
+      }
+    },
+    "verification-before-completion": {
+      "description": "Evidence-based completion claims protocol. Verify all criteria are met before claiming a task is done.",
+      "priority": 8,
+      "triggers": {
+        "keywords": ["verify", "check", "confirm", "done", "complete", "finished", "ready"],
+        "intentPatterns": [
+          "(?:is it|are we).*(?:done|complete|finished)",
+          "(?:verify|check|confirm).*(?:works|passes)"
+        ],
+        "contextPatterns": ["before claiming", "make sure", "double check"]
+      }
+    },
+    "defense-in-depth": {
+      "description": "Multi-layer validation for bug prevention: validate at boundaries, use Pydantic models, error handling.",
+      "priority": 6,
+      "triggers": {
+        "keywords": ["validation", "guard", "defense", "layer", "prevent", "boundary"],
+        "intentPatterns": [
+          "(?:prevent|avoid).*(?:bug|error|issue)",
+          "(?:add).*(?:validation|guard|check)"
+        ]
+      },
+      "relatedSkills": ["systematic-debugging"]
+    },
+    "documentation": {
+      "description": "Documentation standards: docstrings for all functions, API docs, and README updates.",
+      "priority": 4,
+      "triggers": {
+        "keywords": ["documentation", "docstring", "readme", "docs"],
+        "keywordPatterns": ["\\bdoc(?:s|umentation)?\\b", "\\breadme\\b"],
+        "intentPatterns": [
+          "(?:write|add|update).*(?:doc|documentation)",
+          "(?:document).*(?:function|component|api)"
+        ]
+      }
+    },
+    "playwright-e2e": {
+      "description": "Playwright E2E browser automation for UI testing. Use when testing websites, automating browser interactions, validating web functionality, or performing any browser-based testing on the frontend.",
+      "priority": 9,
+      "triggers": {
+        "keywords": [
+          "e2e", "playwright", "browser", "ui test", "end-to-end", "frontend test",
+          "screenshot", "responsive", "login flow"
+        ],
+        "keywordPatterns": [
+          "\be2e\b", "\bplaywright\b", "browser test", "ui test"
+        ],
+        "pathPatterns": [
+          "**/e2e/**", "**/*.e2e.ts", "**/playwright.config.ts"
+        ],
+        "intentPatterns": [
+          "(?:test|check|verify|automate).*(?:website|page|ui|frontend|browser)",
+          "(?:run|execute).*(?:e2e|playwright)",
+          "(?:take|screenshot)",
+          "(?:test|check).*(?:login|redirect|form|responsive)"
+        ],
+        "contentPatterns": [
+          "playwright", "@playwright/test", "chromium.launch", "page.goto", "expect("
+        ]
+      },
+      "excludePatterns": ["unit test", "pytest", "backend test"]
+    },
+    "last30days": {
+      "description": "Research any topic from the last 30 days across Reddit, X/Twitter, YouTube, Hacker News, and the web. Synthesizes trending discussions, recommendations, and news into grounded, cited reports. Use when researching current trends, recent news, social media discussions, or trending topics.",
+      "priority": 9,
+      "triggers": {
+        "keywords": [
+          "last30", "last 30 days", "recent trends", "trending", "news", "social media",
+          "reddit", "twitter", "x.com", "hacker news", "trending topic", "latest news"
+        ],
+        "keywordPatterns": [
+          "last30\\b", "\\btrending\\b", "\\breddit\\b", "\\bhacker news\\b",
+          "last.*(?:days?|weeks?|month)", "recent.*(?:news|trend|update)"
+        ],
+        "intentPatterns": [
+          "(?:what's|what is).*(?:new|trending|popular|latest)",
+          "(?:research|find).*(?:last 30|recent|latest|trending)",
+          "(?:how).*(?:people|folks).*(?:talking|thinking|reacting)"
+        ]
+      },
+      "excludePatterns": ["academic paper", "deep research", "literature review"]
+    },
+    "tavily-web": {
+      "description": "Web search and content extraction via Tavily API. Use when needing current web information, URL content extraction, or real-time internet research.",
+      "priority": 8,
+      "triggers": {
+        "keywords": [
+          "web search", "search the web", "tavily", "internet research",
+          "online search", "google search", "search online"
+        ],
+        "keywordPatterns": [
+          "\\bweb search\\b", "\\btavily\\b", "\\binternet research\\b"
+        ],
+        "intentPatterns": [
+          "(?:search|find|look up|lookup).*(?:web|internet|online)",
+          "(?:what is|who is|when is|where is).*(?:latest|new|recent)"
+        ]
+      }
+    },
+    "exa-search": {
+      "description": "Semantic and similarity-based content discovery using Exa API. Use when finding similar content, exploring related topics, or performing embeddings-based search.",
+      "priority": 7,
+      "triggers": {
+        "keywords": [
+          "exa", "semantic search", "similar content", "find similar",
+          "related content", "similarity search"
+        ],
+        "keywordPatterns": ["\\bexa\\b", "\\bsemantic search\\b", "\\bsimilar\\b"],
+        "intentPatterns": [
+          "(?:find|search|get).*(?:similar|related|like).*(?:content|articles|topics)"
+        ]
+      }
+    },
+    "context7-auto-research": {
+      "description": "Auto-fetches latest library/framework documentation via Context7 API. Use when needing current documentation for React, Next.js, Prisma, or any popular library/framework.",
+      "priority": 9,
+      "triggers": {
+        "keywords": [
+          "context7", "latest docs", "current docs", "library docs",
+          "framework docs", "api docs", "documentation"
+        ],
+        "keywordPatterns": [
+          "\\bcontext7\\b", "latest.*docs", "current.*(?:library|framework).*docs"
+        ],
+        "intentPatterns": [
+          "(?:what's|what is).*(?:latest|new).*(?:react|next|prisma|vue|angular)",
+          "(?:get|fetch|find).*(?:docs|documentation).*(?:for|about)"
+        ]
+      }
+    },
+    "search-specialist": {
+      "description": "General-purpose search specialist for structured information gathering from the web. Use when needing comprehensive web searches, fact-checking, or multi-source research.",
+      "priority": 7,
+      "triggers": {
+        "keywords": [
+          "search", "research", "find information", "look up",
+          "fact check", "information gathering"
+        ],
+        "keywordPatterns": [
+          "\\bsearch\\b", "\\bresearch\\b", "\\bfact.?check\\b"
+        ],
+        "intentPatterns": [
+          "(?:search|research|find|look up).*(?:information|data|facts|details)"
+        ]
+      }
+    },
+    "web-scraper": {
+      "description": "Web scraping for extracting structured data from websites. Use when needing to extract data from specific web pages, scrape content, or crawl websites.",
+      "priority": 7,
+      "triggers": {
+        "keywords": [
+          "web scrap", "scrape", "crawl", "extract data", "web crawl",
+          "html parsing", "web extraction"
+        ],
+        "keywordPatterns": [
+          "\\bscrape\\b", "\\bcrawl\\b", "\\bweb scrap\\b", "\\bhtml\\b"
+        ],
+        "intentPatterns": [
+          "(?:extract|scrape|crawl).*(?:data|content|info).*(?:from|web|page|site)"
+        ]
+      }
+    },
+    "deep-research": {
+      "description": "Universal deep academic research with 13-agent pipeline, 7 modes (full research, quick brief, paper review, lit-review, fact-check, Socratic, systematic review). APA 7.0 reports. Use when doing rigorous research, literature reviews, or evidence synthesis.",
+      "priority": 9,
+      "triggers": {
+        "keywords": [
+          "deep research", "academic research", "literature review", "systematic review",
+          "meta-analysis", "evidence synthesis", "research question", "fact-check",
+          "research methodology"
+        ],
+        "keywordPatterns": [
+          "\\bdeep research\\b", "\\bacademic research\\b", "\\bliterature review\\b",
+          "\\bsystematic review\\b", "\\bmeta.analysis\\b", "\\bPRISMA\\b"
+        ],
+        "intentPatterns": [
+          "(?:research|investigate|study).*(?:topic|question|subject|phenomenon)",
+          "(?:write|do|conduct).*(?:research|literature review|systematic review)"
+        ]
+      }
+    },
+    "academic-paper": {
+      "description": "Academic paper writing with 12-agent pipeline supporting IMRaD, literature review, case study, policy brief, conference paper. APA 7.0/Chicago/MLA/IEEE citations. Bilingual abstracts. Use when writing or revising academic papers.",
+      "priority": 9,
+      "triggers": {
+        "keywords": [
+          "academic paper", "write paper", "thesis", "dissertation", "research paper",
+          "conference paper", "journal article", "paper outline", "abstract",
+          "citation", "references", "IEEE", "APA"
+        ],
+        "keywordPatterns": [
+          "\\bacademic paper\\b", "\\bwrite paper\\b", "\\bthesis\\b", "\\bAPA\\b",
+          "\\bIEEE\\b", "\\breferences\\b", "\\bcitation\\b"
+        ],
+        "intentPatterns": [
+          "(?:write|compose|draft).*(?:paper|thesis|dissertation|article)",
+          "(?:format|structure).*(?:paper|thesis|research)"
+        ]
+      }
+    },
+    "github": {
+      "description": "GitHub repository navigation, issue tracking, PR review, and code search. Use when working with GitHub repos, finding issues, or reviewing pull requests.",
+      "priority": 7,
+      "triggers": {
+        "keywords": [
+          "github", "repository", "repo", "pull request", "issue", "PR", "branch",
+          "commit", "git"
+        ],
+        "keywordPatterns": [
+          "\\bgithub\\b", "\\brepo(?:sitory)?\\b", "\\bPR\\b", "\\bbranch\\b", "\\bcommit\\b"
+        ],
+        "intentPatterns": [
+          "(?:find|search|look at|check).*(?:github|repo|repository)",
+          "(?:review|comment).*(?:PR|pull request)"
+        ]
+      }
+    },
+    "github-workflow": {
+      "description": "GitHub workflow automation: AI PR reviews via GitHub Actions, issue triage, smart test selection, AI risk assessment for deployments. Use when automating GitHub workflows, CI/CD pipelines, or DevOps tasks.",
+      "priority": 7,
+      "triggers": {
+        "keywords": [
+          "github actions", "CI/CD", "workflow automation", "issue triage",
+          "auto-label", "deployment", "devops"
+        ],
+        "keywordPatterns": [
+          "\\bgithub actions\\b", "\\bCI/?CD\\b", "\\bworkflow\\b"
+        ],
+        "intentPatterns": [
+          "(?:automate|set up).*(?:github|workflow|CI|CD)",
+          "(?:deploy|release).*(?:github|actions)"
+        ]
+      }
+    },
+    "wiki-researcher": {
+      "description": "Wikipedia research for factual information, concept explanations, and topic overviews. Use when needing encyclopedic information or quick factual lookups.",
+      "priority": 6,
+      "triggers": {
+        "keywords": [
+          "wikipedia", "wiki", "encyclopedia", "encyclopaedia",
+          "factual", "concept explanation", "topic overview"
+        ],
+        "keywordPatterns": [
+          "\\bwikipedia\\b", "\\bwiki\\b", "\\bencyclopedia\\b"
+        ],
+        "intentPatterns": [
+          "(?:what is|who is|explain|define).*(?:topic|concept|term|phenomenon)",
+          "(?:look up|find).*(?:fact|information|definition).*(?:on|about)"
+        ]
+      }
+    },
+    "similarity-search": {
+      "description": "Vector/semantic similarity search patterns for production systems. Covers semantic search, RAG retrieval, recommendation engines, nearest neighbor queries, hybrid semantic + keyword search. Use when implementing similarity or vector search.",
+      "priority": 7,
+      "triggers": {
+        "keywords": [
+          "similarity search", "vector search", "nearest neighbor", "embedding search",
+          "semantic search", "recommendation engine", "faiss", "hnsw"
+        ],
+        "keywordPatterns": [
+          "\\bsimilarity\\b", "\\bvector search\\b", "\\bnearest neighbor\\b",
+          "\\bsemantic search\\b", "\\bfaiss\\b", "\\bhnsw\\b"
+        ],
+        "intentPatterns": [
+          "(?:implement|build|add).*(?:similarity|vector|semantic).*(?:search|search)"
+        ]
+      }
+    },
+    "hybrid-search": {
+      "description": "Hybrid search implementation combining vector similarity with BM25 keyword search. Use when building hybrid retrieval systems combining semantic and keyword search.",
+      "priority": 7,
+      "triggers": {
+        "keywords": [
+          "hybrid search", "BM25", "keyword search", "full-text search",
+          "hybrid retrieval", "keyword + vector"
+        ],
+        "keywordPatterns": [
+          "\\bhybrid search\\b", "\\bBM25\\b", "\\bfull.text\\b", "\\bkeyword search\\b"
+        ],
+        "intentPatterns": [
+          "(?:implement|build|add).*(?:hybrid|keyword.vector).*(?:search|retrieval)"
+        ]
+      }
+    },
+    "context-compression": {
+      "description": "Context compression techniques for reducing token usage while preserving key information. Use when optimizing context windows, reducing LLM costs, or handling long documents.",
+      "priority": 7,
+      "triggers": {
+        "keywords": [
+          "context compression", "context window", "token optimization", "summarize context",
+          "context reduction", "long document"
+        ],
+        "keywordPatterns": [
+          "\\bcontext compression\\b", "\\btoken.*limit\\b", "\\bcontext window\\b"
+        ],
+        "intentPatterns": [
+          "(?:reduce|compress|optimize|shorten).*(?:context|prompt|document)",
+          "(?:handle|process).*(?:long|big|huge).*(?:document|context)"
+        ]
+      }
+    },
+    "context-manager": {
+      "description": "Context management strategies for organizing and maintaining conversation context in Claude Code sessions. Use when managing long conversations, context overflow, or organizing Claude's working memory.",
+      "priority": 6,
+      "triggers": {
+        "keywords": [
+          "context manager", "context management", "context overflow",
+          "conversation context", "session memory"
+        ],
+        "keywordPatterns": ["\\bcontext.*(?:manage|manager)\\b", "\\bcontext overflow\\b"],
+        "intentPatterns": [
+          "(?:manage|organize|handle).*(?:context|session|memory)",
+          "(?:context|session).*(?:too|very).*(?:long|large|big)"
+        ]
+      }
+    },
+    "ai-research-catalog": {
+      "description": "AI/ML research skill catalog covering 92 specialized skills across model architecture, fine-tuning, RLHF, distributed training, inference serving, MLOps, RAG, multimodal, emerging techniques, and research writing. Auto-triggers in AI/ML research contexts.",
+      "priority": 8,
+      "triggers": {
+        "keywords": [
+          "LLM", "transformer", "fine-tune", "RLHF", "DPO", "PEFT", "LoRA",
+          "distributed training", "FSDP", "DeepSpeed", "vLLM", "SGLang", "TensorRT",
+          "agent", "LangChain", "LlamaIndex", "multimodal", "diffusion", "CLIP",
+          "Whisper", "TTS", "knowledge distillation", "model pruning", "MoE",
+          "vector database", "FAISS", "Qdrant", "Pinecone", "chromadb",
+          "DSPy", "Gradio", "evaluation harness", "mlflow", "wandb"
+        ],
+        "keywordPatterns": [
+          "\\bLLM\\b", "\\bfine.tune\\b", "\\bRLHF\\b", "\\bLoRA\\b", "\\bRAG\\b",
+          "\\bFSDP\\b", "\\bDeepSpeed\\b", "\\bvLLM\\b", "\\bSGLang\\b", "\\bMoE\\b",
+          "\\bDiffusion\\b", "\\bCLIP\\b", "\\bWhisper\\b", "\\bFAISS\\b", "\\bDSPy\\b"
+        ],
+        "pathPatterns": [
+          "**/ai-research-skills/**", "**/research-skills/**"
+        ],
+        "intentPatterns": [
+          "(?:research|work on|learn about|implement).*(?:LLM|transformer|AI model)",
+          "(?:how to|what is).*(?:fine.tune|RLHF|LoRA|agent|RAG)"
+        ]
+      }
+    }
+  }
+}
