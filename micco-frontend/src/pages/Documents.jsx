@@ -2,9 +2,9 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Upload, X, File, Image,
-    ChevronDown, CheckCircle2,
+    ChevronDown, CheckCircle2, AlertCircle,
     ChevronLeft, ChevronRight, Trash2, Search, Building2,
-    Lock, Globe, MoreHorizontal, Eye, Download, Share2, Clock, XCircle
+    Lock, Globe, MoreHorizontal, Eye, Download, Share2, Clock, XCircle, Square, CheckSquare
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fileTypeIconMap, fileTypeColors, fileTypeBgColors } from '../components/documents/fileTypes';
@@ -18,7 +18,7 @@ const categories = ['All', 'Tài liệu', 'Hợp đồng', 'Báo cáo', 'Biên b
 const ROWS_PER_PAGE = 5;
 
 export default function Documents() {
-    const { authFetch } = useAuth();
+    const { authFetch, refreshApprovals } = useAuth();
     const navigate = useNavigate();
     const [documents, setDocuments] = useState([]);
     const [departments, setDepartments] = useState([]);
@@ -41,6 +41,15 @@ export default function Documents() {
     const [uploadError, setUploadError] = useState('');
     const [openMenu, setOpenMenu] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [toast, setToast] = useState(null);
+    const [selectedIds, setSelectedIds] = useState(new Set());
+    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+
+    // Toast helper
+    const showToast = (msg, type = 'success') => {
+        setToast({ msg, type, id: Date.now() });
+        setTimeout(() => setToast(null), 3500);
+    };
 
     // Fetch departments for filter tabs
     useEffect(() => {
@@ -114,6 +123,8 @@ export default function Documents() {
             const res = await authFetch('/api/documents/upload', { method: 'POST', body: formData });
             if (res.ok) {
                 await fetchDocuments();
+                refreshApprovals();
+                showToast(`Tải lên ${stagedFiles.length} tài liệu thành công`);
                 setUploadSuccess(true);
                 setStagedFiles([]);
                 setTimeout(() => {
@@ -128,9 +139,11 @@ export default function Documents() {
             } else {
                 const err = await res.json().catch(() => ({}));
                 setUploadError(err.detail || `Lỗi ${res.status}`);
+                showToast(err.detail || `Tải lên thất bại (${res.status})`, 'error');
             }
         } catch (err) {
             setUploadError(`Lỗi kết nối: ${err.message}`);
+            showToast(`Lỗi kết nối: ${err.message}`, 'error');
         } finally {
             setUploading(false);
         }
@@ -156,10 +169,61 @@ export default function Documents() {
     const handleDelete = async (id) => {
         try {
             const res = await authFetch(`/api/documents/${id}`, { method: 'DELETE' });
-            if (res.ok) setDocuments(prev => prev.filter(d => d.id !== id));
-            else { const err = await res.json().catch(() => ({})); alert(err.detail || 'Xóa thất bại'); }
-        } catch (err) { console.error('Delete failed:', err); }
+            if (res.ok) {
+                const docName = documents.find(d => d.id === id)?.name || 'Tài liệu';
+                setDocuments(prev => prev.filter(d => d.id !== id));
+                showToast(`Đã xóa "${docName}" thành công`);
+            } else {
+                const err = await res.json().catch(() => ({}));
+                showToast(err.detail || 'Xóa thất bại', 'error');
+            }
+        } catch (err) {
+            console.error('Delete failed:', err);
+            showToast('Có lỗi xảy ra khi xóa', 'error');
+        }
         setDeleteTarget(null);
+    };
+
+    const toggleSelect = (id) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === pageDocs.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(pageDocs.map(d => d.id)));
+        }
+    };
+
+    const clearSelection = () => setSelectedIds(new Set());
+
+    const handleBulkDelete = async () => {
+        const ids = Array.from(selectedIds);
+        let successCount = 0;
+        let failCount = 0;
+        for (const id of ids) {
+            try {
+                const res = await authFetch(`/api/documents/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+            } catch {
+                failCount++;
+            }
+        }
+        setDocuments(prev => prev.filter(d => !selectedIds.has(d.id)));
+        setSelectedIds(new Set());
+        setShowBulkDeleteModal(false);
+        if (successCount > 0) showToast(`Đã xóa ${successCount} tài liệu thành công${failCount > 0 ? `, ${failCount} thất bại` : ''}`);
+        else showToast('Xóa thất bại', 'error');
     };
 
     const handleDownload = async (doc) => {
@@ -170,8 +234,14 @@ export default function Documents() {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a'); a.href = url; a.download = doc.name || doc.original_filename || 'document'; a.click();
                 window.URL.revokeObjectURL(url);
+                showToast(`Đã tải "${doc.name || doc.original_filename || 'tài liệu'}"`);
+            } else {
+                showToast('Tải xuống thất bại', 'error');
             }
-        } catch (err) { console.error('Download failed:', err); }
+        } catch (err) {
+            console.error('Download failed:', err);
+            showToast('Tải xuống thất bại', 'error');
+        }
     };
 
     const totalStagedSize = stagedFiles.reduce((sum, f) => sum + f.size, 0);
@@ -184,6 +254,25 @@ export default function Documents() {
                     { label: 'Tài liệu' },
                 ]} />
             </div>
+
+            {/* ── Toast Notification ─────────────────────────────────── */}
+            {toast && (
+                <div
+                    key={toast.id}
+                    className={`fixed top-20 right-6 z-[100] flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl border text-sm font-semibold animate-slide-in-right
+                        ${toast.type === 'error'
+                            ? 'bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/40 dark:to-rose-900/40 border-red-200 dark:border-red-700 text-red-700 dark:text-red-200'
+                            : 'bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/40 dark:to-green-900/40 border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-200'
+                        }`}
+                >
+                    {toast.type === 'error' ? (
+                        <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0" />
+                    ) : (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500 dark:text-emerald-400 shrink-0" />
+                    )}
+                    <span>{toast.msg}</span>
+                </div>
+            )}
 
             {/* ══════════════ Department Filter ══════════════ */}
             {departments.length > 0 && (
@@ -477,7 +566,18 @@ export default function Documents() {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tên</th>
+                                    <th className="pl-6 pr-2 py-4 w-10">
+                                        <button
+                                            onClick={toggleSelectAll}
+                                            className="text-gray-400 hover:text-primary-600 transition-colors"
+                                            title={selectedIds.size === pageDocs.length && pageDocs.length > 0 ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+                                        >
+                                            {selectedIds.size === pageDocs.length && pageDocs.length > 0
+                                                ? <CheckSquare className="w-4 h-4 text-primary-600" />
+                                                : <Square className="w-4 h-4" />}
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tên</th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Danh mục</th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">Ngày sửa</th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">Kích thước</th>
@@ -488,7 +588,7 @@ export default function Documents() {
                             <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                                 {pageDocs.length === 0 && (
                                     <tr>
-                                        <td colSpan={6}>
+                                        <td colSpan={7}>
                                             <div className="px-6 py-14 text-center">
                                                 <Search className="w-12 h-12 text-gray-200 dark:text-gray-700 mx-auto mb-3" />
                                                 <p className="text-gray-500 dark:text-gray-400 font-medium">Không tìm thấy tài liệu</p>
@@ -498,16 +598,35 @@ export default function Documents() {
                                     </tr>
                                 )}
                                 {pageDocs.map((doc) => (
-                                    <DocumentRow
+                                    <tr
                                         key={doc.id}
-                                        doc={doc}
-                                        openMenu={openMenu}
-                                        onToggleMenu={(id) => setOpenMenu(openMenu === id ? null : id)}
-                                        onView={(d) => navigate(`/documents/${d.id}`)}
-                                        onDownload={handleDownload}
-                                        onDelete={(id) => setDeleteTarget(id)}
-                                        tableRowClassName="px-6 py-4"
-                                    />
+                                        className={`transition-colors ${
+                                            selectedIds.has(doc.id)
+                                                ? 'bg-primary-50/60 dark:bg-primary-500/10'
+                                                : 'hover:bg-gray-50/50 dark:hover:bg-gray-800/40'
+                                        }`}
+                                    >
+                                        <td className="pl-6 pr-2 py-4 w-10">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); toggleSelect(doc.id); }}
+                                                className="text-gray-300 hover:text-primary-600 transition-colors"
+                                            >
+                                                {selectedIds.has(doc.id)
+                                                    ? <CheckSquare className="w-4 h-4 text-primary-600" />
+                                                    : <Square className="w-4 h-4" />}
+                                            </button>
+                                        </td>
+                                        <DocumentRow
+                                            doc={doc}
+                                            openMenu={openMenu}
+                                            onToggleMenu={(id) => setOpenMenu(openMenu === id ? null : id)}
+                                            onView={(d) => navigate(`/documents/${d.id}`)}
+                                            onDownload={handleDownload}
+                                            onDelete={(id) => setDeleteTarget(id)}
+                                            tableRowClassName="px-4 py-4"
+                                            renderAsTableCells
+                                        />
+                                    </tr>
                                 ))}
                             </tbody>
                         </table>
@@ -589,7 +708,7 @@ export default function Documents() {
                 )}
             </div>
 
-            {/* ─── Delete Modal ─── */}
+            {/* ─── Delete Modal (single) ─── */}
             {deleteTarget && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDeleteTarget(null)} />
@@ -603,6 +722,52 @@ export default function Documents() {
                             <button onClick={() => setDeleteTarget(null)} className="flex-1 px-4 py-2 rounded-md border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Hủy</button>
                             <button onClick={() => handleDelete(deleteTarget)} className="flex-1 px-4 py-2 rounded-md bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors">Xóa</button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ─── Bulk Delete Modal ─── */}
+            {showBulkDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowBulkDeleteModal(false)} />
+                    <div className="relative bg-white dark:bg-gray-900 rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl border border-gray-200 dark:border-gray-800 animate-fade-in">
+                        <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+                            <Trash2 className="w-6 h-6 text-red-500" />
+                        </div>
+                        <h3 className="text-base font-bold text-gray-900 dark:text-white text-center mb-1">Xóa {selectedIds.size} tài liệu</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-5">
+                            Bạn có chắc muốn xóa <span className="font-semibold text-red-500">{selectedIds.size}</span> tài liệu đã chọn? Hành động này không thể hoàn tác.
+                        </p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setShowBulkDeleteModal(false)} className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Hủy</button>
+                            <button onClick={handleBulkDelete} className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-colors">Xóa tất cả</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ─── Floating Selection Action Bar ─── */}
+            {selectedIds.size > 0 && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-slide-up">
+                    <div className="flex items-center gap-3 bg-gray-900 dark:bg-gray-950 text-white px-5 py-3 rounded-2xl shadow-2xl border border-gray-700">
+                        <span className="text-sm font-semibold text-gray-100">
+                            Đã chọn <span className="text-primary-400">{selectedIds.size}</span> tài liệu
+                        </span>
+                        <div className="w-px h-5 bg-gray-600" />
+                        <button
+                            onClick={() => setShowBulkDeleteModal(true)}
+                            className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-colors"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            Xóa {selectedIds.size} mục
+                        </button>
+                        <button
+                            onClick={clearSelection}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+                            title="Bỏ chọn"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
                     </div>
                 </div>
             )}

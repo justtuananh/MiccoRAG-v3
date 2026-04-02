@@ -33,6 +33,8 @@ class WorkspaceResponse(BaseModel):
     document_count: int = 0
     indexed_count: int = 0
     suggested_questions: list[str] | None = None
+    department_id: int | None = None  # Liên kết với department
+    department_name: str | None = None  # Tên department để hiển thị
     created_at: datetime
     updated_at: datetime
 

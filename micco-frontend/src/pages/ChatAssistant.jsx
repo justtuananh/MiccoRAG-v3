@@ -564,7 +564,17 @@ export default function ChatAssistant() {
                 if (res.ok) {
                     const data = await res.json();
                     setWorkspaces(data);
-                    if (data.length > 0) setSelectedWs(data[0]);
+
+                    // Auto-select logic:
+                    // 1. If only one workspace, select it
+                    // 2. If multiple, select the one with indexed_count > 0 if exists
+                    // 3. Otherwise select first
+                    if (data.length === 1) {
+                        setSelectedWs(data[0]);
+                    } else if (data.length > 1) {
+                        const withDocs = data.find(w => w.indexed_count > 0);
+                        setSelectedWs(withDocs || data[0]);
+                    }
                 }
             } catch { /* connection error */ } finally {
                 setWsLoading(false);
@@ -896,8 +906,13 @@ export default function ChatAssistant() {
                                         }`}
                                     >
                                         <Database className="w-3.5 h-3.5 flex-shrink-0 opacity-60" />
-                                        <span className="flex-1 truncate text-left">{ws.name}</span>
-                                        <span className="text-xs opacity-50">{ws.document_count}</span>
+                                        <div className="flex-1 truncate text-left">
+                                            <div className="font-medium">{ws.name}</div>
+                                            {ws.department_name && (
+                                                <div className="text-xs opacity-60">{ws.department_name}</div>
+                                            )}
+                                        </div>
+                                        <span className="text-xs opacity-50">{ws.indexed_count} docs</span>
                                     </button>
                                 ))}
                             </div>

@@ -9,7 +9,7 @@ from app.models.user import User
 from app.models.document import Document, DocumentStatus
 from app.models.knowledge_entry import KnowledgeEntry
 from app.models.department import Department
-from app.api_compat.utils import format_bytes_to_human, get_current_department_id
+from app.api_compat.utils import format_bytes_to_human
 from app.api.documents import process_document_background, process_knowledge_background, UPLOAD_DIR
 from docx import Document as DocxDocument
 import aiofiles
@@ -47,42 +47,43 @@ async def pending_count(
     )
     kn_count = (await db.execute(kn_stmt)).scalar() or 0
 
-    total = doc_count + kn_count
+    # Always return last_requester so frontend can show who uploaded
+    # even when count increases from 0 → N
     last_requester = None
 
-    if total > 0:
-        # Fetch the most recent pending item (doc or knowledge) scoped by department
-        latest_doc_result = await db.execute(
-            select(User.name, Document.created_at)
-            .join(User, Document.uploader_id == User.id)
-            .where(
-                Document.approval_status == "pending",
-                dept_filter_doc,
-            )
-            .order_by(Document.created_at.desc())
-            .limit(1)
+    # Fetch the most recent pending item (doc or knowledge) scoped by department
+    latest_doc_result = await db.execute(
+        select(User.name, Document.created_at)
+        .join(User, Document.uploader_id == User.id)
+        .where(
+            Document.approval_status == "pending",
+            dept_filter_doc,
         )
-        doc_row = latest_doc_result.first()
+        .order_by(Document.created_at.desc())
+        .limit(1)
+    )
+    doc_row = latest_doc_result.first()
 
-        latest_kn_result = await db.execute(
-            select(User.name, KnowledgeEntry.created_at)
-            .join(User, KnowledgeEntry.owner_id == User.id)
-            .where(
-                KnowledgeEntry.approval_status == "pending_approval",
-                dept_filter_kn,
-            )
-            .order_by(KnowledgeEntry.created_at.desc())
-            .limit(1)
+    latest_kn_result = await db.execute(
+        select(User.name, KnowledgeEntry.created_at)
+        .join(User, KnowledgeEntry.owner_id == User.id)
+        .where(
+            KnowledgeEntry.approval_status == "pending_approval",
+            dept_filter_kn,
         )
-        kn_row = latest_kn_result.first()
+        .order_by(KnowledgeEntry.created_at.desc())
+        .limit(1)
+    )
+    kn_row = latest_kn_result.first()
 
-        if doc_row and kn_row:
-            last_requester = doc_row[0] if doc_row[1] > kn_row[1] else kn_row[0]
-        elif doc_row:
-            last_requester = doc_row[0]
-        elif kn_row:
-            last_requester = kn_row[0]
+    if doc_row and kn_row:
+        last_requester = doc_row[0] if doc_row[1] > kn_row[1] else kn_row[0]
+    elif doc_row:
+        last_requester = doc_row[0]
+    elif kn_row:
+        last_requester = kn_row[0]
 
+    total = doc_count + kn_count
     return {"count": total, "last_requester": last_requester}
 
 

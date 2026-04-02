@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { File, Eye, Download, Share2, Trash2, MoreHorizontal, Clock, XCircle } from 'lucide-react';
+import { File, Eye, Download, Share2, Trash2, MoreHorizontal, Clock, XCircle, Loader2 } from 'lucide-react';
 import { fileTypeIconMap, fileTypeColors, fileTypeBgColors } from './fileTypes';
 import { getExt, formatBytes, formatDate, getInitials, avatarColor, categoryColors, getCategoryLabel } from '../../utils/formatters';
 
@@ -55,7 +55,7 @@ function DropdownMenu({ anchorEl, onClose, children }) {
     );
 }
 
-export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDownload, onDelete }) {
+export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDownload, onDelete, renderAsTableCells }) {
     const ext = doc.type || getExt(doc.name);
     const Icon = fileTypeIconMap[ext] || File;
     const iconColor = fileTypeColors[ext] || 'text-gray-500';
@@ -66,8 +66,8 @@ export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDow
     const btnRef = useRef(null);
     const isOpen = openMenu === doc.id;
 
-    return (
-        <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+    const cells = (
+        <>
             {/* Name */}
             <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
@@ -86,6 +86,11 @@ export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDow
                         {doc.approval_status === 'rejected' && (
                             <span className="inline-flex items-center gap-1 text-xs text-red-500 dark:text-red-400 mt-0.5">
                                 <XCircle className="w-3 h-3" /> Từ chối
+                            </span>
+                        )}
+                        {doc.approval_status === 'approved' && ['parsing', 'processing', 'indexing'].includes(doc.status) && (
+                            <span className="inline-flex items-center gap-1 text-xs text-primary-500 dark:text-primary-400 mt-0.5">
+                                <Loader2 className="w-3 h-3 animate-spin" /> {doc.status === 'indexing' ? 'Đang lập chỉ mục' : 'Đang xử lý'}
                             </span>
                         )}
                     </div>
@@ -142,6 +147,14 @@ export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDow
                     </DropdownMenu>
                 )}
             </td>
+        </>
+    );
+
+    if (renderAsTableCells) return cells;
+
+    return (
+        <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+            {cells}
         </tr>
     );
 }

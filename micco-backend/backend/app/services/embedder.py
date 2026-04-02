@@ -1,10 +1,9 @@
 """
 Embedding Service
 =================
-Generates vector embeddings using sentence-transformers.
+Generates vector embeddings using the configured embedding provider.
 
-Default model: BAAI/bge-m3 (1024-dim, multilingual, 100+ languages).
-Configurable via NEXUSRAG_EMBEDDING_MODEL in settings.
+Delegates to `app.services.llm.get_embedding_provider()`.
 """
 from __future__ import annotations
 
@@ -12,6 +11,7 @@ import logging
 from typing import Sequence, Optional
 
 from app.core.config import settings
+from app.services.llm import get_embedding_provider
 
 logger = logging.getLogger(__name__)
 
@@ -19,52 +19,30 @@ logger = logging.getLogger(__name__)
 class EmbeddingService:
     """
     Service for generating text embeddings.
-    Uses sentence-transformers for local embedding generation.
+    Proxies to the unified get_embedding_provider() which handles Gemini API calls.
     """
-
-    # Dimension lookup for common models (used before model is loaded)
-    _KNOWN_DIMS = {
-        "BAAI/bge-m3": 1024,
-        "all-MiniLM-L6-v2": 384,
-        "all-mpnet-base-v2": 768,
-        "paraphrase-multilingual-MiniLM-L12-v2": 384,
-        "intfloat/multilingual-e5-large-instruct": 1024,
-    }
 
     def __init__(self, model_name: Optional[str] = None):
         self.model_name = model_name or settings.NEXUSRAG_EMBEDDING_MODEL
-        self._model = None
 
     @property
-    def model(self):
-        """Lazy load the model."""
-        if self._model is None:
-            from sentence_transformers import SentenceTransformer
-            logger.info(f"Loading embedding model: {self.model_name}")
-            self._model = SentenceTransformer(self.model_name)
-            logger.info(
-                f"Embedding model loaded: {self.model_name} "
-                f"(dim={self._model.get_sentence_embedding_dimension()})"
-            )
-        return self._model
+    def provider(self):
+        """Lazy load the provider."""
+        return get_embedding_provider()
 
     @property
     def dimension(self) -> int:
         """Return the embedding dimension size."""
-        if self._model is not None:
-            return self._model.get_sentence_embedding_dimension()
-        return self._KNOWN_DIMS.get(self.model_name, 1024)
+        return self.provider.get_dimension()
 
     def embed_text(self, text: str) -> list[float]:
         """Generate embedding for a single text."""
         if not text.strip():
             raise ValueError("Cannot embed empty text")
-        embedding = self.model.encode(
-            text,
-            convert_to_numpy=True,
-            normalize_embeddings=True,
-        )
-        return embedding.tolist()
+        
+        # embed_sync returns a NumPy array with the shape (batch_size, dim)
+        embeddings_arr = self.provider.embed_sync([text])
+        return embeddings_arr[0].tolist()
 
     def embed_texts(self, texts: Sequence[str]) -> list[list[float]]:
         """Generate embeddings for multiple texts in batch."""
@@ -73,13 +51,9 @@ class EmbeddingService:
         valid_texts = [t for t in texts if t.strip()]
         if not valid_texts:
             raise ValueError("All texts are empty")
-        embeddings = self.model.encode(
-            valid_texts,
-            convert_to_numpy=True,
-            normalize_embeddings=True,
-            batch_size=32,
-        )
-        return embeddings.tolist()
+        
+        embeddings_arr = self.provider.embed_sync(valid_texts)
+        return embeddings_arr.tolist()
 
     def embed_query(self, query: str) -> list[float]:
         """Generate embedding for a search query."""

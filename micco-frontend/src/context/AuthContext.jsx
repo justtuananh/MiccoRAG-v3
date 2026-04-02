@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 
 const AuthContext = createContext();
 
@@ -20,6 +20,43 @@ export function AuthProvider({ children }) {
     const [token, setToken] = useState(SKIP_AUTH ? 'dev-skip' : localStorage.getItem('docvault_token'));
     const [isAuthenticated, setIsAuthenticated] = useState(SKIP_AUTH);
     const [loading, setLoading] = useState(!SKIP_AUTH);
+
+    // ── Approval notification state ────────────────────────────────────────
+    const [approvalPendingCount, setApprovalPendingCount] = useState(0);
+    const [approvalLastRequester, setApprovalLastRequester] = useState(null);
+    const [showApprovalToast, setShowApprovalToast] = useState(false);
+
+    const isFirstLoad = useRef(true);
+    const pendingCountRef = useRef(0);
+    pendingCountRef.current = approvalPendingCount;
+
+    // Fetch + update approval count (gọi ngay sau upload, hoặc bởi polling)
+    const refreshApprovals = useCallback(async () => {
+        if (user?.role !== 'Admin' && user?.role !== 'Trưởng phòng') return;
+        try {
+            const res = await authFetch('/api/approvals/count');
+            if (!res.ok) return;
+            const data = await res.json();
+            if (typeof data.count !== 'number') return;
+
+            // count tăng → có upload mới → hiện toast
+            if (!isFirstLoad.current && data.count > pendingCountRef.current) {
+                setApprovalLastRequester(data.last_requester);
+                setShowApprovalToast(true);
+                setTimeout(() => setShowApprovalToast(false), 5000);
+            }
+            isFirstLoad.current = false;
+            setApprovalPendingCount(data.count);
+        } catch (_) { /* silent */ }
+    }, [user?.role]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Polling: mỗi 15s refresh approval count
+    useEffect(() => {
+        if (user?.role !== 'Admin' && user?.role !== 'Trưởng phòng') return;
+        refreshApprovals(); // gọi ngay lần đầu
+        const interval = setInterval(refreshApprovals, 15000);
+        return () => clearInterval(interval);
+    }, [user?.role, refreshApprovals]);
 
     // Auto-login on mount if token exists (skipped in dev bypass mode)
     useEffect(() => {
@@ -130,7 +167,13 @@ export function AuthProvider({ children }) {
     return (
         <AuthContext.Provider value={{
             user, isAuthenticated, loading, token,
-            login, register, logout, authFetch
+            login, register, logout, authFetch,
+            // Approval notification
+            approvalPendingCount,
+            approvalLastRequester,
+            showApprovalToast,
+            setShowApprovalToast,
+            refreshApprovals,
         }}>
             {children}
         </AuthContext.Provider>

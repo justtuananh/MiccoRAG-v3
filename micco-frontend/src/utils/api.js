@@ -250,9 +250,13 @@ export const ragChatApi = {
    */
   streamChat: async (workspaceId, message, options = {}) => {
     const url = `${RAG_V2_BASE}/api/v1/rag/chat/${workspaceId}/stream`;
+    const token = localStorage.getItem('docvault_token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         message,
         document_ids: options.documentIds || [],

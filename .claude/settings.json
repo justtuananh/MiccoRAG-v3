@@ -5,6 +5,46 @@
       "Read(//home/kms/**)",
       "Write(//home/kms/MiccoRAG-v3/**)",
       "Write(//home/kms/**)"
+    ],
+    "additionalDirectories": [
+      "/home/kms/MiccoRAG-v3/.claude/skills/playwright-e2e",
+      "/tmp/playwright-skill"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "# Block edits on main branch\n[ \"$(git branch --show-current)\" != \"main\" ] || { echo '{\"block\": true, \"message\": \"Cannot edit files on main branch. Create a feature branch first.\"}' >&2; exit 2; }",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "# Auto-format Python files with Ruff\nif [[ \"$CLAUDE_TOOL_INPUT_FILE_PATH\" =~ \\.py$ ]]; then\n  file_path=\"${CLAUDE_TOOL_INPUT_FILE_PATH}\"\n  ruff format \"$file_path\" 2>&1\n  ruff check --fix \"$file_path\" 2>&1\n  echo '{\"feedback\": \"Formatting applied.\", \"suppressOutput\": true}'\nfi",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "# Run pytest when test files change\nif [[ \"$CLAUDE_TOOL_INPUT_FILE_PATH\" =~ test_.*\\.py$ || \"$CLAUDE_TOOL_INPUT_FILE_PATH\" =~ _test\\.py$ ]]; then\n  echo '{\"feedback\": \"Running tests...\"}' >&2\n  pytest \"$CLAUDE_TOOL_INPUT_FILE_PATH\" -x --tb=short 2>&1 | tail -20\n  exit_code=${PIPESTATUS[0]}\n  if [ $exit_code -eq 0 ]; then\n    echo '{\"feedback\": \"Tests passed.\"}'\n  else\n    echo '{\"feedback\": \"Tests failed. See output above.\"}' >&2\n  fi\nfi",
+            "timeout": 90
+          }
+        ]
+      }
     ]
   },
   "agents": {
@@ -47,19 +87,5 @@
         "Performance testing"
       ]
     }
-  },
-  "hooks": {
-    "onTaskStart": [
-      {
-        "match": "**/*",
-        "run": "echo 'Task started at $(date)'"
-      }
-    ],
-    "onTaskComplete": [
-      {
-        "match": "**/*",
-        "run": "echo 'Task completed at $(date)'"
-      }
-    ]
   }
 }

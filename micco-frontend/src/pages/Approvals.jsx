@@ -4,6 +4,7 @@ import {
     Clock, Globe, Lock, ChevronDown, Loader2, RefreshCw,
     Eye, Tag, User, Building2, AlertCircle, CheckCircle2, FileSearch,
 } from 'lucide-react';
+import { renderAsync } from 'docx-preview';
 import { useAuth } from '../context/AuthContext';
 import { approvalsApi } from '../utils/api';
 import Breadcrumb from '../components/shared/Breadcrumb';
@@ -31,7 +32,7 @@ const getStepIndex = (status) => {
 };
 
 export default function Approvals() {
-    const { authFetch } = useAuth();
+    const { authFetch, refreshApprovals } = useAuth();
     const [tab, setTab] = useState('documents');
     const [data, setData] = useState({ documents: [], knowledge: [] });
     const [loading, setLoading] = useState(true);
@@ -50,8 +51,8 @@ export default function Approvals() {
     const pollingRef = useRef({});
 
     const showToast = (msg, type = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3000);
+        setToast({ msg, type, id: Date.now() });
+        setTimeout(() => setToast(null), 3500);
     };
 
     const fetchPending = useCallback(async () => {
@@ -128,9 +129,10 @@ export default function Approvals() {
                     setPreview({ item, type, html: full.content_html || full.content_text });
                 }
             } else {
-                const ext = (item.file_type || '').toLowerCase();
+                const extStr = (item.file_type || '').toLowerCase();
+                const ext = extStr.startsWith('.') ? extStr.slice(1) : extStr;
                 const canEmbed = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
-                const isTextBased = ['docx', 'txt', 'md'].includes(ext);
+                const isTextBased = ['txt', 'md'].includes(ext);
 
                 if (canEmbed) {
                     const res = await authFetch(`/api/documents/${item.id}/download`);
@@ -139,12 +141,28 @@ export default function Approvals() {
                         const blob = new Blob([await res.arrayBuffer()], { type: mime });
                         const blobUrl = URL.createObjectURL(blob);
                         setPreview({ item, type, blobUrl, ext });
+                    } else {
+                        showToast('Không thể tải tệp để xem trước', 'error');
+                    }
+                } else if (ext === 'docx') {
+                    const res = await authFetch(`/api/documents/${item.id}/download`);
+                    if (res.ok) {
+                        const arrayBuffer = await res.arrayBuffer();
+                        setPreview({ item, type, docxBuffer: arrayBuffer, ext });
+                    } else {
+                        showToast('Không thể tải tệp docx xem trước', 'error');
                     }
                 } else if (isTextBased) {
                     const res = await authFetch(`/api/approvals/documents/${item.id}/preview`);
                     if (res.ok) {
                         const data = await res.json();
-                        setPreview({ item, type, text: data.content, ext });
+                        if (data.supported) {
+                            setPreview({ item, type, text: data.content, ext });
+                        } else {
+                            showToast(data.message || 'Hệ thống báo lỗi không hỗ trợ định dạng này', 'error');
+                        }
+                    } else {
+                        showToast('Lỗi máy chủ khi xem trước', 'error');
                     }
                 } else {
                     // Not previewable — show metadata only
@@ -171,6 +189,8 @@ export default function Approvals() {
             if (res.ok) {
                 const json = await res.json();
                 closePreview();
+                // Instant: update sidebar badge count
+                refreshApprovals();
                 if (type === 'documents') {
                     showToast(json.message || 'Đã phê duyệt — đang xử lý tài liệu...', 'success');
                     // Move doc from pending list → processing list
@@ -215,6 +235,8 @@ export default function Approvals() {
                 setRejectModal(null);
                 setRejectNote('');
                 closePreview();
+                // Instant: update sidebar badge count
+                refreshApprovals();
                 fetchPending();
             } else {
                 const err = await res.json();
@@ -237,18 +259,22 @@ export default function Approvals() {
                 ]} />
             </div>
 
-            {/* Toast */}
+            {/* ── Toast Notification ─────────────────────────────────── */}
             {toast && (
-                <div className={`fixed top-6 right-6 z-[70] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl border text-sm font-medium
-                    ${toast.type === 'error'
-                        ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
-                        : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200'
-                    }`}>
-                    {toast.type === 'error'
-                        ? <X className="w-4 h-4 text-red-500" />
-                        : <Check className="w-4 h-4 text-emerald-500" />
-                    }
-                    {toast.msg}
+                <div
+                    key={toast.id}
+                    className={`fixed top-20 right-6 z-[100] flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl border text-sm font-semibold animate-slide-in-right
+                        ${toast.type === 'error'
+                            ? 'bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/40 dark:to-rose-900/40 border-red-200 dark:border-red-700 text-red-700 dark:text-red-200'
+                            : 'bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/40 dark:to-green-900/40 border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-200'
+                        }`}
+                >
+                    {toast.type === 'error' ? (
+                        <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0" />
+                    ) : (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500 dark:text-emerald-400 shrink-0" />
+                    )}
+                    <span>{toast.msg}</span>
                 </div>
             )}
 
@@ -460,13 +486,37 @@ export default function Approvals() {
 // ─── Preview Modal ────────────────────────────────────────────
 
 function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) {
-    const { item, type, blobUrl, html, text, ext } = preview;
+    const { item, type, blobUrl, html, text, ext, docxBuffer } = preview;
     const isDoc = type === 'documents';
     const title = isDoc ? item.name : item.title;
     const isLoading = actionLoading === `${type}-${item.id}`;
 
     const isImage = ext && ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
     const isPdf = ext === 'pdf';
+    const isDocx = ext === 'docx';
+
+    // Render DOCX natively using docx-preview
+    const docxContainerRef = useRef(null);
+    useEffect(() => {
+        if (!isDocx || !docxBuffer || !docxContainerRef.current) return;
+        const container = docxContainerRef.current;
+        container.innerHTML = '';
+        renderAsync(docxBuffer, container, undefined, {
+            className: 'docx-preview',
+            inWrapper: true,
+            ignoreWidth: false,
+            ignoreHeight: false,
+            ignoreFonts: false,
+            breakPages: true,
+            useBase64URL: true,
+            renderChanges: false,
+            renderHeaders: true,
+            renderFooters: true,
+            renderFootnotes: true,
+        }).catch(err => {
+            container.innerHTML = `<div style="padding:2rem;color:#ef4444">Lỗi hiển thị: ${err.message}</div>`;
+        });
+    }, [isDocx, docxBuffer]);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -544,8 +594,28 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
                         </div>
                     )}
 
-                    {/* Document: Text preview for DOCX/TXT/MD */}
-                    {isDoc && text && (
+                    {/* Document: DOCX native preview via docx-preview */}
+                    {isDoc && isDocx && (
+                        <div
+                            ref={docxContainerRef}
+                            className="w-full overflow-auto bg-gray-200 dark:bg-gray-950"
+                            style={{ minHeight: '60vh' }}
+                        />
+                    )}
+
+                    {/* Document: HTML preview for knowledge */}
+                    {isDoc && html && !isDocx && (
+                        <div className="p-8 bg-white dark:bg-gray-900 min-h-[60vh]">
+                            <div
+                                className="prose prose-sm dark:prose-invert max-w-none"
+                                style={{ color: 'inherit' }}
+                                dangerouslySetInnerHTML={{ __html: html }}
+                            />
+                        </div>
+                    )}
+
+                    {/* Document: Text preview for TXT/MD */}
+                    {isDoc && text && !html && (
                         <div className="p-6">
                             <div className="bg-gray-50 dark:bg-gray-950 rounded-xl border border-gray-100 dark:border-gray-800 p-6">
                                 <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 font-sans leading-relaxed">
@@ -556,7 +626,7 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
                     )}
 
                     {/* Document: not previewable */}
-                    {isDoc && !blobUrl && !text && (
+                    {isDoc && !blobUrl && !text && !html && (
                         <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-6">
                             <div className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                                 <FileText className="w-7 h-7 text-gray-400" />

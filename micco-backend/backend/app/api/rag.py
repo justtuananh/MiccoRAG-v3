@@ -918,10 +918,11 @@ async def chat_stream(
     request: ChatRequest,
     fastapi_req: Request,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """SSE streaming chat with semi-agentic retrieval."""
     from app.api.chat_agent import chat_stream_endpoint
-    return await chat_stream_endpoint(workspace_id, request, fastapi_req, db)
+    return await chat_stream_endpoint(workspace_id, request, fastapi_req, db, current_user)
 
 
 # ---------------------------------------------------------------------------

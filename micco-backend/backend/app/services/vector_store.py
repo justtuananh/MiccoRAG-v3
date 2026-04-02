@@ -74,7 +74,7 @@ class VectorStore:
             pass
         self._collection = None
         # Force re-creation
-        _ = self.collection
+        self.collection
 
     def add_documents(
         self,
@@ -183,6 +183,18 @@ class VectorStore:
             ids=list(ids),
             include=["documents", "metadatas"]
         )
+
+    def get_by_document_id(self, document_id: int, limit: int = 20) -> list[str]:
+        """
+        Get raw text chunks for a specific document.
+        Used for generating suggested questions based on a newly ingested document.
+        """
+        results = self.collection.get(
+            where={"document_id": document_id},
+            include=["documents"],
+            limit=limit,
+        )
+        return results.get("documents", []) or []
 
 
 def get_vector_store(workspace_id: int) -> VectorStore:

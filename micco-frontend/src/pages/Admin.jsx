@@ -62,8 +62,8 @@ export default function Admin() {
     useEffect(() => { if (activeTab === 'logs') fetchLogs(logPage); }, [logPage, activeTab]);
 
     const showToast = (msg, type = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3000);
+        setToast({ msg, type, id: Date.now() });
+        setTimeout(() => setToast(null), 3500);
     };
 
     const fetchStats = async () => {
@@ -205,18 +205,23 @@ export default function Admin() {
                 ]} />
             </div>
 
-            {/* ── Toast ──────────────────────────────────────────────────── */}
+            {/* ── Toast Notification ─────────────────────────────────────── */}
             {toast && (
-                <div className={`fixed top-6 right-6 z-[60] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl border text-sm font-medium transition-all
-                    ${toast.type === 'error'
-                        ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
-                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200'
-                    }`}>
-                    {toast.type === 'error'
-                        ? <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-                        : <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    }
-                    {toast.msg}
+                <div
+                    key={toast.id}
+                    className={`fixed top-20 right-6 z-[100] flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl border text-sm font-semibold
+                        animate-slide-in-right
+                        ${toast.type === 'error'
+                            ? 'bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/40 dark:to-rose-900/40 border-red-200 dark:border-red-700 text-red-700 dark:text-red-200'
+                            : 'bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/40 dark:to-green-900/40 border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-200'
+                        }`}
+                >
+                    {toast.type === 'error' ? (
+                        <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0" />
+                    ) : (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500 dark:text-emerald-400 shrink-0" />
+                    )}
+                    <span>{toast.msg}</span>
                 </div>
             )}
 
