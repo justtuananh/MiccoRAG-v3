@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     NEXUSRAG_MAX_TABLE_MARKDOWN_CHARS: int = 8000
     NEXUSRAG_CHUNK_MAX_TOKENS: int = 512
     NEXUSRAG_KG_QUERY_TIMEOUT: float = 30.0
-    NEXUSRAG_KG_CHUNK_TOKEN_SIZE: int = 1200
+    NEXUSRAG_KG_CHUNK_TOKEN_SIZE: int = 800   # Smaller chunks = faster LLM extraction per chunk
     NEXUSRAG_KG_LANGUAGE: str = "English"
     NEXUSRAG_KG_ENTITY_TYPES: list[str] = [
         "Organization", "Person", "Product", "Location", "Event",

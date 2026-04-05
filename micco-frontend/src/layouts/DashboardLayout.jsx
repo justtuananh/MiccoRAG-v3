@@ -8,7 +8,7 @@ import {
     X, Sun, Moon, Bell,
     LogOut, ChevronDown, FileText, User, Key,
     ChevronLeft, ChevronRight, ShieldCheck, ClipboardCheck, GitBranch,
-    Activity, Users
+    Activity, Users, FolderKanban
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -151,6 +151,27 @@ export default function DashboardLayout() {
                     );
                 })}
             </nav>
+
+            {/* Workspace — visible to all users */}
+            <div className="px-3 pb-1">
+                <Link
+                    to="/workspaces"
+                    onClick={() => setMobileOpen(false)}
+                    className={`
+                        flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200
+                        ${sidebarOpen ? 'justify-start' : 'justify-center'}
+                        ${location.pathname === '/workspaces'
+                            ? 'bg-primary-600 text-white shadow-sm'
+                            : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }
+                    `}
+                >
+                    <FolderKanban className="w-4.5 h-4.5 flex-shrink-0" />
+                    {sidebarOpen && (
+                        <span className="text-xs font-bold">Workspace</span>
+                    )}
+                </Link>
+            </div>
 
             {/* Approvals Link — visible to Admin & Trưởng phòng */}
             {(user?.role === 'Admin' || user?.role === 'Trưởng phòng') && (

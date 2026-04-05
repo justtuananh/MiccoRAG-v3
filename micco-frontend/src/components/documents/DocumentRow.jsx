@@ -1,8 +1,9 @@
 import { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { File, Eye, Download, Share2, Trash2, MoreHorizontal, Clock, XCircle, Loader2 } from 'lucide-react';
+import { File, Eye, Download, Share2, Trash2, MoreHorizontal, Clock, XCircle } from 'lucide-react';
 import { fileTypeIconMap, fileTypeColors, fileTypeBgColors } from './fileTypes';
 import { getExt, formatBytes, formatDate, getInitials, avatarColor, categoryColors, getCategoryLabel } from '../../utils/formatters';
+import ProcessingProgressBar from '../shared/ProcessingProgressBar';
 
 function DropdownMenu({ anchorEl, onClose, children }) {
     const menuRef = useRef(null);
@@ -55,7 +56,7 @@ function DropdownMenu({ anchorEl, onClose, children }) {
     );
 }
 
-export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDownload, onDelete, renderAsTableCells }) {
+export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDownload, onDelete, renderAsTableCells, processingStatus }) {
     const ext = doc.type || getExt(doc.name);
     const Icon = fileTypeIconMap[ext] || File;
     const iconColor = fileTypeColors[ext] || 'text-gray-500';
@@ -65,6 +66,16 @@ export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDow
 
     const btnRef = useRef(null);
     const isOpen = openMenu === doc.id;
+
+    // Effective processing status: prefer live-polled data, fall back to doc field
+    const liveStatus = processingStatus?.status || doc.status;
+    const isActivelyProcessing =
+        doc.approval_status === 'approved' &&
+        ['parsing', 'processing', 'indexing'].includes(liveStatus);
+    const showProgressBar =
+        doc.approval_status === 'approved' &&
+        ['parsing', 'processing', 'indexing', 'indexed', 'failed'].includes(liveStatus) &&
+        processingStatus; // only show bar when we have live data
 
     const cells = (
         <>
@@ -88,9 +99,16 @@ export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDow
                                 <XCircle className="w-3 h-3" /> Từ chối
                             </span>
                         )}
-                        {doc.approval_status === 'approved' && ['parsing', 'processing', 'indexing'].includes(doc.status) && (
+                        {showProgressBar ? (
+                            <ProcessingProgressBar
+                                status={processingStatus.status}
+                                chunkCount={processingStatus.chunk_count}
+                                errorMessage={processingStatus.error_message}
+                                compact
+                            />
+                        ) : isActivelyProcessing && (
                             <span className="inline-flex items-center gap-1 text-xs text-primary-500 dark:text-primary-400 mt-0.5">
-                                <Loader2 className="w-3 h-3 animate-spin" /> {doc.status === 'indexing' ? 'Đang lập chỉ mục' : 'Đang xử lý'}
+                                {liveStatus === 'indexing' ? 'Đang lập chỉ mục' : 'Đang xử lý'}
                             </span>
                         )}
                     </div>

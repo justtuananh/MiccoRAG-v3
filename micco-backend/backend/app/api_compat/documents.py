@@ -32,6 +32,8 @@ from app.schemas.compat import (
 from app.api_compat.utils import (
     format_bytes_to_human,
     get_or_create_default_workspace,
+    get_or_create_department_workspace,
+    get_all_department_workspaces,
     map_rag_doc_to_legacy_with_dept,
     workspace_file_path,
 )
@@ -54,10 +56,22 @@ def _check_doc_access(user: User, doc: Document) -> None:
     """Raise 403 if user cannot access the document."""
     if user.role == "Admin":
         return
-    # Public docs are accessible to all authenticated users
+    # Public docs: tất cả user đều truy cập được
     if getattr(doc, "visibility", "internal") == "public":
         return
-    # Internal docs: must be same department
+    # Uploader luôn truy cập được document của mình
+    if getattr(doc, "uploader_id", None) == user.id:
+        return
+    # Private docs (personal workspace): chỉ uploader truy cập (đã check ở trên)
+    # Department docs: phải cùng department
+    if getattr(doc, "visibility", "internal") == "department":
+        if doc.department_id is not None and user.department_id != doc.department_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Bạn không có quyền truy cập tài liệu này",
+            )
+        return
+    # Internal: cùng department (legacy fallback)
     if doc.department_id is not None and user.department_id != doc.department_id:
         raise HTTPException(
             status_code=403,
@@ -88,14 +102,14 @@ async def list_documents(
     current_user: User = Depends(get_current_user),
 ):
     """List documents scoped to the user's department (admins see all)."""
-    workspace = await get_or_create_default_workspace(db)
+    # NOTE: Documents are now stored per-department workspace (not just default workspace).
+    # We list ALL documents (workspace filter removed) and rely on RBAC/department scoping below.
 
     # Base query with department + uploader joins
     stmt = (
         select(Document, Department.name.label("dept_name"), User.name.label("owner_name"))
         .outerjoin(Department, Document.department_id == Department.id)
         .outerjoin(User, Document.uploader_id == User.id)
-        .where(Document.workspace_id == workspace.id)
     )
 
     # Department + visibility scoping
@@ -167,12 +181,22 @@ async def upload_documents(
     """
     Upload one or more files.
     Admins/Trưởng phòng get auto-approved; regular users need approval.
+
+    Workspace routing:
+    - Tài liệu nội bộ → workspace của phòng ban tác giả
+    - Tài liệu công khai → workspace của phòng ban tác giả (sẽ được replicate khi approve)
+    Nếu user không có phòng ban → fallback về default workspace.
     """
-    workspace = await get_or_create_default_workspace(db)
-    effective_visibility = visibility if visibility in ("internal", "public") else "internal"
+    effective_visibility = visibility if visibility in ("internal", "public", "department") else "internal"
     is_approver = current_user.role in ("Admin", "Trưởng phòng")
     doc_approval_status = "approved" if is_approver else "pending"
     effective_dept_id = department_id if department_id is not None else current_user.department_id
+
+    # Resolve workspace: prefer department workspace, fallback to default
+    if effective_dept_id:
+        workspace = await get_or_create_department_workspace(db, effective_dept_id)
+    else:
+        workspace = await get_or_create_default_workspace(db)
 
     created: list[dict] = []
 
@@ -252,6 +276,14 @@ async def upload_documents(
             asyncio.get_event_loop().create_task(
                 process_document_background(doc.id, str(file_path), workspace.id)
             )
+            # If public: also index into all other department workspaces
+            if effective_visibility == "public":
+                other_workspaces = await get_all_department_workspaces(db)
+                for other_ws in other_workspaces:
+                    if other_ws.id != workspace.id:
+                        asyncio.get_event_loop().create_task(
+                            process_document_background(doc.id, str(file_path), other_ws.id)
+                        )
 
         # Reload with department + uploader
         result = await db.execute(
@@ -268,6 +300,112 @@ async def upload_documents(
             created.append(map_rag_doc_to_legacy_with_dept(doc, owner_name=current_user.name))
 
     return created
+
+
+# ─── Processing Status ────────────────────────────────────
+
+@router.get("/processing-status", response_model=ProcessingStatusListResponse)
+async def get_processing_status(
+    filter: str = Query("all", description="Filter group: all | processing | indexed | failed"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get documents by processing status group.
+    - `all`        → pending / parsing / processing / indexing (active only)
+    - `processing` → same as `all`
+    - `indexed`    → completed (INDEXED)
+    - `failed`     → failed (FAILED)
+
+    Always returns `counts` with totals for all groups (for tab badges).
+
+    NOTE: this route MUST be defined BEFORE /{doc_id} routes to prevent
+    FastAPI from trying to parse "processing-status" as an integer.
+    """
+    from app.schemas.compat import StatusCounts
+    from sqlalchemy import case
+
+    # ── Determine which statuses to fetch ────────────────────────
+    ACTIVE_STATUSES = ["PENDING", "PARSING", "PROCESSING", "INDEXING"]
+
+    if filter in ("all", "processing"):
+        fetch_statuses = ACTIVE_STATUSES
+    elif filter == "indexed":
+        fetch_statuses = ["INDEXED"]
+    elif filter == "failed":
+        fetch_statuses = ["FAILED"]
+    else:
+        fetch_statuses = ACTIVE_STATUSES  # fallback
+
+    # ── Base access-scope sub-filter ─────────────────────────────
+    if current_user.role in ("Admin", "Trưởng phòng"):
+        if current_user.department_id:
+            scope_filter = or_(
+                Document.uploader_id == current_user.id,
+                Document.department_id == current_user.department_id,
+            )
+        else:
+            scope_filter = True  # Admin without dept → see all
+    else:
+        scope_filter = Document.uploader_id == current_user.id
+
+    # ── Fetch items for requested filter ─────────────────────────
+    stmt = (
+        select(Document, Department.name.label("dept_name"), User.name.label("uploader_name"))
+        .outerjoin(Department, Document.department_id == Department.id)
+        .outerjoin(User, Document.uploader_id == User.id)
+        .where(
+            Document.status.in_(fetch_statuses),
+            Document.approval_status != "rejected",
+            scope_filter,
+        )
+        .order_by(Document.created_at.desc())
+    )
+    result = await db.execute(stmt)
+    rows = result.all()
+
+    items = [
+        ProcessingStatusResponse(
+            id=doc.id,
+            name=doc.original_filename or doc.filename,
+            status=doc.status.value if hasattr(doc.status, "value") else doc.status,
+            chunk_count=doc.chunk_count or 0,
+            error_message=doc.error_message,
+            uploader_name=uploader_name or "Không rõ",
+            department_name=dept_name,
+            created_at=doc.created_at,
+            file_type=doc.file_type,
+            file_size=doc.file_size or 0,
+        )
+        for doc, dept_name, uploader_name in rows
+    ]
+
+    # ── Compute counts for ALL groups (for tab badges) ────────────
+    count_stmt = (
+        select(
+            func.count(Document.id).filter(Document.status.in_(ACTIVE_STATUSES)).label("processing"),
+            func.count(Document.id).filter(Document.status == "INDEXED").label("indexed"),
+            func.count(Document.id).filter(Document.status == "FAILED").label("failed"),
+        )
+        .where(
+            Document.approval_status != "rejected",
+            scope_filter,
+        )
+    )
+    count_row = (await db.execute(count_stmt)).one()
+    cnt_processing = count_row.processing or 0
+    cnt_indexed = count_row.indexed or 0
+    cnt_failed = count_row.failed or 0
+
+    counts = StatusCounts(
+        all=cnt_processing,          # "Tất cả" badge = active docs
+        processing=cnt_processing,
+        indexed=cnt_indexed,
+        failed=cnt_failed,
+    )
+
+    return ProcessingStatusListResponse(items=items, total=len(items), counts=counts)
+
 
 
 # ─── Get Single Document ──────────────────────────────────────────
@@ -633,60 +771,3 @@ async def delete_document(
     return {"message": "Xóa tài liệu thành công"}
 
 
-# ─── Processing Status ──────────────────────────────────────────────
-
-@router.get("/processing-status", response_model=ProcessingStatusListResponse)
-async def get_processing_status(
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """
-    Get all documents currently being processed (non-indexed, non-failed).
-    Every user sees only their own documents.
-    Admin/Trưởng phòng additionally see documents from their department.
-    """
-    # Base query: non-terminal statuses
-    stmt = (
-        select(Document, Department.name.label("dept_name"), User.name.label("uploader_name"))
-        .outerjoin(Department, Document.department_id == Department.id)
-        .outerjoin(User, Document.uploader_id == User.id)
-        .where(
-            Document.status.in_(
-                ["pending", "parsing", "processing", "indexing"]
-            )
-        )
-    )
-
-    # Scope: user sees own docs + (admin/truongphong sees dept docs)
-    if current_user.role in ("Admin", "Trưởng phòng"):
-        if current_user.department_id:
-            stmt = stmt.where(
-                or_(
-                    Document.uploader_id == current_user.id,
-                    Document.department_id == current_user.department_id,
-                )
-            )
-    else:
-        stmt = stmt.where(Document.uploader_id == current_user.id)
-
-    stmt = stmt.order_by(Document.created_at.desc())
-    result = await db.execute(stmt)
-    rows = result.all()
-
-    items = [
-        ProcessingStatusResponse(
-            id=doc.id,
-            name=doc.original_filename or doc.filename,
-            status=doc.status.value if hasattr(doc.status, "value") else doc.status,
-            chunk_count=doc.chunk_count or 0,
-            error_message=doc.error_message,
-            uploader_name=uploader_name or "Không rõ",
-            department_name=dept_name,
-            created_at=doc.created_at,
-            file_type=doc.file_type,
-            file_size=doc.file_size or 0,
-        )
-        for doc, dept_name, uploader_name in rows
-    ]
-
-    return ProcessingStatusListResponse(items=items, total=len(items))

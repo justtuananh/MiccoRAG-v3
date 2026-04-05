@@ -6,9 +6,10 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Breadcrumb from '../components/shared/Breadcrumb';
-import { documentsApi } from '../utils/api';
+import { documentsApi, approvalsApi } from '../utils/api';
 import { formatBytes, formatDate, timeAgo, getInitials, avatarColor } from '../utils/formatters';
 import { renderAsync } from 'docx-preview';
+import ProcessingProgressBar from '../components/shared/ProcessingProgressBar';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -60,10 +61,44 @@ export default function DocumentView() {
     const isAdmin = user?.role === 'Admin';
     const canEdit = isAdmin || doc?.uploader_id === user?.id;
 
+    // Processing status polling for approved docs
+    const [processingStatus, setProcessingStatus] = useState(null);
+    const pollingRef = useRef(false);
+
     useEffect(() => {
         fetchDoc();
-        return () => { if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current); };
+        return () => {
+            if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+            pollingRef.current = false;
+        };
     }, [id]);
+
+    // Start polling when doc is approved and processing
+    useEffect(() => {
+        if (!doc) return;
+        const shouldPoll =
+            doc.approval_status === 'approved' &&
+            ['parsing', 'processing', 'indexing'].includes(doc.status);
+        if (shouldPoll && !pollingRef.current) {
+            pollingRef.current = true;
+            const poll = async () => {
+                if (!pollingRef.current) return;
+                try {
+                    const res = await approvalsApi.getDocumentStatus(doc.id);
+                    if (res.ok) {
+                        const st = await res.json();
+                        setProcessingStatus(st);
+                        if (st.status === 'indexed' || st.status === 'failed') {
+                            pollingRef.current = false;
+                            return;
+                        }
+                    }
+                } catch { /* silent */ }
+                if (pollingRef.current) setTimeout(poll, 3000);
+            };
+            poll();
+        }
+    }, [doc]);
 
     const fetchDoc = async () => {
         setLoading(true);
@@ -394,13 +429,22 @@ export default function DocumentView() {
                                 </span>
                             } />
                             <MetaRow label="Trạng thái" value={
-                                <span className={`text-xs font-semibold ${
-                                    doc?.approval_status === 'approved' ? 'text-emerald-600' :
-                                    doc?.approval_status === 'rejected' ? 'text-red-600' : 'text-amber-600'
-                                }`}>
-                                    {doc?.approval_status === 'approved' ? 'Đã phê duyệt' :
-                                     doc?.approval_status === 'rejected' ? 'Từ chối' : 'Chờ phê duyệt'}
-                                </span>
+                                processingStatus ? (
+                                    <ProcessingProgressBar
+                                        status={processingStatus.status}
+                                        chunkCount={processingStatus.chunk_count}
+                                        errorMessage={processingStatus.error_message}
+                                        compact
+                                    />
+                                ) : (
+                                    <span className={`text-xs font-semibold ${
+                                        doc?.approval_status === 'approved' ? 'text-emerald-600' :
+                                        doc?.approval_status === 'rejected' ? 'text-red-600' : 'text-amber-600'
+                                    }`}>
+                                        {doc?.approval_status === 'approved' ? 'Đã phê duyệt' :
+                                         doc?.approval_status === 'rejected' ? 'Từ chối' : 'Chờ phê duyệt'}
+                                    </span>
+                                )
                             } />
                             {tags.length > 0 && (
                                 <div>

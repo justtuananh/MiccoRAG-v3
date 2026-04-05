@@ -13,6 +13,7 @@ import DocumentRow from '../components/documents/DocumentRow';
 import DocumentCard from '../components/documents/DocumentCard';
 import Breadcrumb from '../components/shared/Breadcrumb';
 import { formatBytes, getExt } from '../utils/formatters';
+import { approvalsApi } from '../utils/api';
 
 const categories = ['All', 'Tài liệu', 'Hợp đồng', 'Báo cáo', 'Biên bản', 'Quy trình', 'Khác'];
 const ROWS_PER_PAGE = 5;
@@ -45,10 +46,20 @@ export default function Documents() {
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
-    // Toast helper
-    const showToast = (msg, type = 'success') => {
+    // Processing status polling state
+    const [processingState, setProcessingState] = useState({});
+    // Refs for polling
+    const pollingRef = useRef({});
+    const listRefreshRef = useRef(null);
+    // Stable ref so the auto-refresh timer can always call the latest fetchDocuments
+    const fetchDocumentsRef = useRef(null);
+    // Map docId → original_filename for completion notifications
+    const docNamesRef = useRef({});
+
+    // Toast helper — duration optional, default 3.5s, use 6000 for important notifications
+    const showToast = (msg, type = 'success', duration = 3500) => {
         setToast({ msg, type, id: Date.now() });
-        setTimeout(() => setToast(null), 3500);
+        setTimeout(() => setToast(null), duration);
     };
 
     // Fetch departments for filter tabs
@@ -57,9 +68,19 @@ export default function Documents() {
             .then(r => r.ok ? r.json() : [])
             .then(setDepartments)
             .catch(() => {});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => { fetchDocuments(); }, [typeFilter, categoryFilter, selectedDeptId]);
+    // Run fetchDocuments on filter change
+    useEffect(() => {
+        if (listRefreshRef.current) {
+            clearTimeout(listRefreshRef.current);
+            listRefreshRef.current = null;
+        }
+        fetchDocuments();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [typeFilter, categoryFilter, selectedDeptId]);
+
     useEffect(() => { setCurrentPage(1); }, [search, typeFilter, categoryFilter, selectedDeptId]);
 
     // Close dropdown when clicking outside
@@ -69,6 +90,67 @@ export default function Documents() {
         return () => document.removeEventListener('click', handler);
     }, []);
 
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (listRefreshRef.current) clearTimeout(listRefreshRef.current);
+            Object.keys(pollingRef.current).forEach(id => { pollingRef.current[id] = false; });
+        };
+    }, []);
+
+    // ------------------------------------------------------------------
+    // ------------------------------------------------------------------
+    // Per-document processing status polling (3s interval)
+    // ------------------------------------------------------------------
+    const startPolling = useCallback((docId, docName) => {
+        if (pollingRef.current[docId]) return;
+        pollingRef.current[docId] = true;
+        // Store name for the completion toast
+        if (docName) docNamesRef.current[docId] = docName;
+
+        const poll = async () => {
+            if (!pollingRef.current[docId]) return;
+            try {
+                const res = await approvalsApi.getDocumentStatus(docId);
+                if (res.ok) {
+                    const st = await res.json();
+                    setProcessingState(prev => ({ ...prev, [docId]: st }));
+                    if (st.status === 'indexed' || st.status === 'failed') {
+                        pollingRef.current[docId] = false;
+
+                        // 🔔 Notify user of completion
+                        const name = docNamesRef.current[docId] || `Tài liệu #${docId}`;
+                        if (st.status === 'indexed') {
+                            showToast(`✅ "${name}" đã xử lý xong và sẵn sàng sử dụng!`, 'success', 6000);
+                        } else {
+                            showToast(`❌ "${name}" xử lý thất bại. Vui lòng thử lại.`, 'error', 6000);
+                        }
+
+                        // Refresh list after 1s so status updates in the table
+                        setTimeout(() => {
+                            if (fetchDocumentsRef.current) fetchDocumentsRef.current();
+                        }, 1000);
+
+                        // Clear progress bar after 5s
+                        setTimeout(() => {
+                            setProcessingState(prev => {
+                                const next = { ...prev };
+                                delete next[docId];
+                                return next;
+                            });
+                        }, 5000);
+                        return;
+                    }
+                }
+            } catch (e) { /* silent */ }
+            if (pollingRef.current[docId]) setTimeout(poll, 3000);
+        };
+        poll();
+    }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ------------------------------------------------------------------
+    // Fetch document list
+    // ------------------------------------------------------------------
     const fetchDocuments = async () => {
         try {
             const params = new URLSearchParams();
@@ -79,10 +161,46 @@ export default function Documents() {
             const res = await authFetch(`/api/documents${qs ? '?' + qs : ''}`);
             if (res.ok) {
                 const data = await res.json();
-                setDocuments(Array.isArray(data) ? data : (data.items || []));
+                const docs = Array.isArray(data) ? data : (data.items || []);
+                setDocuments(docs);
+
+                // Start per-document polling for approved+processing docs
+                docs.forEach(doc => {
+                    const name = doc.name || doc.original_filename || `Tài liệu #${doc.id}`;
+                    // Always update the name ref in case it wasn't stored yet
+                    docNamesRef.current[doc.id] = name;
+                    if (
+                        doc.approval_status === 'approved' &&
+                        ['parsing', 'processing', 'indexing'].includes(doc.status)
+                    ) {
+                        startPolling(doc.id, name);
+                    }
+                });
+
+                // Schedule a list refresh while there are pending or processing docs.
+                // This lets user see the progress bar appear after admin approval
+                // without manual page reload.
+                const needsRefresh = docs.some(doc =>
+                    doc.approval_status === 'pending' ||
+                    (doc.approval_status === 'approved' &&
+                     ['parsing', 'processing', 'indexing'].includes(doc.status))
+                );
+                if (listRefreshRef.current) {
+                    clearTimeout(listRefreshRef.current);
+                    listRefreshRef.current = null;
+                }
+                if (needsRefresh) {
+                    listRefreshRef.current = setTimeout(() => {
+                        if (fetchDocumentsRef.current) fetchDocumentsRef.current();
+                    }, 8000);
+                }
             }
         } catch (err) { console.error('Failed to fetch documents:', err); }
     };
+
+    // Always keep the ref pointing to the latest fetchDocuments closure
+    fetchDocumentsRef.current = fetchDocuments;
+
 
     const filteredDocs = documents.filter((doc) => {
         const name = doc.name || doc.original_filename || '';
@@ -625,6 +743,7 @@ export default function Documents() {
                                             onDelete={(id) => setDeleteTarget(id)}
                                             tableRowClassName="px-4 py-4"
                                             renderAsTableCells
+                                            processingStatus={processingState[doc.id]}
                                         />
                                     </tr>
                                 ))}

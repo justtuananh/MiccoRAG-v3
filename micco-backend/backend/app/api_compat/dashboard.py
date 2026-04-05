@@ -39,8 +39,12 @@ async def get_stats(
     team_members = (await db.execute(select(func.count(User.id)))).scalar() if is_admin else 1
     total_workspaces = (await db.execute(select(func.count(KnowledgeBase.id)))).scalar() or 0
     total_chunks = (await db.execute(select(func.coalesce(func.sum(Document.chunk_count), 0)).where(*doc_filter))).scalar() or 0
+    from sqlalchemy import cast, String
     indexed_docs = (await db.execute(
-        select(func.count(Document.id)).where(Document.status == DocumentStatus.INDEXED, *doc_filter)
+        select(func.count(Document.id)).where(
+            cast(Document.status, String).in_(["indexed", "INDEXED"]),
+            *doc_filter
+        )
     )).scalar() or 0
 
     seven_days_ago = datetime.utcnow() - timedelta(days=7)
