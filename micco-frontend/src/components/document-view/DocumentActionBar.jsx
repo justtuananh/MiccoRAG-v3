@@ -6,17 +6,17 @@ export default function DocumentActionBar({ doc, catLabel, ext, previewUrl, onDo
     const iconColor = fileTypeColors[ext] || 'text-slate-400';
 
     return (
-        <div className="shrink-0 px-8 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center sticky top-0 z-10">
-            <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-3">
+        <div className="shrink-0 px-8 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center sticky top-0 z-10 overflow-x-hidden max-w-full">
+            <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
+                <div className="flex items-center gap-3 min-w-0 overflow-hidden max-w-full">
                     <Icon className={`w-5 h-5 ${iconColor} shrink-0`} />
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-white truncate max-w-lg">{doc?.name}</h1>
-                    <span className="px-2 py-0.5 rounded bg-primary-600/10 dark:bg-primary-500/20 text-primary-700 dark:text-primary-400 text-[10px] font-bold uppercase tracking-wider shrink-0">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-white truncate flex-1 min-w-0">{doc?.name}</h1>
+                    <span className="px-2 py-0.5 rounded bg-primary-600/10 dark:bg-primary-500/20 text-primary-700 dark:text-primary-400 text-[10px] font-bold uppercase tracking-wider shrink-0 whitespace-nowrap">
                         {catLabel}
                     </span>
                 </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0 ml-4">
+            <div className="flex items-center gap-2 shrink-0 ml-4 flex-wrap">
                 <button onClick={onDownload} className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-colors">
                     <Download className="w-4 h-4" /> Tải xuống
                 </button>

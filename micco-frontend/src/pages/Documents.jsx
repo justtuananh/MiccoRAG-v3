@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Upload, X, File, Image,
     ChevronDown, CheckCircle2, AlertCircle,
     ChevronLeft, ChevronRight, Trash2, Search, Building2,
-    Lock, Globe, MoreHorizontal, Eye, Download, Share2, Clock, XCircle, Square, CheckSquare
+    Lock, Globe, MoreHorizontal, Eye, Download, Share2, Clock, XCircle, Square, CheckSquare, User
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fileTypeIconMap, fileTypeColors, fileTypeBgColors } from '../components/documents/fileTypes';
@@ -19,8 +19,9 @@ const categories = ['All', 'Tài liệu', 'Hợp đồng', 'Báo cáo', 'Biên b
 const ROWS_PER_PAGE = 5;
 
 export default function Documents() {
-    const { authFetch, refreshApprovals } = useAuth();
+    const { user, authFetch, refreshApprovals } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [documents, setDocuments] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [selectedDeptId, setSelectedDeptId] = useState(null);
@@ -45,6 +46,8 @@ export default function Documents() {
     const [toast, setToast] = useState(null);
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+    const [uploaderFilterId, setUploaderFilterId] = useState(null);
+    const canPollApprovalStatus = ['Admin', 'Trưởng phòng'].includes(user?.role);
 
     // Processing status polling state
     const [processingState, setProcessingState] = useState({});
@@ -71,6 +74,13 @@ export default function Documents() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const userIdParam = params.get('user_id');
+        const parsed = userIdParam ? Number.parseInt(userIdParam, 10) : NaN;
+        setUploaderFilterId(Number.isFinite(parsed) ? parsed : null);
+    }, [location.search]);
+
     // Run fetchDocuments on filter change
     useEffect(() => {
         if (listRefreshRef.current) {
@@ -81,7 +91,7 @@ export default function Documents() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [typeFilter, categoryFilter, selectedDeptId]);
 
-    useEffect(() => { setCurrentPage(1); }, [search, typeFilter, categoryFilter, selectedDeptId]);
+    useEffect(() => { setCurrentPage(1); }, [search, typeFilter, categoryFilter, selectedDeptId, uploaderFilterId]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -103,6 +113,7 @@ export default function Documents() {
     // Per-document processing status polling (3s interval)
     // ------------------------------------------------------------------
     const startPolling = useCallback((docId, docName) => {
+        if (!canPollApprovalStatus) return;
         if (pollingRef.current[docId]) return;
         pollingRef.current[docId] = true;
         // Store name for the completion toast
@@ -141,12 +152,15 @@ export default function Documents() {
                         }, 5000);
                         return;
                     }
+                } else if (res.status === 403 || res.status === 404) {
+                    pollingRef.current[docId] = false;
+                    return;
                 }
             } catch (e) { /* silent */ }
             if (pollingRef.current[docId]) setTimeout(poll, 3000);
         };
         poll();
-    }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+    }, [canPollApprovalStatus]);
 
     // ------------------------------------------------------------------
     // Fetch document list
@@ -170,6 +184,7 @@ export default function Documents() {
                     // Always update the name ref in case it wasn't stored yet
                     docNamesRef.current[doc.id] = name;
                     if (
+                        canPollApprovalStatus &&
                         doc.approval_status === 'approved' &&
                         ['parsing', 'processing', 'indexing'].includes(doc.status)
                     ) {
@@ -204,7 +219,15 @@ export default function Documents() {
 
     const filteredDocs = documents.filter((doc) => {
         const name = doc.name || doc.original_filename || '';
-        return name.toLowerCase().includes(search.toLowerCase());
+        const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
+        if (!matchesSearch) return false;
+
+        if (uploaderFilterId !== null) {
+            const uploaderId = Number(doc.uploader_id);
+            return Number.isInteger(uploaderId) && uploaderId === uploaderFilterId;
+        }
+
+        return true;
     });
 
     // Pagination
@@ -563,7 +586,19 @@ export default function Documents() {
                                                 {/* Visibility */}
                                                 <div>
                                                     <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Chế độ hiển thị</label>
-                                                    <div className="flex gap-2">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setUploadVisibility('personal')}
+                                                            className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
+                                                                uploadVisibility === 'personal'
+                                                                    ? 'border-violet-600 bg-violet-600/5 text-violet-700 dark:text-violet-400 dark:border-violet-500 dark:bg-violet-500/10'
+                                                                    : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
+                                                            }`}
+                                                        >
+                                                            <User className="w-4 h-4" />
+                                                            Cá nhân
+                                                        </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => setUploadVisibility('internal')}
@@ -590,7 +625,9 @@ export default function Documents() {
                                                         </button>
                                                     </div>
                                                     <p className="text-xs text-gray-400 mt-1.5">
-                                                        {uploadVisibility === 'internal'
+                                                        {uploadVisibility === 'personal'
+                                                            ? 'Chỉ bạn có thể xem tài liệu này và tài liệu sẽ vào workspace cá nhân'
+                                                            : uploadVisibility === 'internal'
                                                             ? 'Chỉ thành viên trong phòng ban mới xem được'
                                                             : 'Tất cả tài khoản đều có thể xem'}
                                                     </p>

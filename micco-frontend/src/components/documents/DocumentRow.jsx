@@ -63,6 +63,12 @@ export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDow
     const bgColor = fileTypeBgColors[ext] || 'bg-gray-100 dark:bg-gray-800';
     const catLabel = getCategoryLabel(doc.category);
     const catColor = categoryColors[catLabel] || categoryColors['Khác'];
+    const [thumbFailed, setThumbFailed] = useState(false);
+    const tags = Array.isArray(doc.tags)
+        ? doc.tags.filter(Boolean)
+        : typeof doc.tags === 'string'
+        ? doc.tags.split(',').map(t => t.trim()).filter(Boolean)
+        : [];
 
     const btnRef = useRef(null);
     const isOpen = openMenu === doc.id;
@@ -83,12 +89,36 @@ export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDow
             <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-lg ${bgColor} flex items-center justify-center flex-shrink-0`}>
-                        <Icon className={`w-4.5 h-4.5 ${iconColor}`} />
+                        {doc.thumbnail && !thumbFailed ? (
+                            <img
+                                src={`${import.meta.env.VITE_API_BASE_URL || ''}/api/documents/${doc.id}/thumbnail`}
+                                alt={doc.name}
+                                className="w-full h-full object-cover rounded-lg"
+                                onError={() => setThumbFailed(true)}
+                            />
+                        ) : (
+                            <Icon className={`w-4.5 h-4.5 ${iconColor}`} />
+                        )}
                     </div>
                     <div className="min-w-0">
                         <span className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[160px] lg:max-w-xs block" title={doc.name}>
                             {doc.name}
                         </span>
+                        {tags.length > 0 && (
+                            <div className="flex items-center gap-1.5 mt-1 flex-wrap max-w-xs lg:max-w-md">
+                                {tags.slice(0, 3).map((tag) => (
+                                    <span
+                                        key={`${doc.id}-${tag}`}
+                                        className="px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                                    >
+                                        #{tag}
+                                    </span>
+                                ))}
+                                {tags.length > 3 && (
+                                    <span className="text-[10px] text-gray-400">+{tags.length - 3}</span>
+                                )}
+                            </div>
+                        )}
                         {doc.approval_status === 'pending' && (
                             <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 mt-0.5">
                                 <Clock className="w-3 h-3" /> Chờ duyệt

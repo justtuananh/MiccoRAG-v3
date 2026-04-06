@@ -113,7 +113,6 @@ function timeAgo(dateStr) {
 const STATUS_FILTERS = [
     { key: 'processing', label: 'Đang xử lý' },
     { key: 'indexed',    label: 'Hoàn tất' },
-    { key: 'failed',     label: 'Thất bại' },
 ];
 
 export default function ProcessingStatus() {

@@ -33,6 +33,7 @@ from app.api_compat.utils import (
     format_bytes_to_human,
     get_or_create_default_workspace,
     get_or_create_department_workspace,
+    get_or_create_user_workspace,
     get_all_department_workspaces,
     map_rag_doc_to_legacy_with_dept,
     workspace_file_path,
@@ -62,6 +63,12 @@ def _check_doc_access(user: User, doc: Document) -> None:
     # Uploader luôn truy cập được document của mình
     if getattr(doc, "uploader_id", None) == user.id:
         return
+    # Private docs: chỉ uploader/Admin được truy cập
+    if getattr(doc, "visibility", "internal") == "private":
+        raise HTTPException(
+            status_code=403,
+            detail="Bạn không có quyền truy cập tài liệu cá nhân này",
+        )
     # Private docs (personal workspace): chỉ uploader truy cập (đã check ở trên)
     # Department docs: phải cùng department
     if getattr(doc, "visibility", "internal") == "department":
@@ -117,7 +124,10 @@ async def list_documents(
         stmt = stmt.where(
             or_(
                 Document.visibility == "public",
-                Document.department_id == current_user.department_id,
+                and_(
+                    Document.visibility.in_(["internal", "department"]),
+                    Document.department_id == current_user.department_id,
+                ),
                 Document.uploader_id == current_user.id,
             )
         )
@@ -183,17 +193,30 @@ async def upload_documents(
     Admins/Trưởng phòng get auto-approved; regular users need approval.
 
     Workspace routing:
+    - Tài liệu cá nhân (personal/private) → workspace cá nhân của uploader
     - Tài liệu nội bộ → workspace của phòng ban tác giả
     - Tài liệu công khai → workspace của phòng ban tác giả (sẽ được replicate khi approve)
     Nếu user không có phòng ban → fallback về default workspace.
     """
-    effective_visibility = visibility if visibility in ("internal", "public", "department") else "internal"
+    requested_visibility = (visibility or "internal").lower()
+    if requested_visibility in ("personal", "private"):
+        effective_visibility = "private"
+    elif requested_visibility in ("internal", "public", "department"):
+        effective_visibility = requested_visibility
+    else:
+        effective_visibility = "internal"
+
+    is_personal_upload = effective_visibility == "private"
     is_approver = current_user.role in ("Admin", "Trưởng phòng")
-    doc_approval_status = "approved" if is_approver else "pending"
+    # Personal uploads should be immediately usable by the uploader.
+    doc_approval_status = "approved" if (is_approver or is_personal_upload) else "pending"
     effective_dept_id = department_id if department_id is not None else current_user.department_id
 
-    # Resolve workspace: prefer department workspace, fallback to default
-    if effective_dept_id:
+    # Resolve workspace: personal -> personal workspace, else department/default.
+    if is_personal_upload:
+        workspace = await get_or_create_user_workspace(db, current_user.id)
+        effective_dept_id = None
+    elif effective_dept_id:
         workspace = await get_or_create_department_workspace(db, effective_dept_id)
     else:
         workspace = await get_or_create_default_workspace(db)
@@ -264,13 +287,13 @@ async def upload_documents(
         )
         db.add(version)
 
-        # Auto-approved docs (admin/truongphong): mark as PROCESSING and launch bg task
-        if is_approver:
+        # Auto-approved docs (admin/truongphong/personal): mark as PROCESSING and launch bg task
+        if doc_approval_status == "approved":
             doc.status = DocumentStatus.PROCESSING
         await db.commit()
 
         # Launch background processing for auto-approved uploads
-        if is_approver:
+        if doc_approval_status == "approved":
             import asyncio
             from app.api.documents import process_document_background
             asyncio.get_event_loop().create_task(
@@ -668,11 +691,21 @@ async def upload_new_version(
     doc.original_filename = file.filename
     doc.file_size = len(content)
     doc.file_type = ext[1:] if ext else "file"
-    doc.status = DocumentStatus.PENDING
-    doc.approval_status = "pending"
+    is_approver = current_user.role in ("Admin", "Trưởng phòng")
+    is_personal_doc = (doc.visibility or "internal") == "private"
+    doc.approval_status = "approved" if (is_approver or is_personal_doc) else "pending"
+    doc.status = DocumentStatus.PROCESSING if doc.approval_status == "approved" else DocumentStatus.PENDING
 
     await db.commit()
     await db.refresh(new_version)
+
+    if doc.approval_status == "approved":
+        import asyncio
+        from app.api.documents import process_document_background
+
+        asyncio.get_event_loop().create_task(
+            process_document_background(doc.id, str(file_path), doc.workspace_id)
+        )
 
     # Load creator
     result = await db.execute(
