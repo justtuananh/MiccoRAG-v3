@@ -9,7 +9,12 @@ from app.models.user import User
 from app.models.document import Document, DocumentStatus
 from app.models.knowledge_entry import KnowledgeEntry
 from app.models.department import Department
-from app.api_compat.utils import format_bytes_to_human
+from app.api_compat.utils import (
+    format_bytes_to_human,
+    get_or_create_department_workspace,
+    get_all_department_workspaces,
+    get_or_create_default_workspace,
+)
 from app.api.documents import process_document_background, process_knowledge_background, UPLOAD_DIR
 from docx import Document as DocxDocument
 import aiofiles
@@ -185,13 +190,33 @@ async def approve_document(
             )
 
     doc.approval_status = "approved"
-    doc.status = DocumentStatus.PROCESSING  # Set to processing as we start indexing
+    doc.status = DocumentStatus.PROCESSING
     await db.commit()
 
-    # Trigger background parsing & indexing (NexusRAG style)
-    from app.core.config import settings
-    file_path = str(settings.BASE_DIR / "uploads" / doc.filename)
-    background_tasks.add_task(process_document_background, doc.id, file_path, doc.workspace_id)
+    # Resolve target workspace: use document's department workspace
+    from app.core.config import settings as _settings
+    file_path = str(_settings.BASE_DIR / "uploads" / doc.filename)
+
+    if doc.department_id:
+        target_ws = await get_or_create_department_workspace(db, doc.department_id)
+    else:
+        target_ws = await get_or_create_default_workspace(db)
+
+    # Update document's workspace_id to match its department
+    doc.workspace_id = target_ws.id
+    await db.commit()
+
+    # Trigger background parsing & indexing into department workspace
+    background_tasks.add_task(process_document_background, doc.id, file_path, target_ws.id)
+
+    # If public: replicate indexing into all OTHER department workspaces
+    if doc.visibility == "public":
+        other_workspaces = await get_all_department_workspaces(db)
+        for other_ws in other_workspaces:
+            if other_ws.id != target_ws.id:
+                background_tasks.add_task(
+                    process_document_background, doc.id, file_path, other_ws.id
+                )
 
     return {"message": "Đã phê duyệt và đang bắt đầu xử lý", "id": doc_id}
 
@@ -220,6 +245,7 @@ async def reject_document(
 
     doc.approval_status = "rejected"
     doc.approval_note = note
+    doc.status = DocumentStatus.REJECTED
     await db.commit()
 @router.get("/documents/{doc_id}/status")
 async def get_document_status(
@@ -317,8 +343,21 @@ async def approve_knowledge(
     entry.ingest_status = "processing"
     await db.commit()
 
-    # Trigger background indexing
-    background_tasks.add_task(process_knowledge_background, entry_id, 1)  # Default workspace 1
+    # Resolve workspace for this knowledge entry
+    if entry.department_id:
+        target_ws = await get_or_create_department_workspace(db, entry.department_id)
+    else:
+        target_ws = await get_or_create_default_workspace(db)
+
+    # Trigger background indexing into the department workspace
+    background_tasks.add_task(process_knowledge_background, entry_id, target_ws.id)
+
+    # If public: replicate into all other department workspaces
+    if getattr(entry, 'visibility', 'internal') == 'public':
+        other_workspaces = await get_all_department_workspaces(db)
+        for other_ws in other_workspaces:
+            if other_ws.id != target_ws.id:
+                background_tasks.add_task(process_knowledge_background, entry_id, other_ws.id)
 
     return {"message": "Đã phê duyệt tri thức", "id": entry_id}
 

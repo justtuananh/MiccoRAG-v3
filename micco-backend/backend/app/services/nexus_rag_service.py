@@ -184,6 +184,13 @@ class NexusRAGService:
 
             chunk_count = 0
             if parsed.chunks:
+                # --- FIX: MissingGreenlet ---
+                # Eagerly extract all SQLAlchemy ORM attribute values BEFORE entering
+                # asyncio.to_thread. Accessing ORM lazy attributes inside a thread
+                # triggers async DB reads in a sync context → MissingGreenlet crash.
+                _doc_file_type = document.file_type
+                _workspace_id = self.workspace_id
+
                 def _index_sync():
                     # Embed and store in ChromaDB
                     chunk_texts = [c.content for c in parsed.chunks]
@@ -195,7 +202,7 @@ class NexusRAGService:
                     ]
                     # Build image_id→URL lookup for metadata
                     _img_url_map = {
-                        img.image_id: f"/static/doc-images/kb_{self.workspace_id}/images/{img.image_id}.png"
+                        img.image_id: f"/static/doc-images/kb_{_workspace_id}/images/{img.image_id}.png"
                         for img in parsed.images
                     }
 
@@ -204,7 +211,7 @@ class NexusRAGService:
                             "document_id": document_id,
                             "chunk_index": c.chunk_index,
                             "source": c.source_file,
-                            "file_type": document.file_type,
+                            "file_type": _doc_file_type,   # ← use pre-extracted value
                             "page_no": c.page_no,
                             "heading_path": " > ".join(c.heading_path) if c.heading_path else "",
                             "has_table": c.has_table,
@@ -307,23 +314,28 @@ class NexusRAGService:
 
             # Phase 2: Indexing (Vector)
             import asyncio
+            # --- FIX: MissingGreenlet ---
+            # Pre-extract ORM values before entering the thread
+            _entry_title = entry.title
+            _entry_category = entry.category
+
             def _index_sync():
                 chunk_texts = [c.content for c in chunks]
                 embeddings = self.embedder.embed_texts(chunk_texts)
-                
+
                 ids = [f"kn_{entry_id}_chunk_{i}" for i in range(len(chunks))]
-                
+
                 metadatas = [
                     {
                         "knowledge_id": entry_id,
                         "chunk_index": c.chunk_index,
-                        "source": entry.title,
-                        "category": entry.category,
+                        "source": _entry_title,      # ← pre-extracted
+                        "category": _entry_category, # ← pre-extracted
                         "type": "knowledge",
                     }
                     for c in chunks
                 ]
-                
+
                 self.vector_store.add_documents(
                     ids=ids,
                     embeddings=embeddings,

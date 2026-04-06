@@ -3,10 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import {
     Users, Search, Loader2, ChevronDown, FileText,
     MessageSquare, ExternalLink, User, Building2,
-    Sparkles, AlertCircle, X, Brain
+    Sparkles, AlertCircle, Brain
 } from 'lucide-react';
 import { workspacesApi } from '../utils/api';
-import { useAuth } from '../context/AuthContext';
+
+function normalizeExpertsPayload(payload) {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.experts)) return payload.experts;
+    if (Array.isArray(payload?.data?.experts)) return payload.data.experts;
+    if (Array.isArray(payload?.data)) return payload.data;
+    return [];
+}
+
+function getAuthToken() {
+    if (import.meta.env.VITE_SKIP_AUTH === 'true') {
+        return 'dev-skip';
+    }
+    return localStorage.getItem('docvault_token') || '';
+}
 
 // ─── Relevance Bar ────────────────────────────────────────────────────────────
 function RelevanceBar({ score }) {
@@ -87,7 +101,7 @@ function ExpertCard({ expert, onAsk, onViewDocs, isLoading }) {
                     <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
                         Độ phù hợp
                     </span>
-                    <RelevanceBar score={expert.relevance_score ?? 0} />
+                    <RelevanceBar score={expert.avg_relevance ?? expert.relevance_score ?? 0} />
                 </div>
             </div>
 
@@ -266,33 +280,26 @@ export default function Expert() {
 
         try {
             const url = `/api/v1/expert/recommend/${selectedWorkspace.id}?query=${encodeURIComponent(query.trim())}&top_k=5`;
-            const res = await workspacesApi._fetch
-                ? workspacesApi._fetch(url)
-                : fetch(`${import.meta.env.VITE_RAGV2_BASE_URL || ''}${url}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('docvault_token') || ''}`,
-                    },
-                });
+            const res = await fetch(`${import.meta.env.VITE_RAGV2_BASE_URL || ''}${url}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getAuthToken()}`,
+                },
+            });
 
-            // Use ragFetchV2 if available, otherwise use direct fetch
-            let result;
-            if (res.ok) {
-                result = await res.json();
-            } else if (res.status === 404) {
-                // API chưa có — show mock data
-                setExperts(mockExperts);
-                return;
-            } else {
+            if (!res.ok) {
+                if (res.status === 404) {
+                    throw new Error('Endpoint chuyên gia chưa sẵn sàng (404)');
+                }
                 throw new Error(`HTTP ${res.status}`);
             }
 
-            setExperts(Array.isArray(result) ? result : (result.experts || result.data || []));
+            const result = await res.json();
+            setExperts(normalizeExpertsPayload(result));
         } catch (err) {
-            // Fallback: show mock data for demo
-            setExperts(mockExperts);
-            setError('');
+            setExperts([]);
+            setError(err?.message || 'Không thể tải dữ liệu chuyên gia');
         } finally {
             setIsLoading(false);
         }
@@ -445,47 +452,3 @@ export default function Expert() {
         </div>
     );
 }
-
-// ─── Mock data for demo (when API not ready) ────────────────────────────────────
-const mockExperts = [
-    {
-        user_id: 'e1',
-        name: 'Nguyễn Văn Minh',
-        role: 'Trưởng phòng IT',
-        department: 'Phòng Công nghệ thông tin',
-        document_count: 24,
-        relevance_score: 0.94,
-    },
-    {
-        user_id: 'e2',
-        name: 'Trần Thị Lan',
-        role: 'Chuyên viên cao cấp',
-        department: 'Phòng Hành chính',
-        document_count: 18,
-        relevance_score: 0.87,
-    },
-    {
-        user_id: 'e3',
-        name: 'Lê Hoàng Nam',
-        role: 'Quản lý dự án',
-        department: 'Phòng Kế hoạch',
-        document_count: 31,
-        relevance_score: 0.79,
-    },
-    {
-        user_id: 'e4',
-        name: 'Phạm Thu Hà',
-        role: 'Chuyên gia tư vấn',
-        department: 'Phòng Chiến lược',
-        document_count: 15,
-        relevance_score: 0.72,
-    },
-    {
-        user_id: 'e5',
-        name: 'Đặng Minh Tuấn',
-        role: 'Kỹ sư cơ sở dữ liệu',
-        department: 'Phòng Công nghệ thông tin',
-        document_count: 12,
-        relevance_score: 0.65,
-    },
-];

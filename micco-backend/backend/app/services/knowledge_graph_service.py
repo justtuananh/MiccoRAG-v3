@@ -40,7 +40,16 @@ async def _kg_llm_complete(
     keyword_extraction: bool = False,
     **kwargs,
 ) -> str:
-    """LightRAG-compatible LLM function using the configured provider."""
+    """
+    LightRAG-compatible LLM function using the configured provider.
+
+    Notes:
+    - Thinking is explicitly disabled: LightRAG expects strict delimiter-based
+      output ("<|>"). Thinking adds overhead and can interfere with the format,
+      causing the "Complete delimiter can not be found" warnings.
+    - max_tokens is set to 8192 to prevent truncation mid-output, which is the
+      primary cause of "LLM output format error; found N/4 fields" warnings.
+    """
     provider = get_llm_provider()
 
     messages: list[LLMMessage] = []
@@ -56,9 +65,15 @@ async def _kg_llm_complete(
 
     messages.append(LLMMessage(role="user", content=prompt))
 
-    return await provider.acomplete(
-        messages, temperature=0.0, max_tokens=4096,
+    # think=False: KG extraction needs strict structured output, not chain-of-thought.
+    # max_tokens=8192: prevent mid-output truncation that breaks the <|> delimiter format.
+    result = await provider.acomplete(
+        messages, temperature=0.0, max_tokens=8192, think=False,
     )
+    # acomplete can return LLMResult if thinking=True elsewhere — extract text
+    if hasattr(result, "content"):
+        return result.content
+    return result or ""
 
 
 async def _kg_embed(texts: list[str]) -> np.ndarray:
@@ -103,8 +118,8 @@ class KnowledgeGraphService:
             return map_data
         
         mapping: dict[str, str] = {}
-        # Path to kv_storage_text_chunks.json
-        storage_path = Path(self.working_dir) / "kv_storage_text_chunks.json"
+        # Path to kv_store_text_chunks.json
+        storage_path = Path(self.working_dir) / "kv_store_text_chunks.json"
         
         if storage_path.exists():
             try:
@@ -112,9 +127,9 @@ class KnowledgeGraphService:
                 with open(storage_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     for chunk_id, chunk_info in data.items():
-                        # In LightRAG, chunk_info usually has 'doc_id' 
+                        # In LightRAG, chunk_info usually has 'full_doc_id' 
                         # if ingested with ids parameter.
-                        doc_id = chunk_info.get("doc_id")
+                        doc_id = chunk_info.get("full_doc_id")
                         if doc_id:
                             mapping[chunk_id] = str(doc_id)
             except Exception as e:
@@ -165,6 +180,14 @@ class KnowledgeGraphService:
             vector_storage="NanoVectorDBStorage",
             graph_storage="NetworkXStorage",
             doc_status_storage="JsonDocStatusStorage",
+            # --- Performance tuning ---
+            # Disable gleaning (re-extraction retry): saves 1 extra LLM call per chunk.
+            # Gleaning improves recall slightly but doubles processing time.
+            entity_extract_max_gleaning=0,
+            # Allow up to 4 concurrent LLM calls (entity extraction per chunk).
+            # Gemini API allows high concurrency; adjust down if rate-limited.
+            llm_model_max_async=4,
+            # --- End performance tuning ---
             addon_params={
                 "language": self.kg_language,
                 "entity_types": self.kg_entity_types,
@@ -331,11 +354,13 @@ class KnowledgeGraphService:
             if allowed_ids_str is not None:
                 is_allowed = False
                 # Nodes in LightRAG often have source_id which is a comma-separated list of chunks
-                node_chunks = [c.strip() for c in source_id.split(",") if c.strip()]
+                node_chunks = [c.strip() for c in source_id.replace("<SEP>", ",").split(",") if c.strip()]
                 for chunk in node_chunks:
-                    # Strip "chunk-" prefix if present
-                    cid = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else chunk
-                    doc_id = chunk_map.get(cid)
+                    # Try exact match, then with/without chunk- prefix
+                    doc_id = chunk_map.get(chunk)
+                    if not doc_id:
+                        alt_chunk = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else f"chunk-{chunk}"
+                        doc_id = chunk_map.get(alt_chunk)
                     if doc_id in allowed_ids_str:
                         is_allowed = True
                         break
@@ -400,10 +425,12 @@ class KnowledgeGraphService:
             # Filtering by allowed document IDs
             if allowed_ids_str is not None:
                 is_allowed = False
-                edge_chunks = [c.strip() for c in source_id.split(",") if c.strip()]
+                edge_chunks = [c.strip() for c in source_id.replace("<SEP>", ",").split(",") if c.strip()]
                 for chunk in edge_chunks:
-                    cid = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else chunk
-                    doc_id = chunk_map.get(cid)
+                    doc_id = chunk_map.get(chunk)
+                    if not doc_id:
+                        alt_chunk = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else f"chunk-{chunk}"
+                        doc_id = chunk_map.get(alt_chunk)
                     if doc_id in allowed_ids_str:
                         is_allowed = True
                         break
@@ -466,10 +493,12 @@ class KnowledgeGraphService:
             if allowed_ids_str is not None:
                 source_id = props.get("source_id", "")
                 is_allowed = False
-                chunks = [c.strip() for c in source_id.split(",") if c.strip()]
+                chunks = [c.strip() for c in source_id.replace("<SEP>", ",").split(",") if c.strip()]
                 for chunk in chunks:
-                    cid = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else chunk
-                    doc_id = chunk_map.get(cid)
+                    doc_id = chunk_map.get(chunk)
+                    if not doc_id:
+                        alt_chunk = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else f"chunk-{chunk}"
+                        doc_id = chunk_map.get(alt_chunk)
                     if doc_id in allowed_ids_str:
                         is_allowed = True
                         break
@@ -501,10 +530,12 @@ class KnowledgeGraphService:
             if allowed_ids_str is not None:
                 source_id = props.get("source_id", "")
                 is_allowed = False
-                chunks = [c.strip() for c in source_id.split(",") if c.strip()]
+                chunks = [c.strip() for c in source_id.replace("<SEP>", ",").split(",") if c.strip()]
                 for chunk in chunks:
-                    cid = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else chunk
-                    doc_id = chunk_map.get(cid)
+                    doc_id = chunk_map.get(chunk)
+                    if not doc_id:
+                        alt_chunk = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else f"chunk-{chunk}"
+                        doc_id = chunk_map.get(alt_chunk)
                     if doc_id in allowed_ids_str:
                         is_allowed = True
                         break

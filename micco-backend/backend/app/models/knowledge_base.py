@@ -23,11 +23,30 @@ class KnowledgeBase(Base):
     )
 
     # Department relationship - mỗi department có 1 workspace duy nhất
+    # Personal (visibility=private) và Public (visibility=public) có department_id = NULL
     department_id: Mapped[int | None] = mapped_column(
         ForeignKey("departments.id", ondelete="SET NULL"),
         nullable=True,
-        unique=True,  # 1:1 relationship - mỗi department chỉ có 1 workspace
+        unique=True,  # 1:1 - mỗi department chỉ có 1 workspace
         index=True
+    )
+
+    # Owner: chỉ dùng cho personal workspace
+    # - personal workspace: owner_id = user_id
+    # - department workspace: owner_id = NULL
+    # - public workspace: owner_id = NULL
+    owner_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True
+    )
+
+    # Visibility: "private" | "department" | "public"
+    # - "private": personal workspace, chỉ owner đọc
+    # - "department": workspace phòng ban, member trong dept đọc
+    # - "public": workspace công khai, tất cả user đọc
+    visibility: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="department"
     )
 
     # Relationships

@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Upload, X, File, Image,
     ChevronDown, CheckCircle2, AlertCircle,
     ChevronLeft, ChevronRight, Trash2, Search, Building2,
-    Lock, Globe, MoreHorizontal, Eye, Download, Share2, Clock, XCircle, Square, CheckSquare
+    Lock, Globe, MoreHorizontal, Eye, Download, Share2, Clock, XCircle, Square, CheckSquare, User
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fileTypeIconMap, fileTypeColors, fileTypeBgColors } from '../components/documents/fileTypes';
@@ -13,13 +13,15 @@ import DocumentRow from '../components/documents/DocumentRow';
 import DocumentCard from '../components/documents/DocumentCard';
 import Breadcrumb from '../components/shared/Breadcrumb';
 import { formatBytes, getExt } from '../utils/formatters';
+import { approvalsApi } from '../utils/api';
 
 const categories = ['All', 'Tài liệu', 'Hợp đồng', 'Báo cáo', 'Biên bản', 'Quy trình', 'Khác'];
 const ROWS_PER_PAGE = 5;
 
 export default function Documents() {
-    const { authFetch, refreshApprovals } = useAuth();
+    const { user, authFetch, refreshApprovals } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [documents, setDocuments] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [selectedDeptId, setSelectedDeptId] = useState(null);
@@ -44,11 +46,23 @@ export default function Documents() {
     const [toast, setToast] = useState(null);
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+    const [uploaderFilterId, setUploaderFilterId] = useState(null);
+    const canPollApprovalStatus = ['Admin', 'Trưởng phòng'].includes(user?.role);
 
-    // Toast helper
-    const showToast = (msg, type = 'success') => {
+    // Processing status polling state
+    const [processingState, setProcessingState] = useState({});
+    // Refs for polling
+    const pollingRef = useRef({});
+    const listRefreshRef = useRef(null);
+    // Stable ref so the auto-refresh timer can always call the latest fetchDocuments
+    const fetchDocumentsRef = useRef(null);
+    // Map docId → original_filename for completion notifications
+    const docNamesRef = useRef({});
+
+    // Toast helper — duration optional, default 3.5s, use 6000 for important notifications
+    const showToast = (msg, type = 'success', duration = 3500) => {
         setToast({ msg, type, id: Date.now() });
-        setTimeout(() => setToast(null), 3500);
+        setTimeout(() => setToast(null), duration);
     };
 
     // Fetch departments for filter tabs
@@ -57,10 +71,27 @@ export default function Documents() {
             .then(r => r.ok ? r.json() : [])
             .then(setDepartments)
             .catch(() => {});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => { fetchDocuments(); }, [typeFilter, categoryFilter, selectedDeptId]);
-    useEffect(() => { setCurrentPage(1); }, [search, typeFilter, categoryFilter, selectedDeptId]);
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const userIdParam = params.get('user_id');
+        const parsed = userIdParam ? Number.parseInt(userIdParam, 10) : NaN;
+        setUploaderFilterId(Number.isFinite(parsed) ? parsed : null);
+    }, [location.search]);
+
+    // Run fetchDocuments on filter change
+    useEffect(() => {
+        if (listRefreshRef.current) {
+            clearTimeout(listRefreshRef.current);
+            listRefreshRef.current = null;
+        }
+        fetchDocuments();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [typeFilter, categoryFilter, selectedDeptId]);
+
+    useEffect(() => { setCurrentPage(1); }, [search, typeFilter, categoryFilter, selectedDeptId, uploaderFilterId]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -69,6 +100,71 @@ export default function Documents() {
         return () => document.removeEventListener('click', handler);
     }, []);
 
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (listRefreshRef.current) clearTimeout(listRefreshRef.current);
+            Object.keys(pollingRef.current).forEach(id => { pollingRef.current[id] = false; });
+        };
+    }, []);
+
+    // ------------------------------------------------------------------
+    // ------------------------------------------------------------------
+    // Per-document processing status polling (3s interval)
+    // ------------------------------------------------------------------
+    const startPolling = useCallback((docId, docName) => {
+        if (!canPollApprovalStatus) return;
+        if (pollingRef.current[docId]) return;
+        pollingRef.current[docId] = true;
+        // Store name for the completion toast
+        if (docName) docNamesRef.current[docId] = docName;
+
+        const poll = async () => {
+            if (!pollingRef.current[docId]) return;
+            try {
+                const res = await approvalsApi.getDocumentStatus(docId);
+                if (res.ok) {
+                    const st = await res.json();
+                    setProcessingState(prev => ({ ...prev, [docId]: st }));
+                    if (st.status === 'indexed' || st.status === 'failed') {
+                        pollingRef.current[docId] = false;
+
+                        // 🔔 Notify user of completion
+                        const name = docNamesRef.current[docId] || `Tài liệu #${docId}`;
+                        if (st.status === 'indexed') {
+                            showToast(`✅ "${name}" đã xử lý xong và sẵn sàng sử dụng!`, 'success', 6000);
+                        } else {
+                            showToast(`❌ "${name}" xử lý thất bại. Vui lòng thử lại.`, 'error', 6000);
+                        }
+
+                        // Refresh list after 1s so status updates in the table
+                        setTimeout(() => {
+                            if (fetchDocumentsRef.current) fetchDocumentsRef.current();
+                        }, 1000);
+
+                        // Clear progress bar after 5s
+                        setTimeout(() => {
+                            setProcessingState(prev => {
+                                const next = { ...prev };
+                                delete next[docId];
+                                return next;
+                            });
+                        }, 5000);
+                        return;
+                    }
+                } else if (res.status === 403 || res.status === 404) {
+                    pollingRef.current[docId] = false;
+                    return;
+                }
+            } catch (e) { /* silent */ }
+            if (pollingRef.current[docId]) setTimeout(poll, 3000);
+        };
+        poll();
+    }, [canPollApprovalStatus]);
+
+    // ------------------------------------------------------------------
+    // Fetch document list
+    // ------------------------------------------------------------------
     const fetchDocuments = async () => {
         try {
             const params = new URLSearchParams();
@@ -79,14 +175,59 @@ export default function Documents() {
             const res = await authFetch(`/api/documents${qs ? '?' + qs : ''}`);
             if (res.ok) {
                 const data = await res.json();
-                setDocuments(Array.isArray(data) ? data : (data.items || []));
+                const docs = Array.isArray(data) ? data : (data.items || []);
+                setDocuments(docs);
+
+                // Start per-document polling for approved+processing docs
+                docs.forEach(doc => {
+                    const name = doc.name || doc.original_filename || `Tài liệu #${doc.id}`;
+                    // Always update the name ref in case it wasn't stored yet
+                    docNamesRef.current[doc.id] = name;
+                    if (
+                        canPollApprovalStatus &&
+                        doc.approval_status === 'approved' &&
+                        ['parsing', 'processing', 'indexing'].includes(doc.status)
+                    ) {
+                        startPolling(doc.id, name);
+                    }
+                });
+
+                // Schedule a list refresh while there are pending or processing docs.
+                // This lets user see the progress bar appear after admin approval
+                // without manual page reload.
+                const needsRefresh = docs.some(doc =>
+                    doc.approval_status === 'pending' ||
+                    (doc.approval_status === 'approved' &&
+                     ['parsing', 'processing', 'indexing'].includes(doc.status))
+                );
+                if (listRefreshRef.current) {
+                    clearTimeout(listRefreshRef.current);
+                    listRefreshRef.current = null;
+                }
+                if (needsRefresh) {
+                    listRefreshRef.current = setTimeout(() => {
+                        if (fetchDocumentsRef.current) fetchDocumentsRef.current();
+                    }, 8000);
+                }
             }
         } catch (err) { console.error('Failed to fetch documents:', err); }
     };
 
+    // Always keep the ref pointing to the latest fetchDocuments closure
+    fetchDocumentsRef.current = fetchDocuments;
+
+
     const filteredDocs = documents.filter((doc) => {
         const name = doc.name || doc.original_filename || '';
-        return name.toLowerCase().includes(search.toLowerCase());
+        const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
+        if (!matchesSearch) return false;
+
+        if (uploaderFilterId !== null) {
+            const uploaderId = Number(doc.uploader_id);
+            return Number.isInteger(uploaderId) && uploaderId === uploaderFilterId;
+        }
+
+        return true;
     });
 
     // Pagination
@@ -445,7 +586,19 @@ export default function Documents() {
                                                 {/* Visibility */}
                                                 <div>
                                                     <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Chế độ hiển thị</label>
-                                                    <div className="flex gap-2">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setUploadVisibility('personal')}
+                                                            className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
+                                                                uploadVisibility === 'personal'
+                                                                    ? 'border-violet-600 bg-violet-600/5 text-violet-700 dark:text-violet-400 dark:border-violet-500 dark:bg-violet-500/10'
+                                                                    : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
+                                                            }`}
+                                                        >
+                                                            <User className="w-4 h-4" />
+                                                            Cá nhân
+                                                        </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => setUploadVisibility('internal')}
@@ -472,7 +625,9 @@ export default function Documents() {
                                                         </button>
                                                     </div>
                                                     <p className="text-xs text-gray-400 mt-1.5">
-                                                        {uploadVisibility === 'internal'
+                                                        {uploadVisibility === 'personal'
+                                                            ? 'Chỉ bạn có thể xem tài liệu này và tài liệu sẽ vào workspace cá nhân'
+                                                            : uploadVisibility === 'internal'
                                                             ? 'Chỉ thành viên trong phòng ban mới xem được'
                                                             : 'Tất cả tài khoản đều có thể xem'}
                                                     </p>
@@ -625,6 +780,7 @@ export default function Documents() {
                                             onDelete={(id) => setDeleteTarget(id)}
                                             tableRowClassName="px-4 py-4"
                                             renderAsTableCells
+                                            processingStatus={processingState[doc.id]}
                                         />
                                     </tr>
                                 ))}

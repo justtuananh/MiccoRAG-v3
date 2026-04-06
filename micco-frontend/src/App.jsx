@@ -14,6 +14,7 @@ import GraphKnowledge from './pages/GraphKnowledge';
 import Departments from './pages/Departments';
 import Approvals from './pages/Approvals';
 import ProcessingStatus from './pages/ProcessingStatus';
+import WorkspaceManagement from './pages/WorkspaceManagement';
 import DashboardLayout from './layouts/DashboardLayout';
 
 function ProtectedRoute() {
@@ -73,6 +74,7 @@ function App() {
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/departments" element={<Departments />} />
                 <Route path="/approvals" element={<Approvals />} />
+                <Route path="/workspaces" element={<WorkspaceManagement />} />
                 <Route path="/processing-status" element={<ProcessingStatus />} />
               </Route>
             </Route>

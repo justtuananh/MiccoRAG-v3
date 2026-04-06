@@ -5,9 +5,9 @@ import { formatBytes, formatDate, timeAgo, getInitials, avatarColor } from '../.
 // ── MetaRow ───────────────────────────────────────────────────────────────────
 function MetaRow({ label, value }) {
     return (
-        <div className="flex items-start justify-between gap-4 text-xs">
+        <div className="flex items-start justify-between gap-4 text-xs overflow-x-hidden max-w-full">
             <span className="text-slate-400 shrink-0">{label}</span>
-            <span className="font-medium text-slate-800 dark:text-slate-200 text-right">{value}</span>
+            <span className="font-medium text-slate-800 dark:text-slate-200 text-right break-words overflow-wrap-anywhere">{value}</span>
         </div>
     );
 }
@@ -15,7 +15,7 @@ function MetaRow({ label, value }) {
 // ── DocumentInfoSidebar ────────────────────────────────────────────────────────
 export default function DocumentInfoSidebar({ doc, versions, activity, tags, ext, catLabel, onUploadVersion, onDownloadVersion }) {
     return (
-        <aside className="w-80 xl:w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col overflow-y-auto shrink-0">
+        <aside className="w-80 xl:w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col overflow-y-auto overflow-x-hidden shrink-0 max-w-full">
 
             {/* ─ File Information ─ */}
             <div className="p-6 border-b border-slate-200 dark:border-slate-800">

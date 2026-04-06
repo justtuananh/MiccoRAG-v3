@@ -70,6 +70,12 @@ export default function DocumentCard({ doc, onView, onDownload, onDelete }) {
     const iconColor = fileTypeColors[ext] || 'text-gray-500';
     const iconBg = fileTypeBgColors[ext] || 'bg-gray-100 dark:bg-gray-800';
     const gradient = thumbGradients[ext] || 'from-gray-100 to-gray-200';
+    const [thumbFailed, setThumbFailed] = useState(false);
+    const tags = Array.isArray(doc.tags)
+        ? doc.tags.filter(Boolean)
+        : typeof doc.tags === 'string'
+        ? doc.tags.split(',').map(t => t.trim()).filter(Boolean)
+        : [];
 
     const [menuOpen, setMenuOpen] = useState(false);
     const menuBtnRef = useRef(null);
@@ -82,12 +88,12 @@ export default function DocumentCard({ doc, onView, onDownload, onDelete }) {
             {/* ── Thumbnail ── */}
             <div className="relative w-full" style={{ paddingBottom: '50%' /* compact ratio */ }}>
                 <div className="absolute inset-0">
-                    {doc.thumbnail ? (
+                    {doc.thumbnail && !thumbFailed ? (
                         <img
                             src={`${import.meta.env.VITE_API_BASE_URL || ''}/api/documents/${doc.id}/thumbnail`}
                             alt={doc.name}
                             className="w-full h-full object-cover"
-                            onError={(e) => { e.target.style.display = 'none'; }}
+                            onError={() => setThumbFailed(true)}
                         />
                     ) : (
                         <div className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
@@ -111,6 +117,21 @@ export default function DocumentCard({ doc, onView, onDownload, onDelete }) {
                 >
                     {doc.name}
                 </p>
+                {tags.length > 0 && (
+                    <div className="flex items-center gap-1 mt-1 flex-wrap">
+                        {tags.slice(0, 2).map((tag) => (
+                            <span
+                                key={`${doc.id}-${tag}`}
+                                className="px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                            >
+                                #{tag}
+                            </span>
+                        ))}
+                        {tags.length > 2 && (
+                            <span className="text-[10px] text-gray-400">+{tags.length - 2}</span>
+                        )}
+                    </div>
+                )}
                 {doc.approval_status === 'pending' && (
                     <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">
                         <Clock className="w-3 h-3" /> Chờ duyệt

@@ -110,34 +110,47 @@ function timeAgo(dateStr) {
     return `${diffDay} ngày trước`;
 }
 
+const STATUS_FILTERS = [
+    { key: 'processing', label: 'Đang xử lý' },
+    { key: 'indexed',    label: 'Hoàn tất' },
+];
+
 export default function ProcessingStatus() {
     const { authFetch } = useAuth();
     const [docs, setDocs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const [activeFilter, setActiveFilter] = useState('processing');
+    const [counts, setCounts] = useState({ all: 0, processing: 0, indexed: 0, failed: 0 });
     const pollingRef = useRef(null);
 
-    const fetchDocs = useCallback(async () => {
+    const fetchDocs = useCallback(async (filterKey) => {
         try {
-            const res = await authFetch('/api/documents/processing-status');
+            const res = await authFetch(`/api/documents/processing-status?filter=${filterKey ?? 'all'}`);
             if (res.ok) {
                 const data = await res.json();
                 setDocs(data.items || []);
+                if (data.counts) setCounts(data.counts);
             }
         } catch (_) {}
     }, [authFetch]);
 
     const handleRefresh = async () => {
         setRefreshing(true);
-        await fetchDocs();
+        await fetchDocs(activeFilter);
         setRefreshing(false);
+    };
+
+    const handleFilterChange = (key) => {
+        setActiveFilter(key);
+        fetchDocs(key);
     };
 
     // Initial load
     useEffect(() => {
         setLoading(true);
-        fetchDocs().finally(() => setLoading(false));
+        fetchDocs('processing').finally(() => setLoading(false));
     }, [fetchDocs]);
 
     // Polling: 5s when docs are processing, 30s when all done
@@ -146,11 +159,11 @@ export default function ProcessingStatus() {
         const interval = hasActive ? 5000 : 30000;
 
         pollingRef.current = setInterval(() => {
-            fetchDocs();
+            fetchDocs(activeFilter);
         }, interval);
 
         return () => clearInterval(pollingRef.current);
-    }, [docs, fetchDocs]);
+    }, [docs, fetchDocs, activeFilter]);
 
     // Network status
     useEffect(() => {
@@ -167,11 +180,11 @@ export default function ProcessingStatus() {
     // Live indicator: pulsing dot
     const hasActive = docs.some(d => !['indexed', 'failed'].includes(d.status));
 
-    // Stats
+    // Stats from backend counts
     const total = docs.length;
-    const done = docs.filter(d => d.status === 'indexed').length;
-    const failed = docs.filter(d => d.status === 'failed').length;
-    const processing = total - done - failed;
+    const done = counts.indexed;
+    const failed = counts.failed;
+    const processing = counts.processing;
 
     return (
         <div className="space-y-6 px-2 md:px-4">
@@ -256,11 +269,31 @@ export default function ProcessingStatus() {
 
             {/* ── Document List ── */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden mx-2 shadow-sm">
-                <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                        Tài liệu đang xử lý
-                    </h3>
-                    <span className="text-xs text-gray-400">{total} tài liệu</span>
+                {/* Filter Tabs */}
+                <div className="px-6 pt-4 pb-0 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                        {STATUS_FILTERS.map(f => (
+                            <button
+                                key={f.key}
+                                onClick={() => handleFilterChange(f.key)}
+                                className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 transition-all ${
+                                    activeFilter === f.key
+                                        ? 'border-primary-600 text-primary-600 dark:text-primary-400'
+                                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                }`}
+                            >
+                                {f.label}
+                                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                    activeFilter === f.key
+                                        ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300'
+                                        : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                                }`}>
+                                    {counts[f.key] ?? 0}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                    <span className="text-xs text-gray-400 pb-2">{docs.length} tài liệu</span>
                 </div>
 
                 {loading ? (
@@ -278,6 +311,14 @@ export default function ProcessingStatus() {
                         <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                             Tất cả tài liệu đã được xử lý hoặc chưa có tài liệu nào
                         </p>
+                    </div>
+                ) : docs.length === 0 ? (
+                    <div className="py-14 text-center">
+                        <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-3">
+                            <CheckCircle2 className="w-7 h-7 text-gray-300 dark:text-gray-600" />
+                        </div>
+                        <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">Không có tài liệu nào</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">trong bộ lọc này</p>
                     </div>
                 ) : (
                     <div className="divide-y divide-gray-50 dark:divide-gray-800">
