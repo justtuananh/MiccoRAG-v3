@@ -21,7 +21,7 @@ class KnowledgeEntry(Base):
     owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     department_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("departments.id", ondelete="SET NULL"), nullable=True)
     visibility: Mapped[str] = mapped_column(String(20), nullable=False, default="internal")
-    approval_status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending_approval")
+    approval_status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending_dept")
     approval_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="Active")
     ingest_status: Mapped[str | None] = mapped_column(String(20), nullable=True, default="pending")

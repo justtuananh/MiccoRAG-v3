@@ -165,3 +165,10 @@ System Volume Information/
 .LSOverride
 ._*
 micco-server
+
+# Unrelated plugin project
+everything-claude-code/
+
+# Temporary scratch files
+paper_outline.txt
+tech_paper_outline.txt

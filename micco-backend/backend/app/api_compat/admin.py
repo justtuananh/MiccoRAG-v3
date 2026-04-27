@@ -23,6 +23,9 @@ from app.schemas.compat import (
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
+ALLOWED_ROLES = {"Admin", "Trưởng phòng", "Nhân viên", "Giám đốc", "Phó giám đốc"}
+DIRECTOR_ROLES = {"Giám đốc", "Phó giám đốc"}
+
 
 def _fmt_storage(total_bytes: int) -> str:
     if total_bytes >= 1 << 30:
@@ -36,6 +39,45 @@ async def _require_admin(current_user: User = Depends(get_current_user)) -> User
     if current_user.role != "Admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
+
+
+async def _get_department(db: AsyncSession, department_id: int | None) -> Department | None:
+    if department_id is None:
+        return None
+
+    result = await db.execute(select(Department).where(Department.id == department_id))
+    department = result.scalar_one_or_none()
+    if department is None:
+        raise HTTPException(status_code=400, detail="Phòng ban không hợp lệ")
+
+    return department
+
+
+def _is_director_department(department: Department | None) -> bool:
+    if department is None or not department.name:
+        return False
+
+    normalized_name = department.name.strip().lower()
+    return "giám đốc" in normalized_name or "giam doc" in normalized_name
+
+
+def _validate_role_by_department(role: str, department: Department | None):
+    if role not in ALLOWED_ROLES:
+        raise HTTPException(status_code=400, detail="Vai trò không hợp lệ")
+
+    if _is_director_department(department):
+        if role not in DIRECTOR_ROLES:
+            raise HTTPException(
+                status_code=400,
+                detail="Phòng Ban Giám đốc chỉ được gán vai trò Giám đốc hoặc Phó giám đốc",
+            )
+        return
+
+    if role in DIRECTOR_ROLES:
+        raise HTTPException(
+            status_code=400,
+            detail="Vai trò Giám đốc/Phó giám đốc chỉ áp dụng cho phòng Ban Giám đốc",
+        )
 
 
 @router.get("/departments", response_model=list[DepartmentResponse])
@@ -226,6 +268,9 @@ async def create_user(
     if len(password) < 6:
         raise HTTPException(status_code=400, detail="Mật khẩu phải có ít nhất 6 ký tự")
 
+    department = await _get_department(db, req.department_id)
+    _validate_role_by_department(req.role, department)
+
     user = User(
         name=req.name,
         email=req.email,
@@ -264,6 +309,12 @@ async def update_user(
         if dup.scalar_one_or_none() is not None:
             raise HTTPException(status_code=400, detail="Email đã tồn tại")
         user.email = req.email
+
+    if req.role is not None or req.department_id is not None:
+        next_role = req.role if req.role is not None else user.role
+        next_department_id = req.department_id if req.department_id is not None else user.department_id
+        department = await _get_department(db, next_department_id)
+        _validate_role_by_department(next_role, department)
 
     if req.role is not None:
         user.role = req.role

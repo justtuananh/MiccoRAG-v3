@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { isPrivilegedRole } from '../utils/roles';
 import { ragChatApi } from '../utils/api';
 import {
     LayoutDashboard, FolderOpen, Upload, MessageSquare, BookOpen, Building2,
@@ -173,8 +174,8 @@ export default function DashboardLayout() {
                 </Link>
             </div>
 
-            {/* Approvals Link — visible to Admin & Trưởng phòng */}
-            {(user?.role === 'Admin' || user?.role === 'Trưởng phòng') && (
+            {/* Approvals Link — visible to privileged roles */}
+            {isPrivilegedRole(user?.role) && (
                 <div className="px-3 pb-1">
                     <Link
                         to="/approvals"
@@ -202,7 +203,7 @@ export default function DashboardLayout() {
             )}
 
             {/* Admin Links */}
-            {user?.role === 'Admin' && (
+            {isPrivilegedRole(user?.role) && (
                 <div className="px-3 pb-4 space-y-0.5 border-t border-gray-100 dark:border-gray-800 pt-4 mt-2">
                     <Link
                         to="/admin"
@@ -270,7 +271,7 @@ export default function DashboardLayout() {
                             </button>
 
                             <Link
-                                to={(user?.role === 'Admin' || user?.role === 'Trưởng phòng') ? "/approvals" : "/dashboard"}
+                                to={isPrivilegedRole(user?.role) ? "/approvals" : "/dashboard"}
                                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors relative"
                             >
                                 <Bell className="w-5 h-5" />

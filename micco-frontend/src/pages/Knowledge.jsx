@@ -81,9 +81,9 @@ export default function Knowledge() {
 
         const matchStatus = statusFilter === 'Tất cả' ||
             (statusFilter === 'Hoạt động' && (entry.status === 'Active' && entry.approval_status === 'approved')) ||
-            (statusFilter === 'Chờ duyệt' && entry.approval_status === 'pending_approval') ||
+            (statusFilter === 'Chờ duyệt' && ['pending_approval', 'pending_dept', 'pending_org'].includes(entry.approval_status)) ||
             (statusFilter === 'Bị từ chối' && entry.approval_status === 'rejected') ||
-            (statusFilter === 'Bản nháp' && entry.status === 'Draft' && entry.approval_status !== 'pending_approval') ||
+            (statusFilter === 'Bản nháp' && entry.status === 'Draft' && !['pending_approval', 'pending_dept', 'pending_org'].includes(entry.approval_status)) ||
             (statusFilter === 'Lưu trữ' && entry.status === 'Archived');
 
         return matchSearch && matchCategory && matchStatus;

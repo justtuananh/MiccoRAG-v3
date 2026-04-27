@@ -5,8 +5,8 @@ Revises: 005_add_workspace_visibility
 Create Date: 2026-04-04
 
 Adds:
-- documents.status enum value: "rejected"
-  When a document is rejected by an approver, status = "rejected"
+- documents.status enum value: "REJECTED"
+    When a document is rejected by an approver, status = "REJECTED"
 """
 from typing import Sequence, Union
 
@@ -22,14 +22,24 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Add REJECTED to documents.status enum type."""
-    # PostgreSQL: Check if enum exists, if not create it; if yes, add value
+    # SQLAlchemy Enum(DocumentStatus) binds enum member names (uppercase),
+    # so the PostgreSQL enum must include REJECTED.
     op.execute("""
-        DO $$ BEGIN
-            -- Try to add 'rejected' to existing enum
-            ALTER TYPE documentstatus ADD VALUE 'rejected';
-        EXCEPTION WHEN OTHERS THEN
-            -- If enum doesn't exist or 'rejected' already exists, skip
-            NULL;
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1
+                FROM pg_type
+                WHERE typname = 'documentstatus'
+            ) AND NOT EXISTS (
+                SELECT 1
+                FROM pg_type t
+                JOIN pg_enum e ON t.oid = e.enumtypid
+                WHERE t.typname = 'documentstatus'
+                  AND e.enumlabel = 'REJECTED'
+            ) THEN
+                ALTER TYPE documentstatus ADD VALUE 'REJECTED';
+            END IF;
         END $$;
     """)
 

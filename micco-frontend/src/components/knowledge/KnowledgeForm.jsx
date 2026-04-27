@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Tag, Loader2, Lock, Globe } from 'lucide-react';
+import { X, Save, Tag, Loader2, Lock, Globe, User } from 'lucide-react';
 import WysiwygEditor from './WysiwygEditor';
 
 const CATEGORIES = [
@@ -143,11 +143,23 @@ export default function KnowledgeForm({ entry, onSave, onClose, saving = false }
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                             Chế độ hiển thị
                         </label>
-                        <div className="flex gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setVisibility('private')}
+                                className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                                    visibility === 'private'
+                                        ? 'border-violet-600 bg-violet-600/5 text-violet-700 dark:text-violet-400 dark:border-violet-500 dark:bg-violet-500/10'
+                                        : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
+                                }`}
+                            >
+                                <User className="w-4 h-4" />
+                                Cá nhân
+                            </button>
                             <button
                                 type="button"
                                 onClick={() => setVisibility('internal')}
-                                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                                className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
                                     visibility === 'internal'
                                         ? 'border-primary-600 bg-primary-600/5 text-primary-700 dark:text-primary-400 dark:border-primary-500 dark:bg-primary-500/10'
                                         : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
@@ -159,7 +171,7 @@ export default function KnowledgeForm({ entry, onSave, onClose, saving = false }
                             <button
                                 type="button"
                                 onClick={() => setVisibility('public')}
-                                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                                className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
                                     visibility === 'public'
                                         ? 'border-emerald-600 bg-emerald-600/5 text-emerald-700 dark:text-emerald-400 dark:border-emerald-500 dark:bg-emerald-500/10'
                                         : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
@@ -170,9 +182,11 @@ export default function KnowledgeForm({ entry, onSave, onClose, saving = false }
                             </button>
                         </div>
                         <p className="text-xs text-gray-400 mt-1.5">
-                            {visibility === 'internal'
-                                ? 'Chỉ thành viên trong phòng ban mới xem được'
-                                : 'Tất cả tài khoản đều có thể xem'}
+                            {visibility === 'private'
+                                ? 'Chỉ bạn xem được, không cần duyệt'
+                                : visibility === 'internal'
+                                    ? 'Tri thức phòng ban: cần Trưởng phòng duyệt'
+                                    : 'Tri thức công khai: duyệt 2 cấp (Trưởng phòng → Ban giám đốc)'}
                         </p>
                     </div>
 

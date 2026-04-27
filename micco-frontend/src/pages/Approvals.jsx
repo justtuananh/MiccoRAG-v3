@@ -17,6 +17,17 @@ const MIME_MAP = {
     png: 'image/png', gif: 'image/gif', webp: 'image/webp',
 };
 
+function getKnowledgeApprovalStageLabel(approvalStatus) {
+    if (approvalStatus === 'pending_org') return 'Chờ duyệt cấp tổ chức';
+    if (approvalStatus === 'pending_dept' || approvalStatus === 'pending_approval') return 'Chờ duyệt cấp phòng';
+    return 'Chờ phê duyệt';
+}
+
+function getDocumentApprovalStageLabel(approvalStatus) {
+    if (approvalStatus === 'pending_org') return 'Chờ duyệt cấp tổ chức';
+    return 'Chờ duyệt cấp phòng';
+}
+
 
 
 export default function Approvals() {
@@ -180,25 +191,27 @@ export default function Approvals() {
                 // Instant: update sidebar badge count
                 refreshApprovals();
                 if (type === 'documents') {
-                    showToast(json.message || 'Đã phê duyệt — đang xử lý tài liệu...', 'success');
-                    // Move doc from pending list → processing list
-                    const doc = data.documents.find(d => d.id === id);
-                    if (doc) {
-                        setProcessingDocs(prev => [...prev, doc]);
-                    }
+                    showToast(json.message || 'Đã phê duyệt', 'success');
                     setData(prev => ({
                         ...prev,
                         documents: prev.documents.filter(d => d.id !== id),
                     }));
-                    // Start polling processing status
-                    setProcessingState(prev => ({ ...prev, [id]: { status: 'processing', chunk_count: 0 } }));
-                    startPolling(id);
+                    if (json.processing_started) {
+                        // Move doc from pending list → processing list
+                        const doc = data.documents.find(d => d.id === id);
+                        if (doc) {
+                            setProcessingDocs(prev => [...prev, doc]);
+                        }
+                        // Start polling processing status
+                        setProcessingState(prev => ({ ...prev, [id]: { status: 'processing', chunk_count: 0 } }));
+                        startPolling(id);
+                    } else {
+                        // After TP approve public docs, it should appear in admin queue.
+                        await fetchPending();
+                    }
                 } else {
                     showToast(json.message || 'Đã phê duyệt thành công');
-                    setData(prev => ({
-                        ...prev,
-                        knowledge: prev.knowledge.filter(k => k.id !== id),
-                    }));
+                    await fetchPending();
                 }
             } else {
                 const err = await res.json();
@@ -211,12 +224,18 @@ export default function Approvals() {
     const handleReject = async () => {
         if (!rejectModal) return;
         const { type, id } = rejectModal;
+
+        if (type === 'knowledge' && !rejectNote.trim()) {
+            showToast('Vui lòng nhập lý do từ chối tri thức', 'error');
+            return;
+        }
+
         setActionLoading(`${type}-${id}`);
         try {
             const res = await authFetch(`/api/approvals/${type}/${id}/reject`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ note: rejectNote }),
+                body: JSON.stringify({ note: rejectNote.trim() }),
             });
             if (res.ok) {
                 showToast('Đã từ chối');
@@ -439,12 +458,17 @@ export default function Approvals() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                     <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 p-6 max-w-md w-full mx-4">
                         <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Từ chối nội dung</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Nhập lý do từ chối (tuỳ chọn) để thông báo cho người tải lên.</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            {rejectModal.type === 'knowledge'
+                                ? 'Nhập lý do từ chối (bắt buộc) để thông báo cho người tạo tri thức.'
+                                : 'Nhập lý do từ chối (tuỳ chọn) để thông báo cho người tải lên.'}
+                        </p>
                         <textarea
                             value={rejectNote}
                             onChange={(e) => setRejectNote(e.target.value)}
-                            placeholder="Lý do từ chối..."
+                            placeholder={rejectModal.type === 'knowledge' ? 'Nhập lý do từ chối *' : 'Lý do từ chối...'}
                             rows={3}
+                            required={rejectModal.type === 'knowledge'}
                             className="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 resize-none mb-4"
                         />
                         <div className="flex gap-3">
@@ -456,7 +480,7 @@ export default function Approvals() {
                             </button>
                             <button
                                 onClick={handleReject}
-                                disabled={!!actionLoading}
+                                disabled={!!actionLoading || (rejectModal.type === 'knowledge' && !rejectNote.trim())}
                                 className="flex-1 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
                             >
                                 {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
@@ -534,6 +558,10 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
                             {item.visibility === 'public' ? (
                                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
                                     <Globe className="w-2.5 h-2.5" /> Công khai
+                                </span>
+                            ) : item.visibility === 'private' ? (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400">
+                                    <User className="w-2.5 h-2.5" /> Cá nhân
                                 </span>
                             ) : (
                                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
@@ -679,9 +707,6 @@ function ApprovalCard({ item, type, actionLoading, previewLoading, processingSta
     const isPreviewLoading = previewLoading === `${type}-${item.id}`;
     const isProcessing = !!processingStatus;
 
-    // Show pending approval badge
-    const isPending = !isProcessing && item.approval_status !== 'approved';
-
     return (
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
             <div className="p-4 flex items-start gap-4">
@@ -735,11 +760,15 @@ function ApprovalCard({ item, type, actionLoading, previewLoading, processingSta
                                 <div className="flex items-center gap-2 mt-1.5">
                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
                                         <Clock className="w-3 h-3" />
-                                        Chờ phê duyệt
+                                        {isDoc ? getDocumentApprovalStageLabel(item.approval_status) : getKnowledgeApprovalStageLabel(item.approval_status)}
                                     </span>
                                     {item.visibility === 'public' ? (
                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
                                             <Globe className="w-3 h-3" /> Công khai
+                                        </span>
+                                    ) : item.visibility === 'private' ? (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400">
+                                            <User className="w-3 h-3" /> Cá nhân
                                         </span>
                                     ) : (
                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
@@ -813,5 +842,3 @@ function ApprovalCard({ item, type, actionLoading, previewLoading, processingSta
         </div>
     );
 }
-
-

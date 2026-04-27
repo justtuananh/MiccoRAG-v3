@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { resolveApiBase } from '../utils/apiBase';
 import { User, Mail, Lock, ArrowRight, Sun, Moon, ShieldCheck, Building2 } from 'lucide-react';
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || '') + '/api';
+const API_BASE = `${resolveApiBase()}/api`;
 
 // Async wrappers for auth that handle navigation and errors
 function useAuthHandlers() {

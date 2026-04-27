@@ -1,8 +1,10 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { resolveApiBase } from '../utils/apiBase';
+import { isPrivilegedRole } from '../utils/roles';
 
 const AuthContext = createContext();
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || '') + '/api';
+const API_BASE = resolveApiBase() + '/api';
 const SKIP_AUTH = import.meta.env.VITE_SKIP_AUTH === 'true';
 
 const MOCK_USER = {
@@ -32,7 +34,7 @@ export function AuthProvider({ children }) {
 
     // Fetch + update approval count (gọi ngay sau upload, hoặc bởi polling)
     const refreshApprovals = useCallback(async () => {
-        if (user?.role !== 'Admin' && user?.role !== 'Trưởng phòng') return;
+        if (!isPrivilegedRole(user?.role)) return;
         try {
             const res = await authFetch('/api/approvals/count');
             if (!res.ok) return;
@@ -52,7 +54,7 @@ export function AuthProvider({ children }) {
 
     // Polling: mỗi 15s refresh approval count
     useEffect(() => {
-        if (user?.role !== 'Admin' && user?.role !== 'Trưởng phòng') return;
+        if (!isPrivilegedRole(user?.role)) return;
         refreshApprovals(); // gọi ngay lần đầu
         const interval = setInterval(refreshApprovals, 15000);
         return () => clearInterval(interval);
@@ -159,7 +161,7 @@ export function AuthProvider({ children }) {
             ...options.headers,
             Authorization: `Bearer ${currentToken}`,
         };
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+        const baseUrl = resolveApiBase();
         const fullUrl = baseUrl && url.startsWith('/api') ? baseUrl + url : url;
         return fetch(fullUrl, { ...options, headers });
     };

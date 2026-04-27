@@ -12,8 +12,7 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/api': {
-        // target: 'https://propose-montana-refuse-rubber.trycloudflare.com',
-        target: 'https://night-polo-home-thermal.trycloudflare.com',
+        target: 'https://iowa-echo-provider-indicate.trycloudflare.com',
         changeOrigin: true,
       },
     },
