@@ -84,15 +84,21 @@ export default function KnowledgeCard({ entry, onEdit, onDelete, onView }) {
                                 <Globe className="w-2.5 h-2.5" />
                                 Công khai
                             </span>
+                        ) : entry.visibility === 'private' ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400">
+                                <User className="w-2.5 h-2.5" />
+                                Cá nhân
+                            </span>
                         ) : (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
                                 <Lock className="w-2.5 h-2.5" />
                                 Nội bộ
                             </span>
                         )}
-                        {entry.approval_status === 'pending_approval' && (
+                        {['pending_approval', 'pending_dept', 'pending_org'].includes(entry.approval_status) && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
-                                <Clock className="w-2.5 h-2.5" /> Chờ duyệt
+                                <Clock className="w-2.5 h-2.5" />
+                                {entry.approval_status === 'pending_org' ? 'Chờ duyệt cấp tổ chức' : 'Chờ duyệt cấp phòng'}
                             </span>
                         )}
                         {entry.approval_status === 'rejected' && (

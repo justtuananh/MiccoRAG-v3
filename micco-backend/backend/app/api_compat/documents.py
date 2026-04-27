@@ -39,6 +39,9 @@ from app.api_compat.utils import (
     workspace_file_path,
 )
 
+ORG_APPROVER_ROLES = {"Admin", "Giám đốc", "Phó giám đốc"}
+DEPT_APPROVER_ROLES = {"Admin", "Trưởng phòng"}
+
 router = APIRouter(prefix="/api/documents", tags=["Documents"])
 
 UPLOAD_DIR = settings.BASE_DIR / "uploads"
@@ -136,19 +139,24 @@ async def list_documents(
     if department_id is not None and current_user.role == "Admin":
         stmt = stmt.where(Document.department_id == department_id)
 
-    # Filter by approval_status: non-approvers only see approved+rejected docs (pending goes to approval tab)
-    if current_user.role not in ("Admin", "Trưởng phòng"):
-        # User thường: thấy approved + rejected + pending (của chính mình)
+    # Filter by approval_status:
+    # - Admin: sees approved + rejected (pending handled in approvals tab)
+    # - Trưởng phòng: sees approved only
+    # - Nhân viên: sees approved + their own pending, but never rejected
+    if current_user.role == "Admin":
+        stmt = stmt.where(Document.approval_status.notin_(["pending", "pending_org"]))
+    elif current_user.role == "Trưởng phòng":
+        stmt = stmt.where(Document.approval_status == "approved")
+    else:
         stmt = stmt.where(
             or_(
                 Document.approval_status == "approved",
-                Document.approval_status == "rejected",
-                Document.uploader_id == current_user.id,
+                and_(
+                    Document.uploader_id == current_user.id,
+                    Document.approval_status.in_(["pending", "pending_org"]),
+                ),
             )
         )
-    else:
-        # Admin/Trưởng phòng: KHÔNG thấy pending (nằm ở tab phê duyệt riêng)
-        stmt = stmt.where(Document.approval_status != "pending")
 
     # In-memory filters (for simplicity)
     rows = (await db.execute(stmt.order_by(Document.created_at.desc()))).all()
@@ -207,9 +215,21 @@ async def upload_documents(
         effective_visibility = "internal"
 
     is_personal_upload = effective_visibility == "private"
-    is_approver = current_user.role in ("Admin", "Trưởng phòng")
-    # Personal uploads should be immediately usable by the uploader.
-    doc_approval_status = "approved" if (is_approver or is_personal_upload) else "pending"
+    is_org_approver = current_user.role in ORG_APPROVER_ROLES
+    is_dept_approver = current_user.role in DEPT_APPROVER_ROLES
+    # Public docs require 2-level approval:
+    # employee -> pending (dept), TP -> pending_org (org), Admin -> approved
+    if is_personal_upload:
+        doc_approval_status = "approved"
+    elif effective_visibility == "public":
+        if is_org_approver:
+            doc_approval_status = "approved"
+        elif is_dept_approver:
+            doc_approval_status = "pending_org"
+        else:
+            doc_approval_status = "pending"
+    else:
+        doc_approval_status = "approved" if (is_org_approver or is_dept_approver) else "pending"
     effective_dept_id = department_id if department_id is not None else current_user.department_id
 
     # Resolve workspace: personal -> personal workspace, else department/default.
@@ -691,9 +711,20 @@ async def upload_new_version(
     doc.original_filename = file.filename
     doc.file_size = len(content)
     doc.file_type = ext[1:] if ext else "file"
-    is_approver = current_user.role in ("Admin", "Trưởng phòng")
+    is_org_approver = current_user.role in ORG_APPROVER_ROLES
+    is_dept_approver = current_user.role in DEPT_APPROVER_ROLES
     is_personal_doc = (doc.visibility or "internal") == "private"
-    doc.approval_status = "approved" if (is_approver or is_personal_doc) else "pending"
+    if is_personal_doc:
+        doc.approval_status = "approved"
+    elif (doc.visibility or "internal") == "public":
+        if is_org_approver:
+            doc.approval_status = "approved"
+        elif is_dept_approver:
+            doc.approval_status = "pending_org"
+        else:
+            doc.approval_status = "pending"
+    else:
+        doc.approval_status = "approved" if (is_org_approver or is_dept_approver) else "pending"
     doc.status = DocumentStatus.PROCESSING if doc.approval_status == "approved" else DocumentStatus.PENDING
 
     await db.commit()
@@ -802,5 +833,4 @@ async def delete_document(
     await db.delete(doc)
     await db.commit()
     return {"message": "Xóa tài liệu thành công"}
-
 

@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { X, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { resolveApiBase } from '../../utils/apiBase';
 
-const ROLES = ['Tất cả', 'Admin', 'Trưởng phòng', 'Nhân viên'];
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || '') + '/api';
+const BASE_ROLES = ['Admin', 'Trưởng phòng', 'Nhân viên'];
+const DIRECTOR_ROLES = ['Giám đốc', 'Phó giám đốc'];
+const ROLES = ['Tất cả', ...BASE_ROLES, ...DIRECTOR_ROLES];
+const API_BASE = resolveApiBase() + '/api';
 
 export { ROLES };
 
@@ -32,6 +35,24 @@ export default function UserModal({ open, onClose, onSave, editUser }) {
             setForm({ name: '', email: '', role: 'Nhân viên', password: '', department_id: '' });
         }
     }, [editUser, open]);
+
+    const selectedDepartment = departments.find(d => String(d.id) === String(form.department_id));
+    const normalizedDepartmentName = (selectedDepartment?.name || '').trim().toLowerCase();
+    const isDirectorDepartment = normalizedDepartmentName.includes('giám đốc') || normalizedDepartmentName.includes('giam doc');
+    const availableRoles = useMemo(() => (
+        isDirectorDepartment ? DIRECTOR_ROLES : BASE_ROLES
+    ), [isDirectorDepartment]);
+    const safeDefaultRole = isDirectorDepartment ? 'Phó giám đốc' : 'Nhân viên';
+
+    useEffect(() => {
+        if (!form.department_id) return;
+        if (availableRoles.includes(form.role)) return;
+
+        setForm((prev) => ({
+            ...prev,
+            role: safeDefaultRole,
+        }));
+    }, [form.department_id, form.role, availableRoles, safeDefaultRole]);
 
     if (!open) return null;
 
@@ -111,7 +132,7 @@ export default function UserModal({ open, onClose, onSave, editUser }) {
                                 onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
                                 className="w-full px-3 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-600/30 focus:border-primary-600 transition-all appearance-none cursor-pointer"
                             >
-                                {ROLES.filter(r => r !== 'Tất cả').map(r => <option key={r} value={r}>{r}</option>)}
+                                {availableRoles.map(r => <option key={r} value={r}>{r}</option>)}
                             </select>
                         </div>
                         <div>
