@@ -19,7 +19,6 @@ const sidebarItems = [
     { label: 'Trợ lý AI', path: '/chat', icon: MessageSquare, desc: 'Trò chuyện với tài liệu' },
     { label: 'Chuyên gia', path: '/expert', icon: Users, desc: 'Tìm & kết nối chuyên gia' },
     { label: 'Tri thức', path: '/knowledge', icon: BookOpen, desc: 'Quản lý bài viết tri thức' },
-    { label: 'Đồ thị tri thức', path: '/graph-knowledge', icon: GitBranch, desc: 'Sơ đồ tri thức dạng graph' },
 ];
 
 export default function DashboardLayout() {
@@ -198,6 +197,27 @@ export default function DashboardLayout() {
                                 {approvalPendingCount}
                             </span>
                         )}
+                    </Link>
+                </div>
+            )}
+
+            {/* Đồ thị tri thức - chỉ Admin */}
+            {user?.role === 'Admin' && (
+                <div className="px-3 pb-1 border-t border-gray-100 dark:border-gray-800 pt-4 mt-2">
+                    <Link
+                        to="/graph-knowledge"
+                        onClick={() => setMobileOpen(false)}
+                        className={`
+                            flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200
+                            ${sidebarOpen ? 'justify-start' : 'justify-center'}
+                            ${location.pathname === '/graph-knowledge'
+                                ? 'bg-primary-600 text-white shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }
+                        `}
+                    >
+                        <GitBranch className="w-4.5 h-4.5 flex-shrink-0" />
+                        {sidebarOpen && <span className="text-xs font-bold">Đồ thị tri thức</span>}
                     </Link>
                 </div>
             )}
