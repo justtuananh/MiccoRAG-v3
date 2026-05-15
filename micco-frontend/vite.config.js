@@ -12,7 +12,7 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/api': {
-        target: 'https://iowa-echo-provider-indicate.trycloudflare.com',
+        target: 'https://witness-notebooks-diving-galleries.trycloudflare.com ',
         changeOrigin: true,
       },
     },
