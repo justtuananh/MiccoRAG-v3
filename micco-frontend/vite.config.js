@@ -12,7 +12,7 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/api': {
-        target: 'https://witness-notebooks-diving-galleries.trycloudflare.com ',
+        target: 'https://henry-semi-again-dsl.trycloudflare.com',
         changeOrigin: true,
       },
     },

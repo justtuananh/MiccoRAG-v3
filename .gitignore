@@ -169,6 +169,9 @@ micco-server
 # Unrelated plugin project
 everything-claude-code/
 
+# Harness — báo cáo/artifact sinh ra khi chạy (không commit)
+harness/reports/
+
 # Temporary scratch files
 paper_outline.txt
 tech_paper_outline.txt

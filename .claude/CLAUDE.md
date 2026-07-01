@@ -28,7 +28,7 @@ miccoRAG-v3/
 │   │   └── .env                # Local config (NOT committed)
 │   ├── docker/
 │   │   └── init-schema.sql     # PostgreSQL init script
-│   ├── docker-compose.services.yml  # PostgreSQL 5435 + ChromaDB 8003
+│   ├── docker-compose.services.yml  # PostgreSQL host 15435 + ChromaDB 8003
 │   ├── docker-compose.nginx.yml    # Nginx reverse proxy
 │   ├── setup.sh                # Auto-setup script (Ubuntu)
 │   ├── run_bk.sh               # Backend run script
@@ -114,7 +114,7 @@ The project has **two backends** sharing the same database:
 | | **micco-backend** (NexusRAG) | **micco-server** (Legacy) |
 |---|---|---|
 | Purpose | Knowledge Base + RAG + Workspaces | Auth + Admin + Knowledge + Dashboard |
-| Port | 8000 | 8000 (separate) |
+| Port | **8001** (dev, run_bk.sh) / 8000 (prod) | 8000 (separate) |
 | API prefix | `/api/v1/...` | `/api/...` (no version) |
 | DB | PostgreSQL (same instance) | PostgreSQL (same instance) |
 | Docs URL | `/docs` | `/docs` |
@@ -126,8 +126,8 @@ The project has **two backends** sharing the same database:
 - `readSSEStream()` → SSE/NDJSON parser for streaming chat responses
 
 ### Database
-- **PostgreSQL 5435** (Docker): primary relational store for all models
-- **ChromaDB 8003** (Docker): vector store for embeddings
+- **PostgreSQL host 15435** → container 5432 (Docker, container `nexusrag-postgres`, db `nexusrag`): primary relational store for all models
+- **ChromaDB 8003** (Docker, container `nexusrag-chromadb`): vector store for embeddings
 - Tables auto-created by FastAPI lifespan on startup (`AUTO_CREATE_TABLES=true`)
 - Alembic migrations also available: `cd micco-backend/backend && alembic upgrade head`
 
@@ -148,7 +148,7 @@ React Router v7 with two-level nesting:
 ### Backend Environment (`micco-backend/backend/.env`)
 Critical variables (defaults from `micco-backend/.env.example`):
 ```env
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5435/nexusrag
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:15435/nexusrag
 CHROMA_HOST=localhost
 CHROMA_PORT=8003
 LLM_PROVIDER=gemini|ollama
@@ -283,6 +283,20 @@ pytest tests/ -v
 pytest tests/integration/test_rag_pipeline.py -v
 ```
 
+### Harness system (`harness/`)
+Multi-component harness that verifies the project per layer (not just unit logic). Entry `bash harness/run.sh [COMPONENT|PRESET] [--json --md --paid]`. Each component sources `harness/lib.sh`, prints `TỔNG: N PASS / M FAIL / K WARN`, exits non-zero on any FAIL, and only touches `nexusrag-*`/`micco-*` containers (safe on shared VPS).
+```bash
+bash harness/run.sh all --json          # smoke+be+fe+test+deploy (free, default)
+bash harness/run.sh qa                   # quality gate → GO/NO-GO
+RUN_EVAL=1  bash harness/run.sh eval     # RAG quality (golden set; calls Gemini)
+RUN_BENCH=1 bash harness/run.sh bench    # latency per mode (calls Gemini)
+RUN_E2E=1   bash harness/run.sh fe       # Playwright e2e
+ssh KMS 'bash /home/kms/MiccoRAG-v3/harness/run.sh all'   # from Mac
+```
+- **Components**: smoke (infra/health, = old `harness_smoke.sh`, kept as shim), be (ruff+pytest+cov, integration opt-in `RUN_INTEGRATION=1`), fe (eslint+`vite build`+e2e), test (all pytest: backend + micco-server legacy WARN-skip w/o langgraph), qa (gate), deploy (deploy-verify, read-only, surfaces nginx→:8089 drift as WARN), eval (golden set at `harness/eval/`), bench (`harness/bench/`).
+- **Domain subagents** (`.claude/agents/`): `backend`, `frontend`, `qa`, `deploy`, `test`, `eval`, `bench` (+ `harness-orchestrator`) — full working, auto-routed subagents that do the work in their area AND verify with the matching harness component. Old root `{backend,frontend,qa}-agent.md` are thin pointers to these. `/harness` command; reports → `harness/reports/` (gitignored).
+- New tests added by the harness: `micco-backend/backend/tests/integration/test_rag_pipeline.py` (RUN_INTEGRATION=1) and `micco-frontend/e2e/smoke.mjs` (`npm run test:e2e`). Ops runbook: `OPERATIONS.md`.
+
 ### Claude Code Skills (Multi-Agent)
 These skills coordinate multi-agent development:
 - `/backend-dev` — Backend development (TDD workflow)
@@ -358,6 +372,20 @@ docker compose -f docker-compose.nginx.yml up -d
 # Full production stack
 docker compose up -d
 ```
+
+---
+
+## 🚀 Deployment on KMS (shared VPS)
+
+Production runs on VPS **`KMS`** (`ssh KMS`, host `103.237.147.91`, user `kms`), project at **`/home/kms/MiccoRAG-v3`**.
+
+- ⚠️ **Shared box** (50+ containers, 9+ unrelated projects: supabase, keycloak, retool, metabase, airflow, n8n, kafka, hanomilk…). **Only touch `nexusrag-*` / `micco-*` containers.** Never prune, never broad `docker compose down`, never restart other projects' services.
+- **Real runtime ports**: backend dev **8001** (`run_bk.sh`) / prod 8000; frontend Vite 5174; Postgres host **15435**; ChromaDB 8003; nginx gateway **:8888** (`network_mode: host`, so compose `ports: 80:80` is ignored; `:80` is another project).
+- **Known drift** (documented, not yet fixed): nginx `/api` → `:8089` doesn't match the live backend port; two backend instances coexist (dev `kms` / prod `root`).
+- **Security note**: `docker-compose.nginx.yml` hardcodes a DuckDNS `TOKEN` default (leaked in git) → move to `.env` + rotate. The `dev-skip` auth bypass in `core/security.py` is unconditional → gate it to dev only if a prod instance is public.
+- Verify health with `harness_smoke.sh` (above). Full runbook (startup order, ops, rollback, drift, security): **`OPERATIONS.md`** at repo root.
+
+> Note: there is also a stale duplicate `CLAUDE.md` at the repo root (superseded by this `.claude/CLAUDE.md` per commit `a67b19c`). Treat this file as canonical.
 
 ---
 
