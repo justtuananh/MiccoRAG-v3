@@ -61,6 +61,14 @@ class Settings(BaseSettings):
     NEXUSRAG_CHUNK_MAX_TOKENS: int = 512
     NEXUSRAG_KG_QUERY_TIMEOUT: float = 30.0
     NEXUSRAG_KG_CHUNK_TOKEN_SIZE: int = 800   # Smaller chunks = faster LLM extraction per chunk
+    # Max output tokens for the KG entity/relation extraction LLM call. LightRAG's
+    # delimiter-based extraction format is verbose (one line per entity/relation) and
+    # can exceed the previous 8192 default on entity-dense chunks, causing Gemini to
+    # truncate mid-record before the "<|COMPLETE|>" marker. A truncated response fails
+    # LightRAG's strict parser and the WHOLE chunk's entities/relations are silently
+    # dropped (pipeline still reports the document as INDEXED). Raised default to give
+    # headroom; gemini-2.5-flash supports up to 65536 output tokens.
+    NEXUSRAG_KG_EXTRACT_MAX_TOKENS: int = 16384
     NEXUSRAG_KG_LANGUAGE: str = "English"
     NEXUSRAG_KG_ENTITY_TYPES: list[str] = [
         "Organization", "Person", "Product", "Location", "Event",

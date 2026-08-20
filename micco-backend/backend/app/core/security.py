@@ -60,7 +60,9 @@ async def get_current_user(
 
     # Dev-mode bypass: VITE_SKIP_AUTH=true sends 'dev-skip' as token
     if token == "dev-skip":
-        result = await db.execute(select(User).options(selectinload(User.department)).limit(1))
+        # Deterministic: lowest id = seeded Admin. Without ORDER BY, Postgres heap order
+        # can return a non-Admin user, silently breaking dept filters + mode override.
+        result = await db.execute(select(User).options(selectinload(User.department)).order_by(User.id).limit(1))
         user = result.scalar_one_or_none()
         if user:
             return user

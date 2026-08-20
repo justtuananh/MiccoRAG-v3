@@ -5,9 +5,9 @@
 # Dùng:
 #   bash harness/run.sh [COMPONENT... | PRESET] [--json] [--md] [--paid]
 #
-# Component: smoke be fe test deploy eval bench qa
+# Component: smoke be fe test deploy eval bench rageval qa
 # Preset:    all  = smoke be fe test deploy   (miễn phí, mặc định)
-#            full = smoke be fe test deploy eval bench   (eval/bench cần --paid)
+#            full = smoke be fe test deploy eval bench rageval   (eval/bench/rageval cần --paid)
 #            qa   = cổng chất lượng (qa.sh: smoke+be+fe+test + verdict GO/NO-GO)
 #
 # Cờ: --json  ghi harness/reports/<ts>.json
@@ -27,10 +27,10 @@ for a in "$@"; do
   case "$a" in
     --json) WANT_JSON=1;;
     --md)   WANT_MD=1;;
-    --paid) export RUN_EVAL=1 RUN_BENCH=1 RUN_RAG=1 RUN_E2E=1;;
+    --paid) export RUN_EVAL=1 RUN_BENCH=1 RUN_RAG=1 RUN_E2E=1 RUN_RAGEVAL=1;;
     all)    comps+=(smoke be fe test deploy);;
-    full)   comps+=(smoke be fe test deploy eval bench);;
-    smoke|be|fe|test|deploy|eval|bench|qa) comps+=("$a");;
+    full)   comps+=(smoke be fe test deploy eval bench rageval);;
+    smoke|be|fe|test|deploy|eval|bench|rageval|qa) comps+=("$a");;
     *) echo "Không rõ tham số: $a"; exit 2;;
   esac
 done

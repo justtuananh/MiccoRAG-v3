@@ -21,7 +21,8 @@
       "Bash(source ~/miniconda3/bin/activate miccorag-v2)",
       "Bash(pip install:*)",
       "Bash(python -c \"from app.api_compat.documents import router; print\\(''OK''\\)\")",
-      "Bash(python -m py_compile app/api_compat/documents.py)"
+      "Bash(python -m py_compile app/api_compat/documents.py)",
+      "Bash(python3 -c ' *)"
     ]
   }
 }

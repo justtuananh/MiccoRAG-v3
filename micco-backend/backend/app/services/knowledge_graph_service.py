@@ -47,8 +47,11 @@ async def _kg_llm_complete(
     - Thinking is explicitly disabled: LightRAG expects strict delimiter-based
       output ("<|>"). Thinking adds overhead and can interfere with the format,
       causing the "Complete delimiter can not be found" warnings.
-    - max_tokens is set to 8192 to prevent truncation mid-output, which is the
-      primary cause of "LLM output format error; found N/4 fields" warnings.
+    - max_tokens is set to NEXUSRAG_KG_EXTRACT_MAX_TOKENS (default 16384) to prevent
+      truncation mid-output. LightRAG's parser silently drops ALL entities/relations
+      from a chunk if the response is cut off before the "<|COMPLETE|>" marker, so
+      truncation here is a primary cause of an empty-looking knowledge graph even
+      though the document was indexed successfully.
     """
     provider = get_llm_provider()
 
@@ -66,14 +69,27 @@ async def _kg_llm_complete(
     messages.append(LLMMessage(role="user", content=prompt))
 
     # think=False: KG extraction needs strict structured output, not chain-of-thought.
-    # max_tokens=8192: prevent mid-output truncation that breaks the <|> delimiter format.
+    max_tokens = settings.NEXUSRAG_KG_EXTRACT_MAX_TOKENS
     result = await provider.acomplete(
-        messages, temperature=0.0, max_tokens=8192, think=False,
+        messages, temperature=0.0, max_tokens=max_tokens, think=False,
     )
     # acomplete can return LLMResult if thinking=True elsewhere — extract text
-    if hasattr(result, "content"):
-        return result.content
-    return result or ""
+    text = result.content if hasattr(result, "content") else (result or "")
+
+    # Detect likely truncation: LightRAG expects the response to end with the
+    # "<|COMPLETE|>" marker (or be empty when a chunk has no entities). A response
+    # that has content but no completion marker almost certainly hit max_tokens and
+    # will be silently discarded in full by LightRAG's parser — log it loudly so this
+    # failure mode is visible instead of manifesting as "empty knowledge graph".
+    if text and "<|COMPLETE|>" not in text:
+        logger.warning(
+            "KG extraction response missing '<|COMPLETE|>' marker "
+            f"(len={len(text)} chars, max_tokens={max_tokens}) — likely truncated by "
+            "the LLM output limit. LightRAG will discard this chunk's entities/"
+            "relations entirely. Consider raising NEXUSRAG_KG_EXTRACT_MAX_TOKENS."
+        )
+
+    return text
 
 
 async def _kg_embed(texts: list[str]) -> np.ndarray:
