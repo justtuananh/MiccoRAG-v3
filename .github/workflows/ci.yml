@@ -1,0 +1,39 @@
+name: CI
+# CI nhẹ, ĐỘC LẬP VPS (không cần DB/Gemini key). Các tầng nặng (integration, eval, bench,
+# smoke, deploy) chạy trên VPS qua `harness/run.sh` — GitHub Actions không với tới VPS.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  frontend:
+    name: Frontend (lint + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: micco-frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install
+      - name: ESLint (advisory)
+        run: npm run lint || echo "::warning::eslint reported issues (non-blocking)"
+      - name: Vite build (blocking)
+        run: npm run build
+
+  backend-lint:
+    name: Backend (ruff, advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - name: Ruff check (advisory)
+        run: ruff check micco-backend/backend/app || echo "::warning::ruff reported issues (non-blocking)"
+      - name: VPS-only note
+        run: echo "pytest unit/integration, eval, bench, smoke, deploy chạy trên VPS qua harness/run.sh (cần services + Gemini)."

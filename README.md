@@ -94,7 +94,7 @@ miccoRAG-v3/
 │   │   ├── schemas/          # Pydantic v2 schemas
 │   │   └── services/         # Business logic + llm package + document_parser package
 │   ├── alembic/versions/     # 4 migration files
-│   ├── docker-compose.*.yml  # PostgreSQL 5435 + ChromaDB 8003 + Nginx
+│   ├── docker-compose.*.yml  # PostgreSQL 15435 + ChromaDB 8003 + Nginx
 │   ├── seed_data.py          # Seed 6 departments + user assignments
 │   └── seed_users.py         # Seed admin + 3 users
 │
@@ -259,7 +259,7 @@ pnpm install
 
 #### Bước 6: Chạy hệ thống
 
-- **Backend**: `cd micco-backend/backend && uvicorn app.main:app --reload --port 8000`
+- **Backend**: `cd micco-backend/backend && uvicorn app.main:app --reload --port 8001`
 - **Frontend**: `cd micco-frontend && npm run dev`
 - **Truy cập**: http://localhost:5174
 
@@ -403,13 +403,73 @@ Frontend sử dụng cả hai backend: `ragFetch()` → legacy API, `ragFetchV2(
 
 ---
 
+## 🧪 Kiểm thử & Harness
+
+Dự án có **hệ harness đa-thành-phần** dưới `harness/` — kiểm chứng toàn stack theo từng
+thành phần: **smoke · be · fe · qa · test · deploy · eval · bench**. Mọi component in
+`TỔNG: N PASS / M FAIL / K WARN`, **exit 0 khi không FAIL**, và **chỉ đụng container
+`nexusrag-*`/`micco-*`** (an toàn trên VPS dùng chung).
+
+```bash
+# Chạy nhiều component (mặc định 'all' = smoke+be+fe+test+deploy — miễn phí)
+bash harness/run.sh all --json
+ssh KMS 'bash /home/kms/MiccoRAG-v3/harness/run.sh all'   # từ xa
+
+# Một component
+bash harness/run.sh smoke      # hạ tầng/health (tương thích: harness_smoke.sh vẫn chạy)
+bash harness/run.sh qa         # cổng chất lượng → 🟢 GO / 🔴 NO-GO
+
+# Các tầng TỐN PHÍ (gọi Gemini) — bật cờ:
+RUN_EVAL=1  bash harness/run.sh eval     # chất lượng RAG (retrieval/keyword/citation/pass@1)
+RUN_BENCH=1 bash harness/run.sh bench    # latency p50/p95 theo mode
+RUN_E2E=1   bash harness/run.sh fe       # Playwright e2e
+bash harness/run.sh full --paid          # tất cả, kể cả eval+bench
+```
+
+| Component | Kiểm | | Component | Kiểm |
+|---|---|---|---|---|
+| **smoke** | Docker/DB/API/nginx/FE health | | **deploy** | services/migrations/seed/routing (read-only) |
+| **be** | ruff + pytest unit + coverage (+integration) | | **test** | mọi pytest suite |
+| **fe** | eslint + `vite build` + e2e | | **eval** | chất lượng RAG trên golden set |
+| **qa** | gate GO/NO-GO | | **bench** | latency per search mode |
+
+Mỗi lĩnh vực có một **subagent chuyên trách** trong `.claude/agents/` — `backend`, `frontend`,
+`qa`, `deploy`, `test`, `eval`, `bench` (+ `harness-orchestrator`). Đây là agent **làm việc đầy
+đủ, tự-động-định-tuyến**: khi có task thuộc lĩnh vực nào thì agent đó tự implement/sửa + test +
+verify bằng harness tương ứng. Kèm lệnh `/harness [component]`. Artifact `--json`/`--md` ghi vào
+`harness/reports/`. Chi tiết vận hành: [`OPERATIONS.md`](OPERATIONS.md).
+
+> Các dòng `⚠️ WARN` là cảnh báo (vd. lệch cấu hình nginx, dep còn thiếu), không làm
+> harness thất bại.
+
+---
+
+## 🚀 Vận hành trên VPS `KMS`
+
+Bản chạy production đặt tại VPS `KMS` — `ssh KMS`, thư mục `/home/kms/MiccoRAG-v3`.
+
+| Thành phần | Cổng | Ghi chú |
+|---|---|---|
+| Backend dev (`run_bk.sh`) | **8001** | `uvicorn --reload` |
+| Backend prod | 8000 | `uvicorn --workers 2` |
+| Frontend (Vite) | 5174 | `npm run dev` |
+| PostgreSQL | **15435** → 5432 | container `nexusrag-postgres`, db `nexusrag` |
+| ChromaDB | 8003 | container `nexusrag-chromadb` |
+| Nginx gateway | 8888 | container `micco-nginx-gw` (`network_mode: host`) |
+
+> ⚠️ `KMS` là **VPS dùng chung** (nhiều dự án khác). Chỉ thao tác trên các container
+> `nexusrag-*` / `micco-*`. Thứ tự khởi động, xử lý sự cố, các điểm lệch cấu hình đã
+> biết và cảnh báo bảo mật: xem **[`OPERATIONS.md`](OPERATIONS.md)**.
+
+---
+
 ## Biến môi trường
 
 Trong file `micco-backend/backend/.env`:
 
 | Biến | Mô tả | Mặc định |
 |---|---|---|
-| `DATABASE_URL` | Kết nối PostgreSQL | `postgresql+asyncpg://postgres:postgres@localhost:5435/nexusrag` |
+| `DATABASE_URL` | Kết nối PostgreSQL | `postgresql+asyncpg://postgres:postgres@localhost:15435/nexusrag` |
 | `CHROMA_HOST` | ChromaDB host | `localhost` |
 | `CHROMA_PORT` | ChromaDB port | `8003` |
 | `LLM_PROVIDER` | Provider: `gemini` hoặc `ollama` | `gemini` |
@@ -535,7 +595,7 @@ miccoRAG-v3/
 │   │   ├── schemas/          # Pydantic v2 schemas
 │   │   └── services/         # Business logic + llm package + document_parser package
 │   ├── alembic/versions/     # 4 migration files
-│   ├── docker-compose.*.yml   # PostgreSQL 5435 + ChromaDB 8003 + Nginx
+│   ├── docker-compose.*.yml   # PostgreSQL 15435 + ChromaDB 8003 + Nginx
 │   ├── seed_data.py          # Seed 6 departments + user assignments
 │   └── seed_users.py         # Seed admin + 3 users
 │
@@ -700,7 +760,7 @@ pnpm install
 
 #### Step 6: Run
 
-- **Backend**: `cd micco-backend/backend && uvicorn app.main:app --reload --port 8000`
+- **Backend**: `cd micco-backend/backend && uvicorn app.main:app --reload --port 8001`
 - **Frontend**: `cd micco-frontend && npm run dev`
 - **Access**: http://localhost:5174
 
@@ -844,13 +904,40 @@ Frontend uses both: `ragFetch()` → legacy API, `ragFetchV2()` → v1 API.
 
 ---
 
+## 🧪 Testing & Harness
+
+The repo ships **`harness_smoke.sh`** — a read-only *smoke + health* harness (bash)
+that verifies the whole stack is up and the RAG pipeline works. Safe to run on the
+shared host.
+
+```bash
+bash harness_smoke.sh                 # local
+ssh KMS 'bash /home/kms/MiccoRAG-v3/harness_smoke.sh'   # remote
+RUN_RAG=1 bash harness_smoke.sh       # also hit a real RAG /query (uses Gemini API)
+BACKEND_PORT=8001 bash harness_smoke.sh
+```
+
+It checks Docker services, PostgreSQL (`pg_isready` + core tables), ChromaDB
+heartbeat, backend `/health` + `/ready`, `/api/v1` surface, Swagger, nginx gateway
+and frontend, printing `TỔNG: N PASS / M FAIL / K WARN` and **exiting 0 when no FAIL**.
+
+## 🚀 Running on VPS `KMS`
+
+Production lives on VPS `KMS` (`ssh KMS`, `/home/kms/MiccoRAG-v3`). Ports: backend dev
+**8001** / prod 8000, frontend 5174, PostgreSQL **15435**, ChromaDB 8003, nginx gateway
+8888. `KMS` is a **shared VPS** — only touch `nexusrag-*` / `micco-*` containers. See
+**[`OPERATIONS.md`](OPERATIONS.md)** for startup order, troubleshooting, known config
+drift and security notes.
+
+---
+
 ## Environment Variables
 
 In `micco-backend/backend/.env`:
 
 | Variable | Description | Default |
 |---|---|---|
-| `DATABASE_URL` | PostgreSQL connection | `postgresql+asyncpg://postgres:postgres@localhost:5435/nexusrag` |
+| `DATABASE_URL` | PostgreSQL connection | `postgresql+asyncpg://postgres:postgres@localhost:15435/nexusrag` |
 | `CHROMA_HOST` | ChromaDB host | `localhost` |
 | `CHROMA_PORT` | ChromaDB port | `8003` |
 | `LLM_PROVIDER` | Provider: `gemini` or `ollama` | `gemini` |

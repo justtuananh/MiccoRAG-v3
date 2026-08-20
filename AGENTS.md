@@ -18,7 +18,7 @@ The `micco-backend` FastAPI app serves **everything** on one process:
 ## Startup order matters
 
 ```bash
-# 1. Infrastructure (PostgreSQL 5435 + ChromaDB 8003)
+# 1. Infrastructure (PostgreSQL host 15435 + ChromaDB 8003)
 cd micco-backend && docker compose -f docker-compose.services.yml up -d
 
 # 2. Backend (port 8001 via run_bk.sh, or 8000 directly)
@@ -33,9 +33,10 @@ Seed data: `python seed_data.py && python seed_users.py` from `micco-backend/bac
 
 ## Port gotchas
 
-- `run_bk.sh` starts on **port 8001** (not 8000 as README says). Check the Vite proxy target in `vite.config.js` matches.
-- PostgreSQL: **5435** (not default 5432).
+- `run_bk.sh` starts on **port 8001** (dev, `--reload`). A **second** prod instance runs on **8000** (`--workers 2`, under `root`) — two backends coexist; `:8001` is the healthy dev one, `:8000` currently answers `/health` with 401.
+- PostgreSQL: host **15435** → container 5432 (NOT 5435 — older docs drop the leading `1`).
 - Frontend: **5174** (hardcoded in vite.config.js, not 5173).
+- **Nginx drift**: `nginx.conf` proxies `/api` → `127.0.0.1:8089`, but no backend listens on 8089 (they're on 8001/8000). And `docker-compose.nginx.yml` uses `network_mode: host`, so `ports: 80:80` is ignored — nginx actually listens on **:8888** (`listen 8888`). Port `:80` on the box belongs to another project.
 
 ## Dev auth bypass
 
@@ -64,6 +65,22 @@ cd micco-frontend && npm run lint
 # Frontend build
 cd micco-frontend && npm run build
 ```
+
+## Harness system (`harness/`)
+
+A multi-component harness verifies the project per layer. Entry: `bash harness/run.sh [COMPONENT|PRESET] [--json --md --paid]`. Each component prints `TỔNG: N PASS / M FAIL / K WARN`, exits non-zero on any FAIL, and only touches `nexusrag-*` / `micco-*` containers (safe on the shared VPS).
+
+- **Components**: `smoke` (infra/health, = the old `harness_smoke.sh`, kept as a shim), `be` (ruff + pytest unit + coverage; integration opt-in), `fe` (eslint + `vite build` + Playwright e2e), `test` (all pytest suites), `qa` (gate → GO/NO-GO), `deploy` (deploy-verify, read-only), `eval` (RAG quality on `harness/eval/golden.jsonl`), `bench` (latency per search mode).
+- **Presets**: `all` = smoke+be+fe+test+deploy (free, default); `full` = all + eval + bench; `qa` = gate.
+- **Cost gating**: `RUN_EVAL=1` / `RUN_BENCH=1` / `RUN_E2E=1` / `RUN_INTEGRATION=1` / `RUN_RAG=1` (these call Gemini and/or need a live browser). `--paid` sets them all.
+- **Domain subagents** (`.claude/agents/`): `backend`, `frontend`, `qa`, `deploy`, `test`, `eval`, `bench` (+ `harness-orchestrator`). These are full working, auto-routed subagents — when a task in a domain comes up, that agent does the work (implement/edit/test) **and** verifies with its harness component. Plus the `/harness` command. (The old root `backend-agent.md`/`frontend-agent.md`/`qa-agent.md` are now thin pointers to these.)
+
+```bash
+ssh KMS 'bash /home/kms/MiccoRAG-v3/harness/run.sh all --json'
+ssh KMS 'RUN_EVAL=1 bash /home/kms/MiccoRAG-v3/harness/run.sh eval'
+```
+
+Reports land in `harness/reports/` (gitignored). Full ops runbook + known drift + security notes: **`OPERATIONS.md`**.
 
 ## Conventions that differ from defaults
 
