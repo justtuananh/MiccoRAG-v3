@@ -65,6 +65,22 @@ async def lifespan(app: FastAPI):
                 await conn.execute(text(
                     "ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS ratings JSON"
                 ))
+                # Keep enum labels compatible with SQLAlchemy Enum(DocumentStatus),
+                # which binds enum member names like PENDING/PROCESSING/REJECTED.
+                await conn.execute(text("""
+                    DO $$
+                    BEGIN
+                        IF NOT EXISTS (
+                            SELECT 1
+                            FROM pg_type t
+                            JOIN pg_enum e ON t.oid = e.enumtypid
+                            WHERE t.typname = 'documentstatus'
+                              AND e.enumlabel = 'REJECTED'
+                        ) THEN
+                            ALTER TYPE documentstatus ADD VALUE 'REJECTED';
+                        END IF;
+                    END $$;
+                """))
                 await conn.execute(text("""
                     CREATE TABLE IF NOT EXISTS system_chat_logs (
                         id SERIAL PRIMARY KEY,
@@ -94,7 +110,15 @@ async def lifespan(app: FastAPI):
                 await conn.execute(
                     text("ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS suggested_questions JSON")
                 )
-                logger.info("Database migration (suggested_questions) completed or already up to date")
+                # Migration: Add department_id to knowledge_bases (1:1 relationship)
+                # Each department has exactly one workspace
+                await conn.execute(
+                    text("ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL")
+                )
+                await conn.execute(
+                    text("CREATE UNIQUE INDEX IF NOT EXISTS ix_knowledge_bases_department_id ON knowledge_bases(department_id) WHERE department_id IS NOT NULL")
+                )
+                logger.info("Database migration (department_id) completed or already up to date")
 
         except Exception as e:
             logger.error(f"Migration error during startup: {e}")

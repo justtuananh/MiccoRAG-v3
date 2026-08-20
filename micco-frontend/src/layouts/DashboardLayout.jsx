@@ -1,15 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { isPrivilegedRole } from '../utils/roles';
 import { ragChatApi } from '../utils/api';
-import Logo from '../assets/logo.png';
 import {
     LayoutDashboard, FolderOpen, Upload, MessageSquare, BookOpen, Building2,
     X, Sun, Moon, Bell,
-    Search, LogOut, ChevronDown, FileText, User, Key,
+    LogOut, ChevronDown, FileText, User, Key,
     ChevronLeft, ChevronRight, ShieldCheck, ClipboardCheck, GitBranch,
-    Activity, Users
+    Activity, Users, FolderKanban
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -19,51 +19,26 @@ const sidebarItems = [
     { label: 'Trợ lý AI', path: '/chat', icon: MessageSquare, desc: 'Trò chuyện với tài liệu' },
     { label: 'Chuyên gia', path: '/expert', icon: Users, desc: 'Tìm & kết nối chuyên gia' },
     { label: 'Tri thức', path: '/knowledge', icon: BookOpen, desc: 'Quản lý bài viết tri thức' },
-    { label: 'Đồ thị tri thức', path: '/graph-knowledge', icon: GitBranch, desc: 'Sơ đồ tri thức dạng graph' },
 ];
 
 export default function DashboardLayout() {
     const { isDark, toggleTheme } = useTheme();
-    const { user, logout, authFetch } = useAuth();
+    const { user, logout, authFetch,
+        approvalPendingCount,
+        approvalLastRequester,
+        showApprovalToast,
+        setShowApprovalToast,
+    } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [pendingCount, setPendingCount] = useState(0);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [profileModalOpen, setProfileModalOpen] = useState(false);
     const [profileUpdating, setProfileUpdating] = useState(false);
     const [profileError, setProfileError] = useState('');
     const [profileSuccess, setProfileSuccess] = useState(false);
     const [profileData, setProfileData] = useState({ name: '', password: '' });
-    const [lastRequester, setLastRequester] = useState(null);
-    const [showApprovalToast, setShowApprovalToast] = useState(false);
-    const isFirstLoad = useRef(true);
-
-    useEffect(() => {
-        if (user?.role !== 'Admin' && user?.role !== 'Trưởng phòng') return;
-        
-        const fetchCount = () => {
-            authFetch('/api/approvals/count')
-                .then(r => r.ok ? r.json() : null)
-                .then(data => {
-                    if (data && typeof data.count === 'number') {
-                        if (!isFirstLoad.current && data.count > pendingCount) {
-                            setLastRequester(data.last_requester);
-                            setShowApprovalToast(true);
-                            setTimeout(() => setShowApprovalToast(false), 5000);
-                        }
-                        setPendingCount(data.count);
-                        isFirstLoad.current = false;
-                    }
-                })
-                .catch(() => { });
-        };
-
-        fetchCount();
-        const interval = setInterval(fetchCount, 30000); // 30s polling
-        return () => clearInterval(interval);
-    }, [user?.role, authFetch]);
 
     // Close user menu on outside click
     useEffect(() => {
@@ -74,12 +49,9 @@ export default function DashboardLayout() {
     }, [userMenuOpen]);
 
     const handleLogout = async () => {
-        // Clear all per-user chat history before logging out
         try {
             await ragChatApi.clearAllHistory();
-        } catch (_) {
-            // Best-effort — do not block logout even if the call fails
-        }
+        } catch (_) { /* best-effort */ }
         logout();
         navigate('/', { replace: true });
     };
@@ -108,12 +80,10 @@ export default function DashboardLayout() {
             if (res.ok) {
                 setProfileSuccess(true);
                 setProfileData({ name: '', password: '' });
-                // Re-fetch user in AuthContext or just wait for page reload later
-                // Actually, let's just show success and close
                 setTimeout(() => {
                     setProfileModalOpen(false);
                     setProfileSuccess(false);
-                    window.location.reload(); // Quickest way to refresh across all components
+                    window.location.reload();
                 }, 1500);
             } else {
                 const err = await res.json();
@@ -145,7 +115,7 @@ export default function DashboardLayout() {
                         </div>
                     )}
                 </Link>
-                
+
                 <button
                     onClick={() => setSidebarOpen(!sidebarOpen)}
                     className="p-1 px-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 dark:text-gray-500 transition-colors"
@@ -182,8 +152,29 @@ export default function DashboardLayout() {
                 })}
             </nav>
 
-            {/* Approvals Link — visible to Admin & Trưởng phòng */}
-            {(user?.role === 'Admin' || user?.role === 'Trưởng phòng') && (
+            {/* Workspace — visible to all users */}
+            <div className="px-3 pb-1">
+                <Link
+                    to="/workspaces"
+                    onClick={() => setMobileOpen(false)}
+                    className={`
+                        flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200
+                        ${sidebarOpen ? 'justify-start' : 'justify-center'}
+                        ${location.pathname === '/workspaces'
+                            ? 'bg-primary-600 text-white shadow-sm'
+                            : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }
+                    `}
+                >
+                    <FolderKanban className="w-4.5 h-4.5 flex-shrink-0" />
+                    {sidebarOpen && (
+                        <span className="text-xs font-bold">Workspace</span>
+                    )}
+                </Link>
+            </div>
+
+            {/* Approvals Link — visible to privileged roles */}
+            {isPrivilegedRole(user?.role) && (
                 <div className="px-3 pb-1">
                     <Link
                         to="/approvals"
@@ -201,17 +192,38 @@ export default function DashboardLayout() {
                         {sidebarOpen && (
                             <span className="text-xs font-bold flex-1">Phê duyệt</span>
                         )}
-                        {pendingCount > 0 && (
+                        {approvalPendingCount > 0 && (
                             <span className="ml-auto min-w-[1rem] h-4 px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">
-                                {pendingCount}
+                                {approvalPendingCount}
                             </span>
                         )}
                     </Link>
                 </div>
             )}
 
-            {/* Admin Links */}
+            {/* Đồ thị tri thức - chỉ Admin */}
             {user?.role === 'Admin' && (
+                <div className="px-3 pb-1 border-t border-gray-100 dark:border-gray-800 pt-4 mt-2">
+                    <Link
+                        to="/graph-knowledge"
+                        onClick={() => setMobileOpen(false)}
+                        className={`
+                            flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200
+                            ${sidebarOpen ? 'justify-start' : 'justify-center'}
+                            ${location.pathname === '/graph-knowledge'
+                                ? 'bg-primary-600 text-white shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }
+                        `}
+                    >
+                        <GitBranch className="w-4.5 h-4.5 flex-shrink-0" />
+                        {sidebarOpen && <span className="text-xs font-bold">Đồ thị tri thức</span>}
+                    </Link>
+                </div>
+            )}
+
+            {/* Admin Links */}
+            {isPrivilegedRole(user?.role) && (
                 <div className="px-3 pb-4 space-y-0.5 border-t border-gray-100 dark:border-gray-800 pt-4 mt-2">
                     <Link
                         to="/admin"
@@ -238,8 +250,8 @@ export default function DashboardLayout() {
             {/* Desktop Sidebar */}
             <aside
                 className={`
-                    hidden lg:flex flex-col fixed top-0 left-0 h-screen 
-                    bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 
+                    hidden lg:flex flex-col fixed top-0 left-0 h-screen
+                    bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800
                     z-30 transition-all duration-300 ease-in-out
                     ${sidebarOpen ? 'w-52' : 'w-16'}
                 `}
@@ -278,12 +290,12 @@ export default function DashboardLayout() {
                                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                             </button>
 
-                            <Link 
-                                to={(user?.role === 'Admin' || user?.role === 'Trưởng phòng') ? "/approvals" : "/dashboard"}
+                            <Link
+                                to={isPrivilegedRole(user?.role) ? "/approvals" : "/dashboard"}
                                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors relative"
                             >
                                 <Bell className="w-5 h-5" />
-                                {pendingCount > 0 && (
+                                {approvalPendingCount > 0 && (
                                     <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                                 )}
                             </Link>
@@ -309,9 +321,17 @@ export default function DashboardLayout() {
                                         className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-800 py-1 z-[100] pointer-events-auto"
                                         onClick={e => e.stopPropagation()}
                                     >
-                                        <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">
-                                            <p className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-tight">{user?.name || 'Admin'}</p>
-                                            <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">{user?.email || 'admin@micco.vn'}</p>
+                                        <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800 flex flex-col gap-1">
+                                            <div>
+                                                <p className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-tight">{user?.name || 'Admin'}</p>
+                                                <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">{user?.email || 'admin@micco.vn'}</p>
+                                            </div>
+                                            {user?.department_name && (
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-primary-50 dark:bg-primary-900/30 text-[10px] font-bold text-primary-600 dark:text-primary-400 self-start">
+                                                    <Building2 className="w-3 h-3" />
+                                                    {user.department_name}
+                                                </span>
+                                            )}
                                         </div>
                                         <button
                                             onClick={() => {
@@ -341,11 +361,11 @@ export default function DashboardLayout() {
                 {/* Page Content */}
                 <main className="flex-1 overflow-y-auto relative">
                     <Outlet />
-                    
+
                     {/* Floating Toast for New Approvals */}
                     {showApprovalToast && (
                         <div className="fixed bottom-6 right-6 z-[100] animate-slide-in-up">
-                            <Link 
+                            <Link
                                 to="/approvals"
                                 onClick={() => setShowApprovalToast(false)}
                                 className="flex items-center gap-3 px-4 py-3 bg-amber-500 text-white rounded-xl shadow-2xl hover:bg-amber-600 transition-all border-2 border-white/20"
@@ -354,7 +374,9 @@ export default function DashboardLayout() {
                                 <div>
                                     <p className="text-sm font-bold">Yêu cầu phê duyệt mới!</p>
                                     <p className="text-[10px] opacity-90">
-                                        {lastRequester ? `Tài khoản ${lastRequester} vừa gửi yêu cầu.` : 'Có nội dung mới đang chờ bạn xem xét.'}
+                                        {approvalLastRequester
+                                            ? `Tài khoản ${approvalLastRequester} vừa gửi yêu cầu.`
+                                            : 'Có nội dung mới đang chờ bạn xem xét.'}
                                     </p>
                                 </div>
                                 <X className="w-4 h-4 ml-2" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowApprovalToast(false); }} />
@@ -377,6 +399,21 @@ export default function DashboardLayout() {
                         </div>
 
                         <form onSubmit={handleProfileUpdate} className="p-6 space-y-4">
+                            {user?.department_name && (
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Phòng ban</label>
+                                    <div className="relative">
+                                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            value={user.department_name}
+                                            readOnly
+                                            className="w-full pl-10 pr-4 py-2.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Họ và tên</label>
                                 <div className="relative">

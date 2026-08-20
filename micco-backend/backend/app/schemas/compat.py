@@ -159,6 +159,14 @@ class ProcessingStatusResponse(BaseModel):
     file_size: int = 0
 
 
+class StatusCounts(BaseModel):
+    all: int = 0
+    processing: int = 0
+    indexed: int = 0
+    failed: int = 0
+
+
 class ProcessingStatusListResponse(BaseModel):
     items: list[ProcessingStatusResponse]
     total: int
+    counts: StatusCounts = StatusCounts()

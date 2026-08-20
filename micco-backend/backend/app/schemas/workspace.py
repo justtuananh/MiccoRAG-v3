@@ -8,6 +8,7 @@ from datetime import datetime
 class WorkspaceCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: str | None = None
+    visibility: str = Field(default="department", pattern="^(private|department|public)$")
     kg_language: str | None = None
     kg_entity_types: list[str] | None = None
     search_mode: str | None = "hybrid"
@@ -16,6 +17,7 @@ class WorkspaceCreate(BaseModel):
 class WorkspaceUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = None
+    visibility: str | None = Field(default=None, pattern="^(private|department|public)$")
     system_prompt: str | None = None
     kg_language: str | None = None
     kg_entity_types: list[str] | None = None
@@ -26,6 +28,8 @@ class WorkspaceResponse(BaseModel):
     id: int
     name: str
     description: str | None
+    visibility: str  # "private" | "department" | "public"
+    owner_id: int | None = None  # Chỉ có giá trị với personal workspace
     system_prompt: str | None = None
     kg_language: str | None = None
     kg_entity_types: list[str] | None = None
@@ -33,6 +37,8 @@ class WorkspaceResponse(BaseModel):
     document_count: int = 0
     indexed_count: int = 0
     suggested_questions: list[str] | None = None
+    department_id: int | None = None  # Liên kết với department (NULL với personal/public)
+    department_name: str | None = None  # Tên department để hiển thị
     created_at: datetime
     updated_at: datetime
 

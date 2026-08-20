@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.models.knowledge_base import KnowledgeBase
 from app.models.user import User
+from app.models.department import Department
 
 
 async def get_or_create_default_workspace(db: AsyncSession) -> KnowledgeBase:
@@ -26,6 +27,8 @@ async def get_or_create_default_workspace(db: AsyncSession) -> KnowledgeBase:
         id=ws_id,
         name=settings.COMPAT_DEFAULT_WORKSPACE_NAME,
         description=settings.COMPAT_DEFAULT_WORKSPACE_DESCRIPTION,
+        visibility="public",
+        owner_id=None,
     )
     db.add(workspace)
     await db.commit()
@@ -33,18 +36,63 @@ async def get_or_create_default_workspace(db: AsyncSession) -> KnowledgeBase:
     return workspace
 
 
-async def get_or_create_user_workspace(db: AsyncSession, user_id: int) -> KnowledgeBase:
-    """Create a per-user workspace for AI chat sessions.
-
-    Workspace is named "Không gian cá nhân - {user_name}" but since we don't
-    have user_name here, we just use user_id as part of the slug.
-    A separate admin-created workspace can be used for shared documents.
+async def get_or_create_department_workspace(
+    db: AsyncSession,
+    department_id: int,
+) -> KnowledgeBase:
     """
-    # Try to find existing personal workspace for this user
-    # Use a naming convention: "personal-{user_id}"
+    Get or create the workspace that belongs to a department.
+
+    Logic: mỗi phòng ban có 1 workspace riêng gắn với department_id.
+    Nếu chưa có, tự tạo ra.
+    """
+    # Find existing workspace for this department
+    result = await db.execute(
+        select(KnowledgeBase).where(KnowledgeBase.department_id == department_id)
+    )
+    workspace = result.scalar_one_or_none()
+    if workspace:
+        return workspace
+
+    # Look up department name for a friendly workspace name
+    dept_result = await db.execute(
+        select(Department.name).where(Department.id == department_id)
+    )
+    dept_name = dept_result.scalar_one_or_none() or f"Phòng #{department_id}"
+
+    workspace = KnowledgeBase(
+        name=f"KB {dept_name}",
+        description=f"Kiến thức của phòng {dept_name}",
+        department_id=department_id,
+        visibility="department",
+        owner_id=None,
+        search_mode="hybrid",
+    )
+    db.add(workspace)
+    await db.commit()
+    await db.refresh(workspace)
+    return workspace
+
+
+async def get_all_department_workspaces(db: AsyncSession) -> list[KnowledgeBase]:
+    """Return all workspaces that are linked to a department."""
+    result = await db.execute(
+        select(KnowledgeBase).where(KnowledgeBase.department_id.isnot(None))
+    )
+    return list(result.scalars().all())
+
+
+async def get_or_create_user_workspace(db: AsyncSession, user_id: int) -> KnowledgeBase:
+    """
+    Get or create a personal workspace for a user.
+
+    Personal workspace: owner_id = user_id, visibility = "private"
+    Chỉ chính user đó mới truy cập được.
+    """
     result = await db.execute(
         select(KnowledgeBase).where(
-            KnowledgeBase.name == f"personal-{user_id}"
+            KnowledgeBase.owner_id == user_id,
+            KnowledgeBase.visibility == "private"
         )
     )
     workspace = result.scalar_one_or_none()
@@ -53,7 +101,10 @@ async def get_or_create_user_workspace(db: AsyncSession, user_id: int) -> Knowle
 
     workspace = KnowledgeBase(
         name=f"personal-{user_id}",
-        description=f"Không gian cá nhân của người dùng #{user_id}",
+        description=f"Không gian cá nhân của người dùng",
+        visibility="private",
+        owner_id=user_id,
+        department_id=None,
     )
     db.add(workspace)
     await db.commit()
@@ -136,4 +187,3 @@ async def get_current_department_id(db: AsyncSession, user_id: int) -> int | Non
     """Get the department_id for a given user_id."""
     result = await db.execute(select(User.department_id).where(User.id == user_id))
     return result.scalar_one_or_none()
-

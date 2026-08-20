@@ -1,8 +1,10 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { resolveApiBase } from '../utils/apiBase';
+import { isPrivilegedRole } from '../utils/roles';
 
 const AuthContext = createContext();
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || '') + '/api';
+const API_BASE = resolveApiBase() + '/api';
 const SKIP_AUTH = import.meta.env.VITE_SKIP_AUTH === 'true';
 
 const MOCK_USER = {
@@ -20,6 +22,43 @@ export function AuthProvider({ children }) {
     const [token, setToken] = useState(SKIP_AUTH ? 'dev-skip' : localStorage.getItem('docvault_token'));
     const [isAuthenticated, setIsAuthenticated] = useState(SKIP_AUTH);
     const [loading, setLoading] = useState(!SKIP_AUTH);
+
+    // ── Approval notification state ────────────────────────────────────────
+    const [approvalPendingCount, setApprovalPendingCount] = useState(0);
+    const [approvalLastRequester, setApprovalLastRequester] = useState(null);
+    const [showApprovalToast, setShowApprovalToast] = useState(false);
+
+    const isFirstLoad = useRef(true);
+    const pendingCountRef = useRef(0);
+    pendingCountRef.current = approvalPendingCount;
+
+    // Fetch + update approval count (gọi ngay sau upload, hoặc bởi polling)
+    const refreshApprovals = useCallback(async () => {
+        if (!isPrivilegedRole(user?.role)) return;
+        try {
+            const res = await authFetch('/api/approvals/count');
+            if (!res.ok) return;
+            const data = await res.json();
+            if (typeof data.count !== 'number') return;
+
+            // count tăng → có upload mới → hiện toast
+            if (!isFirstLoad.current && data.count > pendingCountRef.current) {
+                setApprovalLastRequester(data.last_requester);
+                setShowApprovalToast(true);
+                setTimeout(() => setShowApprovalToast(false), 5000);
+            }
+            isFirstLoad.current = false;
+            setApprovalPendingCount(data.count);
+        } catch (_) { /* silent */ }
+    }, [user?.role]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Polling: mỗi 15s refresh approval count
+    useEffect(() => {
+        if (!isPrivilegedRole(user?.role)) return;
+        refreshApprovals(); // gọi ngay lần đầu
+        const interval = setInterval(refreshApprovals, 15000);
+        return () => clearInterval(interval);
+    }, [user?.role, refreshApprovals]);
 
     // Auto-login on mount if token exists (skipped in dev bypass mode)
     useEffect(() => {
@@ -122,7 +161,7 @@ export function AuthProvider({ children }) {
             ...options.headers,
             Authorization: `Bearer ${currentToken}`,
         };
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+        const baseUrl = resolveApiBase();
         const fullUrl = baseUrl && url.startsWith('/api') ? baseUrl + url : url;
         return fetch(fullUrl, { ...options, headers });
     };
@@ -130,7 +169,13 @@ export function AuthProvider({ children }) {
     return (
         <AuthContext.Provider value={{
             user, isAuthenticated, loading, token,
-            login, register, logout, authFetch
+            login, register, logout, authFetch,
+            // Approval notification
+            approvalPendingCount,
+            approvalLastRequester,
+            showApprovalToast,
+            setShowApprovalToast,
+            refreshApprovals,
         }}>
             {children}
         </AuthContext.Provider>

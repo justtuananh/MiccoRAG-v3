@@ -1,58 +1,149 @@
 """
 Knowledge Base (Workspace) CRUD API endpoints.
+
+Workspace 3 loại:
+- Personal (visibility=private, owner_id=user_id): chỉ owner truy cập
+- Department (visibility=department, department_id=dept_id): member trong dept truy cập
+- Public (visibility=public): tất cả user đã đăng nhập truy cập
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_, and_
+from sqlalchemy.orm import selectinload
 
 from app.core.deps import get_db
 from app.core.exceptions import NotFoundError
+from app.core.security import get_current_user
+from app.models.user import User
 from app.models.knowledge_base import KnowledgeBase
 from app.models.document import Document, DocumentStatus
+from app.models.department import Department
 from app.schemas.workspace import (
     WorkspaceCreate,
     WorkspaceUpdate,
     WorkspaceResponse,
     WorkspaceSummary,
 )
-from app.services.llm.types import LLMMessage, LLMResult
 
 router = APIRouter(prefix="/workspaces", tags=["workspaces"])
 
 
+# ─── Access Helpers ────────────────────────────────────────────────
+
+def _can_access_workspace(user: User, kb: KnowledgeBase) -> bool:
+    """Check if user can access this workspace."""
+    if user.role == "Admin":
+        return True
+    if kb.visibility == "public":
+        return True
+    if kb.visibility == "department" and kb.department_id == user.department_id:
+        return True
+    if kb.visibility == "private" and kb.owner_id == user.id:
+        return True
+    return False
+
+
+def _can_modify_workspace(user: User, kb: KnowledgeBase) -> bool:
+    """Check if user can modify this workspace."""
+    if user.role == "Admin":
+        return True
+    # Chỉ owner mới sửa được personal workspace
+    if kb.visibility == "private" and kb.owner_id == user.id:
+        return True
+    # Trưởng phòng sửa được workspace của phòng mình
+    if kb.visibility == "department" and kb.department_id == user.department_id and user.role == "Trưởng phòng":
+        return True
+    return False
+
+
+def _can_delete_workspace(user: User, kb: KnowledgeBase) -> bool:
+    """Check if user can delete this workspace."""
+    if user.role == "Admin":
+        return True
+    # Chỉ owner mới xóa được personal workspace
+    if kb.visibility == "private" and kb.owner_id == user.id:
+        return True
+    # Trưởng phòng xóa được workspace của phòng mình
+    if kb.visibility == "department" and kb.department_id == user.department_id and user.role == "Trưởng phòng":
+        return True
+    return False
+
+
+# ─── Response Builder ────────────────────────────────────────────────
+
 async def _enrich_response(db: AsyncSession, kb: KnowledgeBase) -> WorkspaceResponse:
     """Build WorkspaceResponse with computed counts."""
-    total = await db.execute(
-        select(func.count(Document.id)).where(Document.workspace_id == kb.id)
-    )
+    from sqlalchemy import cast, String
     indexed = await db.execute(
         select(func.count(Document.id)).where(
             Document.workspace_id == kb.id,
-            Document.status == DocumentStatus.INDEXED,
+            cast(Document.status, String).in_(["indexed", "INDEXED"]),
         )
     )
     return WorkspaceResponse(
         id=kb.id,
         name=kb.name,
         description=kb.description,
+        visibility=kb.visibility,
+        owner_id=kb.owner_id,
         system_prompt=kb.system_prompt,
         kg_language=kb.kg_language,
         kg_entity_types=kb.kg_entity_types,
         search_mode=kb.search_mode,
         indexed_count=indexed.scalar() or 0,
         suggested_questions=kb.suggested_questions,
+        department_id=kb.department_id,
+        department_name=kb.department.name if kb.department else None,
         created_at=kb.created_at,
         updated_at=kb.updated_at,
     )
 
 
+# ─── Endpoints ──────────────────────────────────────────────────────
+
 @router.get("", response_model=list[WorkspaceResponse])
-async def list_workspaces(db: AsyncSession = Depends(get_db)):
-    """List all knowledge bases."""
-    result = await db.execute(
-        select(KnowledgeBase).order_by(KnowledgeBase.updated_at.desc())
-    )
-    kbs = result.scalars().all()
+async def list_workspaces(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    List workspaces that user can access.
+    - Admin: thấy tất cả workspaces
+    - User: thấy personal (owner), department, và public workspaces
+    """
+    if current_user.role == "Admin":
+        # Admin thấy tất cả workspaces
+        result = await db.execute(
+            select(KnowledgeBase)
+            .options(selectinload(KnowledgeBase.department))
+            .order_by(KnowledgeBase.visibility, KnowledgeBase.updated_at.desc())
+        )
+        kbs = result.scalars().all()
+    else:
+        # User: personal (owner) + department (same dept) + public
+        result = await db.execute(
+            select(KnowledgeBase)
+            .options(selectinload(KnowledgeBase.department))
+            .where(
+                or_(
+                    # Personal workspace của chính user
+                    and_(
+                        KnowledgeBase.visibility == "private",
+                        KnowledgeBase.owner_id == current_user.id
+                    ),
+                    # Department workspace của phòng mình
+                    and_(
+                        KnowledgeBase.visibility == "department",
+                        KnowledgeBase.department_id == current_user.department_id
+                    ),
+                    # Tất cả public workspaces
+                    KnowledgeBase.visibility == "public"
+                )
+            )
+            .order_by(KnowledgeBase.visibility, KnowledgeBase.updated_at.desc())
+        )
+        kbs = result.scalars().all()
+
     return [await _enrich_response(db, kb) for kb in kbs]
 
 
@@ -60,27 +151,100 @@ async def list_workspaces(db: AsyncSession = Depends(get_db)):
 async def create_workspace(
     body: WorkspaceCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    """Create a new knowledge base."""
+    """
+    Create a new workspace.
+
+    - visibility=private: mọi user đều có thể tạo personal workspace cho mình
+    - visibility=department: chỉ Admin/Trưởng phòng mới tạo được
+    - visibility=public: chỉ Admin mới tạo được
+    """
+    # RBAC: ai được tạo workspace loại nào
+    # Personal workspace: ai cũng tạo được
+    if body.visibility == "public" and current_user.role != "Admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Chỉ Admin mới được tạo workspace công khai",
+        )
+    if body.visibility == "department" and current_user.role not in ("Admin", "Trưởng phòng"):
+        raise HTTPException(
+            status_code=403,
+            detail="Chỉ Admin hoặc Trưởng phòng mới được tạo workspace phòng ban",
+        )
+
+    # Personal workspace: gán owner = current_user
+    # Department workspace: gán department_id = department của user
+    # Public workspace: không gán department_id
     kb = KnowledgeBase(
         name=body.name,
         description=body.description,
+        visibility=body.visibility,
         kg_language=body.kg_language,
         kg_entity_types=body.kg_entity_types,
-        search_mode=body.search_mode,
+        search_mode=body.search_mode or "hybrid",
     )
+
+    if body.visibility == "private":
+        kb.owner_id = current_user.id
+        kb.department_id = None
+    elif body.visibility == "department":
+        if current_user.department_id is None:
+            raise HTTPException(
+                status_code=400,
+                detail="Bạn không thuộc phòng ban nào để tạo workspace phòng ban",
+            )
+        kb.owner_id = None
+        kb.department_id = current_user.department_id
+    else:
+        # public
+        kb.owner_id = None
+        kb.department_id = None
+
     db.add(kb)
     await db.commit()
     await db.refresh(kb)
+
+    r2 = await db.execute(
+        select(KnowledgeBase)
+        .options(selectinload(KnowledgeBase.department))
+        .where(KnowledgeBase.id == kb.id)
+    )
+    kb = r2.scalar_one()
     return await _enrich_response(db, kb)
 
 
 @router.get("/summary", response_model=list[WorkspaceSummary])
-async def list_workspace_summaries(db: AsyncSession = Depends(get_db)):
-    """Compact list for dropdown selectors."""
-    result = await db.execute(
-        select(KnowledgeBase).order_by(KnowledgeBase.name)
-    )
+async def list_workspace_summaries(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Compact list of accessible workspaces for dropdown selectors.
+    """
+    if current_user.role == "Admin":
+        result = await db.execute(
+            select(KnowledgeBase).order_by(KnowledgeBase.name)
+        )
+    else:
+        result = await db.execute(
+            select(KnowledgeBase)
+            .where(
+                or_(
+                    and_(
+                        KnowledgeBase.visibility == "private",
+                        KnowledgeBase.owner_id == current_user.id
+                    ),
+                    and_(
+                        KnowledgeBase.visibility == "department",
+                        KnowledgeBase.department_id == current_user.department_id
+                    ),
+                    KnowledgeBase.visibility == "public"
+                )
+            )
+            .order_by(KnowledgeBase.name)
+        )
+
     kbs = result.scalars().all()
     summaries = []
     for kb in kbs:
@@ -97,14 +261,21 @@ async def list_workspace_summaries(db: AsyncSession = Depends(get_db)):
 async def get_workspace(
     workspace_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    """Get a knowledge base by ID."""
+    """Get a workspace by ID. User must have access."""
     result = await db.execute(
-        select(KnowledgeBase).where(KnowledgeBase.id == workspace_id)
+        select(KnowledgeBase)
+        .options(selectinload(KnowledgeBase.department))
+        .where(KnowledgeBase.id == workspace_id)
     )
     kb = result.scalar_one_or_none()
     if kb is None:
         raise NotFoundError("KnowledgeBase", workspace_id)
+
+    if not _can_access_workspace(current_user, kb):
+        raise HTTPException(status_code=403, detail="Bạn không có quyền truy cập workspace này")
+
     return await _enrich_response(db, kb)
 
 
@@ -113,21 +284,29 @@ async def update_workspace(
     workspace_id: int,
     body: WorkspaceUpdate,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    """Update a knowledge base name/description."""
+    """Update a workspace. User must have modify permission."""
     result = await db.execute(
-        select(KnowledgeBase).where(KnowledgeBase.id == workspace_id)
+        select(KnowledgeBase)
+        .options(selectinload(KnowledgeBase.department))
+        .where(KnowledgeBase.id == workspace_id)
     )
     kb = result.scalar_one_or_none()
     if kb is None:
         raise NotFoundError("KnowledgeBase", workspace_id)
 
+    if not _can_modify_workspace(current_user, kb):
+        raise HTTPException(status_code=403, detail="Bạn không có quyền sửa workspace này")
+
     if body.name is not None:
         kb.name = body.name
     if body.description is not None:
         kb.description = body.description
+    if body.visibility is not None:
+        # Không cho đổi visibility qua API (phức tạp về RBAC)
+        pass
     if body.system_prompt is not None:
-        # Empty string → reset to default (None)
         kb.system_prompt = body.system_prompt or None
     if body.kg_language is not None:
         kb.kg_language = body.kg_language or None
@@ -145,87 +324,35 @@ async def update_workspace(
 async def get_suggested_questions(
     workspace_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    """
-    Get or generate 4 suggested questions for this workspace.
-    """
-    result = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == workspace_id))
+    """Get or generate suggested questions for this workspace."""
+    result = await db.execute(
+        select(KnowledgeBase)
+        .options(selectinload(KnowledgeBase.department))
+        .where(KnowledgeBase.id == workspace_id)
+    )
     kb = result.scalar_one_or_none()
     if kb is None:
         raise NotFoundError("KnowledgeBase", workspace_id)
 
+    if not _can_access_workspace(current_user, kb):
+        raise HTTPException(status_code=403, detail="Bạn không có quyền truy cập workspace này")
+
     if kb.suggested_questions:
         return kb.suggested_questions
 
-    # Generate if possible
-    try:
-        from app.services.vector_store import get_vector_store
-        vs = get_vector_store(workspace_id)
-        
-        # Get some sample text from vector store
-        # ChromaDB .get() with limit
-        data = vs.collection.get(limit=10, include=["documents"])
-        docs = data.get("documents", [])
-        
-        if not docs:
-            # Fallback defaults
-            return ["Phân tích rủi ro & cơ hội?", "Chiến lược hành động cốt lõi", "Đánh giá hiệu quả hệ thống", "Tối ưu hóa quy trình hiện tại"]
-
-        context = "\n\n".join(docs[:10])
-        
-        from app.services.llm import get_llm_provider
-        llm = get_llm_provider()
-        
-        system_prompt = "Bạn là một trợ lý phân tích tài liệu chuyên nghiệp. Chỉ trả về một mảng JSON chứa các chuỗi ký tự (câu hỏi)."
-        user_prompt = f"""Dựa trên các đoạn văn bản sau trích từ không gian làm việc '{kb.name}', hãy đề xuất 4 câu hỏi tiếng Việt ngắn gọn (dưới 15 từ), súc tích mà người dùng có thể muốn hỏi để tìm hiểu nội dung.
-Yêu cầu:
-- Trả về DUY NHẤT một mảng JSON. Ví dụ: ["Câu hỏi 1?", "Câu hỏi 2?", "Câu hỏi 3?", "Câu hỏi 4?"]
-- Không thêm bất kỳ lời dẫn hay giải thích nào khác.
-
-Nội dung tài liệu:
-{context[:4000]}
-"""
-        response = await llm.acomplete(
-            messages=[
-                LLMMessage(role="system", content=system_prompt),
-                LLMMessage(role="user", content=user_prompt)
-            ],
-            temperature=0.7
-        )
-        
-        # response could be str or LLMResult
-        response_text = response.content if isinstance(response, LLMResult) else response
-        
-        import json
-        import re
-        
-        # Try to find JSON array in response
-        match = re.search(r"\[\s*\".*\"\s*\]", response_text, re.DOTALL)
-        if match:
-            questions = json.loads(match.group(0))
-        else:
-            # Simple fallback if LLM output was messy but contains lines
-            questions = json.loads(response_text) # fallback parse
-
-        if isinstance(questions, list) and len(questions) > 0:
-            kb.suggested_questions = questions[:4]
-            await db.commit()
-            return kb.suggested_questions
-
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).error(f"Failed to generate suggested questions for WS {workspace_id}: {e}")
-    
-    # Static fallback
-    return ["Phân tích rủi ro & cơ hội?", "Chiến lược hành động cốt lõi", "Đánh giá hiệu quả hệ thống", "Tối ưu hóa quy trình hiện tại"]
+    from app.services.suggested_questions_service import generate_suggested_questions
+    return await generate_suggested_questions(db, workspace_id)
 
 
 @router.delete("/{workspace_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_workspace(
     workspace_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    """Delete a knowledge base and all its documents."""
+    """Delete a workspace and all its data."""
     result = await db.execute(
         select(KnowledgeBase).where(KnowledgeBase.id == workspace_id)
     )
@@ -233,7 +360,10 @@ async def delete_workspace(
     if kb is None:
         raise NotFoundError("KnowledgeBase", workspace_id)
 
-    # Clean up vector store and KG data
+    if not _can_delete_workspace(current_user, kb):
+        raise HTTPException(status_code=403, detail="Bạn không có quyền xóa workspace này")
+
+    # Clean up vector store
     try:
         from app.services.vector_store import get_vector_store
         vs = get_vector_store(workspace_id)
@@ -241,6 +371,7 @@ async def delete_workspace(
     except Exception:
         pass
 
+    # Clean up KG data
     try:
         from app.services.knowledge_graph_service import KnowledgeGraphService
         kg = KnowledgeGraphService(workspace_id)

@@ -6,8 +6,10 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Breadcrumb from '../components/shared/Breadcrumb';
-import { documentsApi } from '../utils/api';
+import { documentsApi, approvalsApi } from '../utils/api';
 import { formatBytes, formatDate, timeAgo, getInitials, avatarColor } from '../utils/formatters';
+import { renderAsync } from 'docx-preview';
+import ProcessingProgressBar from '../components/shared/ProcessingProgressBar';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -48,17 +50,60 @@ export default function DocumentView() {
     const [uploadingVersion, setUploadingVersion] = useState(false);
     const [versionError, setVersionError] = useState('');
 
-    // Preview URL
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [previewText, setPreviewText] = useState(null);
+    const [previewHtml, setPreviewHtml] = useState(null);
+    const [previewError, setPreviewError] = useState(null);
+    const [docxBuffer, setDocxBuffer] = useState(null);
     const previewUrlRef = useRef(null);
+    const docxContainerRef = useRef(null);
 
     const isAdmin = user?.role === 'Admin';
     const canEdit = isAdmin || doc?.uploader_id === user?.id;
+    const canPollApprovalStatus = ['Admin', 'Trưởng phòng'].includes(user?.role);
+
+    // Processing status polling for approved docs
+    const [processingStatus, setProcessingStatus] = useState(null);
+    const pollingRef = useRef(false);
 
     useEffect(() => {
         fetchDoc();
-        return () => { if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current); };
+        return () => {
+            if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+            pollingRef.current = false;
+        };
     }, [id]);
+
+    // Start polling when doc is approved and processing
+    useEffect(() => {
+        if (!doc) return;
+        const shouldPoll =
+            canPollApprovalStatus &&
+            doc.approval_status === 'approved' &&
+            ['parsing', 'processing', 'indexing'].includes(doc.status);
+        if (shouldPoll && !pollingRef.current) {
+            pollingRef.current = true;
+            const poll = async () => {
+                if (!pollingRef.current) return;
+                try {
+                    const res = await approvalsApi.getDocumentStatus(doc.id);
+                    if (res.ok) {
+                        const st = await res.json();
+                        setProcessingStatus(st);
+                        if (st.status === 'indexed' || st.status === 'failed') {
+                            pollingRef.current = false;
+                            return;
+                        }
+                    } else if (res.status === 403 || res.status === 404) {
+                        pollingRef.current = false;
+                        return;
+                    }
+                } catch { /* silent */ }
+                if (pollingRef.current) setTimeout(poll, 3000);
+            };
+            poll();
+        }
+    }, [doc, canPollApprovalStatus]);
 
     const fetchDoc = async () => {
         setLoading(true);
@@ -67,9 +112,15 @@ export default function DocumentView() {
             if (!res.ok) { navigate('/documents'); return; }
             const data = await res.json();
             setDoc(data);
+            
+            const extStr = (data.type || '').toLowerCase();
+            const type = extStr.startsWith('.') ? extStr.slice(1) : extStr;
+            
             // Load preview if applicable
-            if (['pdf', 'png', 'jpg', 'jpeg'].includes((data.type || '').toLowerCase())) {
-                fetchPreview(id, data.type);
+            if (['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'].includes(type)) {
+                fetchPreview(id, type);
+            } else if (['docx', 'txt', 'md'].includes(type)) {
+                fetchTextPreview(id, type);
             }
         } catch { navigate('/documents'); }
         finally { setLoading(false); }
@@ -91,13 +142,10 @@ export default function DocumentView() {
 
     const fetchPreview = async (docId, type) => {
         try {
-            const token = localStorage.getItem('docvault_token');
-            const res = await fetch(documentsApi.downloadUrl(docId), {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await authFetch(`/api/documents/${docId}/download`);
             if (!res.ok) return;
             const blob = await res.blob();
-            const mime = type?.toLowerCase() === 'pdf' ? 'application/pdf' : `image/${(type || 'png').toLowerCase()}`;
+            const mime = type === 'pdf' ? 'application/pdf' : `image/${type}`;
             const url = URL.createObjectURL(new Blob([blob], { type: mime }));
             if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
             previewUrlRef.current = url;
@@ -105,14 +153,53 @@ export default function DocumentView() {
         } catch { /* silent */ }
     };
 
+    const fetchTextPreview = async (docId, type) => {
+        try {
+            if (type === 'docx') {
+                const res = await authFetch(`/api/documents/${docId}/download`);
+                if (!res.ok) throw new Error('Cannot download docx');
+                const arrayBuffer = await res.arrayBuffer();
+                setDocxBuffer(arrayBuffer);
+            } else {
+                const res = await authFetch(`/api/documents/${docId}/preview`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.supported) {
+                    setPreviewText(data.content);
+                } else {
+                    setPreviewError(data.message || 'Không hỗ trợ xem trước');
+                }
+            }
+        } catch (err) {
+            setPreviewError('Lỗi tải bản xem trước');
+        }
+    };
+
+    // Render DOCX natively when buffer is ready
+    useEffect(() => {
+        if (!docxBuffer || !docxContainerRef.current) return;
+        const container = docxContainerRef.current;
+        container.innerHTML = '';
+        renderAsync(docxBuffer, container, undefined, {
+            className: 'docx-preview',
+            inWrapper: true,
+            ignoreWidth: true,
+            ignoreHeight: false,
+            ignoreFonts: false,
+            breakPages: true,
+            useBase64URL: true,
+            renderHeaders: true,
+            renderFooters: true,
+        }).catch(err => {
+            setPreviewError('Lỗi hiển thị nội dung DOCX: ' + err.message);
+        });
+    }, [docxBuffer]);
+
     // ─── Actions ─────────────────────────────────────────────────────────────
 
     const handleDownload = async () => {
         try {
-            const token = localStorage.getItem('docvault_token');
-            const res = await fetch(documentsApi.downloadUrl(doc.id), {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await authFetch(`/api/documents/${doc.id}/download`);
             if (!res.ok) return;
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
@@ -126,10 +213,7 @@ export default function DocumentView() {
 
     const handleDownloadVersion = async (versionId, label) => {
         try {
-            const token = localStorage.getItem('docvault_token');
-            const res = await fetch(documentsApi.downloadVersionUrl(doc.id, versionId), {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await authFetch(`/api/documents/${doc.id}/versions/${versionId}/download`);
             if (!res.ok) return;
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
@@ -217,10 +301,10 @@ export default function DocumentView() {
     ];
 
     return (
-        <div className="-mx-4 lg:-mx-8 -mt-4 lg:-mt-8 flex flex-col" style={{ height: 'calc(100vh - 4rem)' }}>
+        <div className="absolute inset-0 flex flex-col w-full h-full overflow-hidden">
 
             {/* ── Top bar ─────────────────────────────────────────── */}
-            <div className="px-8 pt-3">
+            <div className="px-3 md:px-6 lg:px-8 pt-3 shrink-0">
                 <Breadcrumb items={[
                     { label: 'Tổng quan', href: '/dashboard' },
                     { label: 'Tài liệu', href: '/documents' },
@@ -229,13 +313,13 @@ export default function DocumentView() {
             </div>
 
             {/* ── Action Bar ───────────────────────────────────────── */}
-            <div className="shrink-0 px-8 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+            <div className="shrink-0 px-3 md:px-6 lg:px-8 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row gap-3 lg:gap-4 lg:justify-between lg:items-center w-full max-w-full overflow-x-hidden">
                 <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-primary-600/10 dark:bg-primary-500/10 flex items-center justify-center">
                             <File className="w-4 h-4 text-primary-600 dark:text-primary-400" />
                         </div>
-                        <h1 className="text-xl font-bold text-slate-900 dark:text-white truncate max-w-md">
+                        <h1 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white truncate max-w-[70vw] lg:max-w-md">
                             {doc?.name || doc?.original_filename || `Tài liệu #${doc?.id}`}
                         </h1>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
@@ -252,7 +336,7 @@ export default function DocumentView() {
                         <span>• {formatBytesSimple(doc?.size || doc?.size_bytes)}</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0 ml-4">
+                <div className="flex flex-wrap items-center gap-2 shrink-0 lg:ml-4">
                     <button onClick={handleDownload}
                         className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-colors">
                         <Download className="w-4 h-4" /> Tải xuống
@@ -278,21 +362,40 @@ export default function DocumentView() {
             </div>
 
             {/* ── Main body ─────────────────────────────────────────── */}
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1 flex-col xl:flex-row overflow-hidden min-w-0 w-full">
                 {/* Left: Preview */}
-                <div className="flex-1 p-8 bg-slate-200 dark:bg-slate-950 overflow-y-auto flex items-center justify-center">
-                    {previewUrl && ['pdf', 'png', 'jpg', 'jpeg'].includes((doc?.type || '').toLowerCase()) ? (
-                        <iframe src={previewUrl} className="w-full h-full rounded-xl shadow-lg border-0 bg-white"
+                <div className="flex-1 min-w-0 bg-slate-200 dark:bg-slate-950 overflow-y-auto overflow-x-hidden flex flex-col">
+                    {previewUrl && ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'].includes((doc?.type || '').toLowerCase().replace(/^\./, '')) ? (
+                        <iframe src={previewUrl} className="w-full h-full border-0 bg-white flex-1"
                             title={doc?.name} />
+                    ) : docxBuffer ? (
+                        <div className="w-full flex-1 p-4 md:p-6" style={{ background: '#f1f5f9' }}>
+                            <div ref={docxContainerRef} className="w-full h-full bg-white rounded-lg shadow-sm" />
+                        </div>
+                    ) : previewText ? (
+                        <div className="w-full p-4 md:p-6">
+                            <div className="w-full max-w-4xl mx-auto p-6 md:p-8 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800">
+                                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                                    <Eye className="w-4 h-4 text-primary-600" />
+                                    Bản xem trước
+                                </h3>
+                                <pre className="whitespace-pre-wrap break-words break-all text-sm text-slate-700 dark:text-slate-300 font-sans leading-relaxed">
+                                    {previewText}
+                                </pre>
+                            </div>
+                        </div>
                     ) : (
-                        <div className="text-center py-24">
+                        <div className="text-center py-24 px-4 md:px-6">
                             <div className="w-20 h-20 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
                                 <File className="w-10 h-10 text-slate-400" />
                             </div>
-                            <h4 className="text-base font-bold text-slate-700 dark:text-slate-200 mb-2">
+                            <h4 className="text-base font-bold text-slate-700 dark:text-slate-200 mb-1">
                                 {ext ? `${ext} — không thể xem trực tiếp` : 'Không có bản xem trước'}
                             </h4>
-                            <p className="text-sm text-slate-400 mb-6">Tải xuống để đọc nội dung</p>
+                            {(previewError) && (
+                                <p className="text-xs text-red-500 mb-3">{previewError}</p>
+                            )}
+                            <p className="text-sm text-slate-400 mb-6 mt-2">Tải xuống để đọc toàn bộ nội dung</p>
                             <button onClick={handleDownload}
                                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors">
                                 <Download className="w-4 h-4" /> Tải xuống
@@ -302,10 +405,10 @@ export default function DocumentView() {
                 </div>
 
                 {/* Right: Info sidebar */}
-                <aside className="w-80 xl:w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col overflow-y-auto shrink-0">
+                <aside className="w-full xl:w-96 bg-white dark:bg-slate-900 border-t xl:border-t-0 xl:border-l border-slate-200 dark:border-slate-800 flex flex-col overflow-y-auto overflow-x-hidden shrink-0">
 
                     {/* ─ File Info ─ */}
-                    <div className="p-6 border-b border-slate-200 dark:border-slate-800">
+                    <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-800">
                         <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                             <Info className="w-4 h-4 text-primary-600 dark:text-primary-400" />
                             Thông tin tệp
@@ -331,13 +434,22 @@ export default function DocumentView() {
                                 </span>
                             } />
                             <MetaRow label="Trạng thái" value={
-                                <span className={`text-xs font-semibold ${
-                                    doc?.approval_status === 'approved' ? 'text-emerald-600' :
-                                    doc?.approval_status === 'rejected' ? 'text-red-600' : 'text-amber-600'
-                                }`}>
-                                    {doc?.approval_status === 'approved' ? 'Đã phê duyệt' :
-                                     doc?.approval_status === 'rejected' ? 'Từ chối' : 'Chờ phê duyệt'}
-                                </span>
+                                processingStatus ? (
+                                    <ProcessingProgressBar
+                                        status={processingStatus.status}
+                                        chunkCount={processingStatus.chunk_count}
+                                        errorMessage={processingStatus.error_message}
+                                        compact
+                                    />
+                                ) : (
+                                    <span className={`text-xs font-semibold ${
+                                        doc?.approval_status === 'approved' ? 'text-emerald-600' :
+                                        doc?.approval_status === 'rejected' ? 'text-red-600' : 'text-amber-600'
+                                    }`}>
+                                        {doc?.approval_status === 'approved' ? 'Đã phê duyệt' :
+                                         doc?.approval_status === 'rejected' ? 'Từ chối' : 'Chờ phê duyệt'}
+                                    </span>
+                                )
                             } />
                             {tags.length > 0 && (
                                 <div>
@@ -353,7 +465,7 @@ export default function DocumentView() {
                     </div>
 
                     {/* ─ Version History ─ */}
-                    <div className="p-6 border-b border-slate-200 dark:border-slate-800">
+                    <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-800">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <Eye className="w-4 h-4 text-primary-600 dark:text-primary-400" />
@@ -416,7 +528,7 @@ export default function DocumentView() {
                     </div>
 
                     {/* ─ Activity Log ─ */}
-                    <div className="p-6 flex-1">
+                    <div className="p-4 md:p-6 flex-1">
                         <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                             <Info className="w-4 h-4 text-primary-600 dark:text-primary-400" />
                             Nhật ký hoạt động
@@ -441,14 +553,14 @@ export default function DocumentView() {
             </div>
 
             {/* ── Footer ──────────────────────────────────────────── */}
-            <footer className="shrink-0 h-8 bg-slate-100 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 px-6 flex items-center justify-between text-[10px] text-slate-400">
-                <div className="flex items-center gap-4">
+            <footer className="shrink-0 min-h-8 bg-slate-100 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 px-3 md:px-6 py-1.5 flex flex-col md:flex-row md:items-center md:justify-between gap-1 text-[10px] text-slate-400">
+                <div className="flex flex-wrap items-center gap-3 md:gap-4">
                     <span className="flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Đã lưu
                     </span>
                     {doc?.id && <span>ID: DOC-{String(doc.id).padStart(4, '0')}</span>}
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-3 md:gap-4">
                     <button onClick={handleCopyLink}
                         className="flex items-center gap-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
                         {copied ? <CheckCircle2 className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}

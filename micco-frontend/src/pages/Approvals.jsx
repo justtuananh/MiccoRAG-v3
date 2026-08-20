@@ -4,9 +4,11 @@ import {
     Clock, Globe, Lock, ChevronDown, Loader2, RefreshCw,
     Eye, Tag, User, Building2, AlertCircle, CheckCircle2, FileSearch,
 } from 'lucide-react';
+import { renderAsync } from 'docx-preview';
 import { useAuth } from '../context/AuthContext';
 import { approvalsApi } from '../utils/api';
 import Breadcrumb from '../components/shared/Breadcrumb';
+import ProcessingProgressBar, { PROCESSING_STEPS, getStepIndex } from '../components/shared/ProcessingProgressBar';
 
 const PREVIEWABLE = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'docx', 'txt', 'md'];
 const MIME_MAP = {
@@ -15,23 +17,21 @@ const MIME_MAP = {
     png: 'image/png', gif: 'image/gif', webp: 'image/webp',
 };
 
-// Trạng thái processing theo thứ tự
-const PROCESSING_STEPS = [
-    { key: 'pending',    label: 'Chờ xử lý',    icon: Clock },
-    { key: 'parsing',    label: 'Đang phân tích', icon: FileSearch },
-    { key: 'processing', label: 'Đang xử lý',    icon: Loader2 },
-    { key: 'indexing',   label: 'Đang lập chỉ mục', icon: Loader2 },
-    { key: 'indexed',   label: 'Hoàn tất',       icon: CheckCircle2 },
-    { key: 'failed',    label: 'Thất bại',       icon: AlertCircle },
-];
+function getKnowledgeApprovalStageLabel(approvalStatus) {
+    if (approvalStatus === 'pending_org') return 'Chờ duyệt cấp tổ chức';
+    if (approvalStatus === 'pending_dept' || approvalStatus === 'pending_approval') return 'Chờ duyệt cấp phòng';
+    return 'Chờ phê duyệt';
+}
 
-const getStepIndex = (status) => {
-    const idx = PROCESSING_STEPS.findIndex(s => s.key === (status?.toLowerCase?.() || status));
-    return idx === -1 ? 0 : idx;
-};
+function getDocumentApprovalStageLabel(approvalStatus) {
+    if (approvalStatus === 'pending_org') return 'Chờ duyệt cấp tổ chức';
+    return 'Chờ duyệt cấp phòng';
+}
+
+
 
 export default function Approvals() {
-    const { authFetch } = useAuth();
+    const { authFetch, refreshApprovals } = useAuth();
     const [tab, setTab] = useState('documents');
     const [data, setData] = useState({ documents: [], knowledge: [] });
     const [loading, setLoading] = useState(true);
@@ -50,8 +50,8 @@ export default function Approvals() {
     const pollingRef = useRef({});
 
     const showToast = (msg, type = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3000);
+        setToast({ msg, type, id: Date.now() });
+        setTimeout(() => setToast(null), 3500);
     };
 
     const fetchPending = useCallback(async () => {
@@ -128,9 +128,10 @@ export default function Approvals() {
                     setPreview({ item, type, html: full.content_html || full.content_text });
                 }
             } else {
-                const ext = (item.file_type || '').toLowerCase();
+                const extStr = (item.file_type || '').toLowerCase();
+                const ext = extStr.startsWith('.') ? extStr.slice(1) : extStr;
                 const canEmbed = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
-                const isTextBased = ['docx', 'txt', 'md'].includes(ext);
+                const isTextBased = ['txt', 'md'].includes(ext);
 
                 if (canEmbed) {
                     const res = await authFetch(`/api/documents/${item.id}/download`);
@@ -139,12 +140,28 @@ export default function Approvals() {
                         const blob = new Blob([await res.arrayBuffer()], { type: mime });
                         const blobUrl = URL.createObjectURL(blob);
                         setPreview({ item, type, blobUrl, ext });
+                    } else {
+                        showToast('Không thể tải tệp để xem trước', 'error');
+                    }
+                } else if (ext === 'docx') {
+                    const res = await authFetch(`/api/documents/${item.id}/download`);
+                    if (res.ok) {
+                        const arrayBuffer = await res.arrayBuffer();
+                        setPreview({ item, type, docxBuffer: arrayBuffer, ext });
+                    } else {
+                        showToast('Không thể tải tệp docx xem trước', 'error');
                     }
                 } else if (isTextBased) {
                     const res = await authFetch(`/api/approvals/documents/${item.id}/preview`);
                     if (res.ok) {
                         const data = await res.json();
-                        setPreview({ item, type, text: data.content, ext });
+                        if (data.supported) {
+                            setPreview({ item, type, text: data.content, ext });
+                        } else {
+                            showToast(data.message || 'Hệ thống báo lỗi không hỗ trợ định dạng này', 'error');
+                        }
+                    } else {
+                        showToast('Lỗi máy chủ khi xem trước', 'error');
                     }
                 } else {
                     // Not previewable — show metadata only
@@ -171,26 +188,30 @@ export default function Approvals() {
             if (res.ok) {
                 const json = await res.json();
                 closePreview();
+                // Instant: update sidebar badge count
+                refreshApprovals();
                 if (type === 'documents') {
-                    showToast(json.message || 'Đã phê duyệt — đang xử lý tài liệu...', 'success');
-                    // Move doc from pending list → processing list
-                    const doc = data.documents.find(d => d.id === id);
-                    if (doc) {
-                        setProcessingDocs(prev => [...prev, doc]);
-                    }
+                    showToast(json.message || 'Đã phê duyệt', 'success');
                     setData(prev => ({
                         ...prev,
                         documents: prev.documents.filter(d => d.id !== id),
                     }));
-                    // Start polling processing status
-                    setProcessingState(prev => ({ ...prev, [id]: { status: 'processing', chunk_count: 0 } }));
-                    startPolling(id);
+                    if (json.processing_started) {
+                        // Move doc from pending list → processing list
+                        const doc = data.documents.find(d => d.id === id);
+                        if (doc) {
+                            setProcessingDocs(prev => [...prev, doc]);
+                        }
+                        // Start polling processing status
+                        setProcessingState(prev => ({ ...prev, [id]: { status: 'processing', chunk_count: 0 } }));
+                        startPolling(id);
+                    } else {
+                        // After TP approve public docs, it should appear in admin queue.
+                        await fetchPending();
+                    }
                 } else {
                     showToast(json.message || 'Đã phê duyệt thành công');
-                    setData(prev => ({
-                        ...prev,
-                        knowledge: prev.knowledge.filter(k => k.id !== id),
-                    }));
+                    await fetchPending();
                 }
             } else {
                 const err = await res.json();
@@ -203,18 +224,26 @@ export default function Approvals() {
     const handleReject = async () => {
         if (!rejectModal) return;
         const { type, id } = rejectModal;
+
+        if (type === 'knowledge' && !rejectNote.trim()) {
+            showToast('Vui lòng nhập lý do từ chối tri thức', 'error');
+            return;
+        }
+
         setActionLoading(`${type}-${id}`);
         try {
             const res = await authFetch(`/api/approvals/${type}/${id}/reject`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ note: rejectNote }),
+                body: JSON.stringify({ note: rejectNote.trim() }),
             });
             if (res.ok) {
                 showToast('Đã từ chối');
                 setRejectModal(null);
                 setRejectNote('');
                 closePreview();
+                // Instant: update sidebar badge count
+                refreshApprovals();
                 fetchPending();
             } else {
                 const err = await res.json();
@@ -237,18 +266,22 @@ export default function Approvals() {
                 ]} />
             </div>
 
-            {/* Toast */}
+            {/* ── Toast Notification ─────────────────────────────────── */}
             {toast && (
-                <div className={`fixed top-6 right-6 z-[70] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl border text-sm font-medium
-                    ${toast.type === 'error'
-                        ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
-                        : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200'
-                    }`}>
-                    {toast.type === 'error'
-                        ? <X className="w-4 h-4 text-red-500" />
-                        : <Check className="w-4 h-4 text-emerald-500" />
-                    }
-                    {toast.msg}
+                <div
+                    key={toast.id}
+                    className={`fixed top-20 right-6 z-[100] flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl border text-sm font-semibold animate-slide-in-right
+                        ${toast.type === 'error'
+                            ? 'bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/40 dark:to-rose-900/40 border-red-200 dark:border-red-700 text-red-700 dark:text-red-200'
+                            : 'bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/40 dark:to-green-900/40 border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-200'
+                        }`}
+                >
+                    {toast.type === 'error' ? (
+                        <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0" />
+                    ) : (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500 dark:text-emerald-400 shrink-0" />
+                    )}
+                    <span>{toast.msg}</span>
                 </div>
             )}
 
@@ -425,12 +458,17 @@ export default function Approvals() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                     <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 p-6 max-w-md w-full mx-4">
                         <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Từ chối nội dung</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Nhập lý do từ chối (tuỳ chọn) để thông báo cho người tải lên.</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            {rejectModal.type === 'knowledge'
+                                ? 'Nhập lý do từ chối (bắt buộc) để thông báo cho người tạo tri thức.'
+                                : 'Nhập lý do từ chối (tuỳ chọn) để thông báo cho người tải lên.'}
+                        </p>
                         <textarea
                             value={rejectNote}
                             onChange={(e) => setRejectNote(e.target.value)}
-                            placeholder="Lý do từ chối..."
+                            placeholder={rejectModal.type === 'knowledge' ? 'Nhập lý do từ chối *' : 'Lý do từ chối...'}
                             rows={3}
+                            required={rejectModal.type === 'knowledge'}
                             className="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 resize-none mb-4"
                         />
                         <div className="flex gap-3">
@@ -442,7 +480,7 @@ export default function Approvals() {
                             </button>
                             <button
                                 onClick={handleReject}
-                                disabled={!!actionLoading}
+                                disabled={!!actionLoading || (rejectModal.type === 'knowledge' && !rejectNote.trim())}
                                 className="flex-1 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
                             >
                                 {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
@@ -460,13 +498,37 @@ export default function Approvals() {
 // ─── Preview Modal ────────────────────────────────────────────
 
 function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) {
-    const { item, type, blobUrl, html, text, ext } = preview;
+    const { item, type, blobUrl, html, text, ext, docxBuffer } = preview;
     const isDoc = type === 'documents';
     const title = isDoc ? item.name : item.title;
     const isLoading = actionLoading === `${type}-${item.id}`;
 
     const isImage = ext && ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
     const isPdf = ext === 'pdf';
+    const isDocx = ext === 'docx';
+
+    // Render DOCX natively using docx-preview
+    const docxContainerRef = useRef(null);
+    useEffect(() => {
+        if (!isDocx || !docxBuffer || !docxContainerRef.current) return;
+        const container = docxContainerRef.current;
+        container.innerHTML = '';
+        renderAsync(docxBuffer, container, undefined, {
+            className: 'docx-preview',
+            inWrapper: true,
+            ignoreWidth: false,
+            ignoreHeight: false,
+            ignoreFonts: false,
+            breakPages: true,
+            useBase64URL: true,
+            renderChanges: false,
+            renderHeaders: true,
+            renderFooters: true,
+            renderFootnotes: true,
+        }).catch(err => {
+            container.innerHTML = `<div style="padding:2rem;color:#ef4444">Lỗi hiển thị: ${err.message}</div>`;
+        });
+    }, [isDocx, docxBuffer]);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -496,6 +558,10 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
                             {item.visibility === 'public' ? (
                                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
                                     <Globe className="w-2.5 h-2.5" /> Công khai
+                                </span>
+                            ) : item.visibility === 'private' ? (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400">
+                                    <User className="w-2.5 h-2.5" /> Cá nhân
                                 </span>
                             ) : (
                                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
@@ -544,8 +610,28 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
                         </div>
                     )}
 
-                    {/* Document: Text preview for DOCX/TXT/MD */}
-                    {isDoc && text && (
+                    {/* Document: DOCX native preview via docx-preview */}
+                    {isDoc && isDocx && (
+                        <div
+                            ref={docxContainerRef}
+                            className="w-full overflow-auto bg-gray-200 dark:bg-gray-950"
+                            style={{ minHeight: '60vh' }}
+                        />
+                    )}
+
+                    {/* Document: HTML preview for knowledge */}
+                    {isDoc && html && !isDocx && (
+                        <div className="p-8 bg-white dark:bg-gray-900 min-h-[60vh]">
+                            <div
+                                className="prose prose-sm dark:prose-invert max-w-none"
+                                style={{ color: 'inherit' }}
+                                dangerouslySetInnerHTML={{ __html: html }}
+                            />
+                        </div>
+                    )}
+
+                    {/* Document: Text preview for TXT/MD */}
+                    {isDoc && text && !html && (
                         <div className="p-6">
                             <div className="bg-gray-50 dark:bg-gray-950 rounded-xl border border-gray-100 dark:border-gray-800 p-6">
                                 <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 font-sans leading-relaxed">
@@ -556,7 +642,7 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
                     )}
 
                     {/* Document: not previewable */}
-                    {isDoc && !blobUrl && !text && (
+                    {isDoc && !blobUrl && !text && !html && (
                         <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-6">
                             <div className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                                 <FileText className="w-7 h-7 text-gray-400" />
@@ -621,9 +707,6 @@ function ApprovalCard({ item, type, actionLoading, previewLoading, processingSta
     const isPreviewLoading = previewLoading === `${type}-${item.id}`;
     const isProcessing = !!processingStatus;
 
-    // Show pending approval badge
-    const isPending = !isProcessing && item.approval_status !== 'approved';
-
     return (
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
             <div className="p-4 flex items-start gap-4">
@@ -677,11 +760,15 @@ function ApprovalCard({ item, type, actionLoading, previewLoading, processingSta
                                 <div className="flex items-center gap-2 mt-1.5">
                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
                                         <Clock className="w-3 h-3" />
-                                        Chờ phê duyệt
+                                        {isDoc ? getDocumentApprovalStageLabel(item.approval_status) : getKnowledgeApprovalStageLabel(item.approval_status)}
                                     </span>
                                     {item.visibility === 'public' ? (
                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
                                             <Globe className="w-3 h-3" /> Công khai
+                                        </span>
+                                    ) : item.visibility === 'private' ? (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400">
+                                            <User className="w-3 h-3" /> Cá nhân
                                         </span>
                                     ) : (
                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
@@ -751,72 +838,6 @@ function ApprovalCard({ item, type, actionLoading, previewLoading, processingSta
                         )}
                     </div>
                 </div>
-            </div>
-        </div>
-    );
-}
-
-
-// ─── Processing Progress Bar ─────────────────────────────────────────────
-
-function ProcessingProgressBar({ status, chunkCount, errorMessage }) {
-    const stepIdx = getStepIndex(status);
-    const isDone = status === 'indexed';
-    const isFailed = status === 'failed';
-
-    return (
-        <div className="mt-2 flex items-center gap-3">
-            {/* Step dots */}
-            <div className="flex items-center gap-1">
-                {PROCESSING_STEPS.filter(s => s.key !== 'pending').map((step, i) => {
-                    const sIdx = i + 1; // offset from 'pending'
-                    const isActive = sIdx === stepIdx;
-                    const isPast = sIdx < stepIdx || isDone;
-                    const StepIcon = step.icon;
-                    return (
-                        <div key={step.key} className="flex items-center gap-1">
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                                isDone
-                                    ? 'bg-emerald-500'
-                                    : isFailed && isActive
-                                    ? 'bg-red-500'
-                                    : isPast || isActive
-                                    ? 'bg-primary-500'
-                                    : 'bg-gray-200 dark:bg-gray-700'
-                            }`}>
-                                <StepIcon className={`w-3 h-3 ${
-                                    isDone ? 'text-white' : isFailed && isActive ? 'text-white' : isPast || isActive ? 'text-white' : 'text-gray-400'
-                                } ${isActive && !isFailed ? 'animate-spin' : ''}`} />
-                            </div>
-                            {i < PROCESSING_STEPS.length - 2 && (
-                                <div className={`w-4 h-0.5 ${isPast || isDone ? 'bg-primary-400' : 'bg-gray-200 dark:bg-gray-700'}`} />
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-
-            {/* Label */}
-            <div className="flex items-center gap-1.5">
-                {isDone ? (
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                ) : isFailed ? (
-                    <AlertCircle className="w-3.5 h-3.5 text-red-500" />
-                ) : (
-                    <Loader2 className="w-3.5 h-3.5 text-primary-500 animate-spin" />
-                )}
-                <span className={`text-xs font-medium ${
-                    isDone ? 'text-emerald-600 dark:text-emerald-400'
-                    : isFailed ? 'text-red-600 dark:text-red-400'
-                    : 'text-primary-600 dark:text-primary-400'
-                }`}>
-                    {isDone
-                        ? `Hoàn tất · ${chunkCount} chunks`
-                        : isFailed
-                        ? `Lỗi: ${errorMessage || 'Xử lý thất bại'}`
-                        : `${PROCESSING_STEPS[stepIdx]?.label || 'Đang xử lý'}${chunkCount > 0 ? ` · ${chunkCount} chunks` : ''}`
-                    }
-                </span>
             </div>
         </div>
     );

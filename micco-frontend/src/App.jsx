@@ -14,32 +14,37 @@ import GraphKnowledge from './pages/GraphKnowledge';
 import Departments from './pages/Departments';
 import Approvals from './pages/Approvals';
 import ProcessingStatus from './pages/ProcessingStatus';
+import WorkspaceManagement from './pages/WorkspaceManagement';
 import DashboardLayout from './layouts/DashboardLayout';
+
+const LoadingSpinner = () => (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gray-950">
+        <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+);
 
 function ProtectedRoute() {
     const { isAuthenticated, loading } = useAuth();
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gray-950">
-                <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
-            </div>
-        );
-    }
+    if (loading) return <LoadingSpinner />;
 
     return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+}
+
+function AdminRoute() {
+    const { user, isAuthenticated, loading } = useAuth();
+
+    if (loading) return <LoadingSpinner />;
+
+    if (!isAuthenticated) return <Navigate to="/login" replace />;
+    if (user?.role !== 'Admin') return <Navigate to="/dashboard" replace />;
+    return <Outlet />;
 }
 
 function PublicOnlyRoute() {
     const { isAuthenticated, loading } = useAuth();
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gray-950">
-                <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
-            </div>
-        );
-    }
+    if (loading) return <LoadingSpinner />;
 
     return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Outlet />;
 }
@@ -69,11 +74,18 @@ function App() {
                 <Route path="/chat" element={<ChatAssistant />} />
                 <Route path="/expert" element={<Expert />} />
                 <Route path="/knowledge" element={<Knowledge />} />
-                <Route path="/graph-knowledge" element={<GraphKnowledge />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/departments" element={<Departments />} />
                 <Route path="/approvals" element={<Approvals />} />
+                <Route path="/workspaces" element={<WorkspaceManagement />} />
                 <Route path="/processing-status" element={<ProcessingStatus />} />
+              </Route>
+            </Route>
+
+            {/* Admin-only: redirect to /dashboard if not Admin */}
+            <Route element={<AdminRoute />}>
+              <Route element={<DashboardLayout />}>
+                <Route path="/graph-knowledge" element={<GraphKnowledge />} />
               </Route>
             </Route>
           </Routes>

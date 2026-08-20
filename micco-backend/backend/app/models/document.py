@@ -14,6 +14,7 @@ class DocumentStatus(str, enum.Enum):
     INDEXING = "indexing"
     INDEXED = "indexed"
     FAILED = "failed"
+    REJECTED = "rejected"
 
 
 class Document(Base):
@@ -38,7 +39,10 @@ class Document(Base):
     # Approvals & Access Control
     uploader_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id", ondelete="SET NULL"), nullable=True)
-    visibility: Mapped[str] = mapped_column(String(20), default="internal") # "internal" or "public"
+    visibility: Mapped[str] = mapped_column(String(20), default="department") # "internal" | "department" | "public"
+    # - "department": chỉ member trong department đọc
+    # - "public": tất cả user đọc
+    # - "internal": legacy — treated same as "department"
     approval_status: Mapped[str] = mapped_column(String(20), default="pending") # "pending", "approved", "rejected"
     approval_note: Mapped[str | None] = mapped_column(Text, nullable=True)
 

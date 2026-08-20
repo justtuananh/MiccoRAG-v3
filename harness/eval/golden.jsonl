@@ -1,0 +1,15 @@
+# Golden Q/A set cho eval RAG — MiccoRAG-v3. Mỗi dòng 1 JSON (dòng bắt đầu bằng # bị bỏ qua).
+# Câu hỏi ground từ nội dung thật (workspace + suggested-questions của app). Mở rộng tự do.
+# Trường: id, workspace_id, question, expected_keywords[] (khớp trong context, không phân biệt hoa/thường), top_k?
+{"id": "ws1-rag-vs-ft", "workspace_id": 1, "question": "RAG và Fine-tuning khác nhau thế nào?", "expected_keywords": ["rag", "fine"], "notes": "suggested-q"}
+{"id": "ws1-when-rag", "workspace_id": 1, "question": "Khi nào nên ưu tiên sử dụng RAG?", "expected_keywords": ["rag"], "notes": "suggested-q"}
+{"id": "ws1-when-ft", "workspace_id": 1, "question": "Lúc nào nên áp dụng Fine-tuning LLM?", "expected_keywords": ["fine", "llm"], "notes": "suggested-q"}
+{"id": "ws1-ft-cost", "workspace_id": 1, "question": "Các phương pháp giảm chi phí fine-tuning?", "expected_keywords": ["fine", "chi phí"], "notes": "suggested-q"}
+{"id": "ws1-what-rag", "workspace_id": 1, "question": "RAG là gì và hoạt động ra sao?", "expected_keywords": ["rag"], "notes": "definition"}
+{"id": "ws1-embedding", "workspace_id": 1, "question": "Embedding và vector search dùng để làm gì trong RAG?", "expected_keywords": ["embedding"], "notes": "concept"}
+{"id": "ws1-llm-general", "workspace_id": 1, "question": "Mô hình ngôn ngữ lớn (LLM) là gì?", "expected_keywords": ["llm"], "notes": "concept"}
+{"id": "ws1-retrieval", "workspace_id": 1, "question": "Cơ chế truy xuất tài liệu trong RAG hoạt động như thế nào?", "expected_keywords": ["rag"], "notes": "concept"}
+{"id": "ws5-risk-opp", "workspace_id": 5, "question": "Phân tích rủi ro và cơ hội của hệ thống?", "expected_keywords": [], "notes": "suggested-q; grade theo retrieval"}
+{"id": "ws5-strategy", "workspace_id": 5, "question": "Chiến lược hành động cốt lõi là gì?", "expected_keywords": [], "notes": "suggested-q"}
+{"id": "ws5-efficiency", "workspace_id": 5, "question": "Đánh giá hiệu quả hệ thống hiện tại?", "expected_keywords": [], "notes": "suggested-q"}
+{"id": "ws5-optimize", "workspace_id": 5, "question": "Làm sao tối ưu hóa quy trình hiện tại?", "expected_keywords": [], "notes": "suggested-q"}

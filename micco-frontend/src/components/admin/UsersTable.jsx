@@ -27,6 +27,8 @@ function timeAgo(dateStr) {
 const ROLE_COLORS = {
     'Admin': 'bg-primary-600/10 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300',
     'Trưởng phòng': 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
+    'Giám đốc': 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300',
+    'Phó giám đốc': 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300',
     'Nhân viên': 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
 };
 export const PAGE_SIZE = 10;

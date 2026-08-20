@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { File, Eye, Download, Share2, Trash2, MoreHorizontal, Clock, XCircle } from 'lucide-react';
 import { fileTypeIconMap, fileTypeColors, fileTypeBgColors } from './fileTypes';
 import { getExt, formatBytes, formatDate, getInitials, avatarColor, categoryColors, getCategoryLabel } from '../../utils/formatters';
+import ProcessingProgressBar from '../shared/ProcessingProgressBar';
 
 function DropdownMenu({ anchorEl, onClose, children }) {
     const menuRef = useRef(null);
@@ -55,29 +56,69 @@ function DropdownMenu({ anchorEl, onClose, children }) {
     );
 }
 
-export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDownload, onDelete }) {
+export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDownload, onDelete, renderAsTableCells, processingStatus }) {
     const ext = doc.type || getExt(doc.name);
     const Icon = fileTypeIconMap[ext] || File;
     const iconColor = fileTypeColors[ext] || 'text-gray-500';
     const bgColor = fileTypeBgColors[ext] || 'bg-gray-100 dark:bg-gray-800';
     const catLabel = getCategoryLabel(doc.category);
     const catColor = categoryColors[catLabel] || categoryColors['Khác'];
+    const [thumbFailed, setThumbFailed] = useState(false);
+    const tags = Array.isArray(doc.tags)
+        ? doc.tags.filter(Boolean)
+        : typeof doc.tags === 'string'
+        ? doc.tags.split(',').map(t => t.trim()).filter(Boolean)
+        : [];
 
     const btnRef = useRef(null);
     const isOpen = openMenu === doc.id;
 
-    return (
-        <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+    // Effective processing status: prefer live-polled data, fall back to doc field
+    const liveStatus = processingStatus?.status || doc.status;
+    const isActivelyProcessing =
+        doc.approval_status === 'approved' &&
+        ['parsing', 'processing', 'indexing'].includes(liveStatus);
+    const showProgressBar =
+        doc.approval_status === 'approved' &&
+        ['parsing', 'processing', 'indexing', 'indexed', 'failed'].includes(liveStatus) &&
+        processingStatus; // only show bar when we have live data
+
+    const cells = (
+        <>
             {/* Name */}
             <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-lg ${bgColor} flex items-center justify-center flex-shrink-0`}>
-                        <Icon className={`w-4.5 h-4.5 ${iconColor}`} />
+                        {doc.thumbnail && !thumbFailed ? (
+                            <img
+                                src={`${import.meta.env.VITE_API_BASE_URL || ''}/api/documents/${doc.id}/thumbnail`}
+                                alt={doc.name}
+                                className="w-full h-full object-cover rounded-lg"
+                                onError={() => setThumbFailed(true)}
+                            />
+                        ) : (
+                            <Icon className={`w-4.5 h-4.5 ${iconColor}`} />
+                        )}
                     </div>
                     <div className="min-w-0">
                         <span className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[160px] lg:max-w-xs block" title={doc.name}>
                             {doc.name}
                         </span>
+                        {tags.length > 0 && (
+                            <div className="flex items-center gap-1.5 mt-1 flex-wrap max-w-xs lg:max-w-md">
+                                {tags.slice(0, 3).map((tag) => (
+                                    <span
+                                        key={`${doc.id}-${tag}`}
+                                        className="px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                                    >
+                                        #{tag}
+                                    </span>
+                                ))}
+                                {tags.length > 3 && (
+                                    <span className="text-[10px] text-gray-400">+{tags.length - 3}</span>
+                                )}
+                            </div>
+                        )}
                         {doc.approval_status === 'pending' && (
                             <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 mt-0.5">
                                 <Clock className="w-3 h-3" /> Chờ duyệt
@@ -86,6 +127,18 @@ export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDow
                         {doc.approval_status === 'rejected' && (
                             <span className="inline-flex items-center gap-1 text-xs text-red-500 dark:text-red-400 mt-0.5">
                                 <XCircle className="w-3 h-3" /> Từ chối
+                            </span>
+                        )}
+                        {showProgressBar ? (
+                            <ProcessingProgressBar
+                                status={processingStatus.status}
+                                chunkCount={processingStatus.chunk_count}
+                                errorMessage={processingStatus.error_message}
+                                compact
+                            />
+                        ) : isActivelyProcessing && (
+                            <span className="inline-flex items-center gap-1 text-xs text-primary-500 dark:text-primary-400 mt-0.5">
+                                {liveStatus === 'indexing' ? 'Đang lập chỉ mục' : 'Đang xử lý'}
                             </span>
                         )}
                     </div>
@@ -142,6 +195,14 @@ export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDow
                     </DropdownMenu>
                 )}
             </td>
+        </>
+    );
+
+    if (renderAsTableCells) return cells;
+
+    return (
+        <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+            {cells}
         </tr>
     );
 }

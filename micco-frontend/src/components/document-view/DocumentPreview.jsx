@@ -9,12 +9,12 @@ function DocumentPreview({ doc, previewUrl }) {
 
     if (ext === 'PDF' && previewUrl) {
         return (
-            <iframe src={previewUrl} title={doc.name} className="w-full h-full rounded border-0" />
+            <iframe src={previewUrl} title={doc.name} className="w-full h-full rounded border-0 max-w-full" />
         );
     }
     if ((ext === 'PNG' || ext === 'JPG') && previewUrl) {
         return (
-            <div className="w-full h-full flex items-center justify-center p-10">
+            <div className="w-full h-full flex items-center justify-center p-10 max-w-full overflow-hidden">
                 <img src={previewUrl} alt={doc.name}
                     className="max-w-full max-h-full object-contain rounded-lg shadow-md" />
             </div>
@@ -23,37 +23,37 @@ function DocumentPreview({ doc, previewUrl }) {
 
     // Rich simulated document placeholder
     return (
-        <div className="max-w-4xl mx-auto bg-white dark:bg-slate-900 shadow-2xl min-h-full p-12 rounded-lg relative">
+        <div className="max-w-4xl mx-auto bg-white dark:bg-slate-900 shadow-2xl min-h-full p-12 rounded-lg relative overflow-x-hidden">
             {/* Colored top accent */}
             <div className="absolute top-0 left-0 w-full h-1 bg-primary-600 dark:bg-primary-500 rounded-t-lg" />
             <div className="flex flex-col gap-8 pt-2">
                 {/* Document header */}
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h2 className="text-2xl font-black text-primary-700 dark:text-primary-400 uppercase tracking-tight">
+                <div className="flex justify-between items-start overflow-x-hidden max-w-full">
+                    <div className="min-w-0 flex-1">
+                        <h2 className="text-2xl font-black text-primary-700 dark:text-primary-400 uppercase tracking-tight truncate">
                             {catLabel}
                         </h2>
-                        <p className="text-slate-400 dark:text-slate-500 font-medium text-sm mt-0.5">
+                        <p className="text-slate-400 dark:text-slate-500 font-medium text-sm mt-0.5 truncate">
                             {doc?.name}
                         </p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0 ml-4">
                         <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{ext}</p>
                         <p className="text-xs text-slate-400">{formatDate(doc?.created_at || doc?.date)}</p>
                     </div>
                 </div>
                 <div className="h-px bg-slate-100 dark:bg-slate-800" />
                 {/* Stat cards */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-4 overflow-x-hidden max-w-full">
                     {[
                         { label: 'Kích thước tệp', value: formatBytes(doc?.size), sub: `Định dạng ${ext}` },
                         { label: 'Danh mục', value: catLabel, sub: 'Loại tài liệu' },
                         { label: 'Người sở hữu', value: doc?.owner || '—', sub: 'Người tải lên' },
                     ].map((s) => (
-                        <div key={s.label} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
+                        <div key={s.label} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 min-w-0 overflow-hidden">
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{s.label}</p>
-                            <p className="text-base font-bold text-primary-700 dark:text-primary-400 mt-1 truncate">{s.value}</p>
-                            <p className="text-[10px] text-slate-400 mt-0.5">{s.sub}</p>
+                            <p className="text-base font-bold text-primary-700 dark:text-primary-400 mt-1 truncate max-w-full">{s.value}</p>
+                            <p className="text-[10px] text-slate-400 mt-0.5 truncate">{s.sub}</p>
                         </div>
                     ))}
                 </div>
