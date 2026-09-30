@@ -48,7 +48,7 @@ export default function HowItWorks() {
                     {/* Connecting line */}
                     <div className="hidden md:block absolute top-24 left-[20%] right-[20%] h-0.5 bg-gradient-to-r from-primary-600 via-secondary-500 to-accent-500 opacity-20" />
 
-                    {steps.map((step, index) => {
+                    {steps.map((step) => {
                         const Icon = step.icon;
                         return (
                             <div key={step.title} className="relative text-center group">

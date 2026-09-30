@@ -10,7 +10,10 @@ from app.core.security import get_current_user, hash_password
 from app.models.department import Department
 from app.models.user import User
 from app.models.document import Document
+from app.models.knowledge_base import KnowledgeBase
 from app.models.system_chat_log import SystemChatLog
+from app.models.audit_event import AuditEvent
+from app.models.knowledge_entry import KnowledgeEntry
 from app.schemas.compat import (
     AdminCreateUserRequest,
     AdminUpdateUserRequest,
@@ -54,11 +57,7 @@ async def _get_department(db: AsyncSession, department_id: int | None) -> Depart
 
 
 def _is_director_department(department: Department | None) -> bool:
-    if department is None or not department.name:
-        return False
-
-    normalized_name = department.name.strip().lower()
-    return "giám đốc" in normalized_name or "giam doc" in normalized_name
+    return department is not None and department.kind == "directorate"
 
 
 def _validate_role_by_department(role: str, department: Department | None):
@@ -98,6 +97,8 @@ async def list_departments(
             description=d.description,
             created_at=d.created_at,
             user_count=len(d.users),
+            code=d.code,
+            kind=d.kind,
         )
         for d in depts
     ]
@@ -117,7 +118,9 @@ async def create_department(
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(status_code=400, detail="Phòng ban đã tồn tại")
 
-    dept = Department(name=name, description=req.description or "")
+    if req.kind not in {"standard", "directorate"}:
+        raise HTTPException(status_code=400, detail="Loại phòng ban không hợp lệ")
+    dept = Department(name=name, description=req.description or "", code=req.code, kind=req.kind)
     db.add(dept)
     await db.commit()
     await db.refresh(dept)
@@ -127,7 +130,7 @@ async def create_department(
         name=dept.name,
         description=dept.description,
         created_at=dept.created_at,
-        user_count=0,
+        user_count=0, code=dept.code, kind=dept.kind,
     )
 
 
@@ -156,6 +159,14 @@ async def update_department(
 
     if req.description is not None:
         dept.description = req.description
+    if req.code is not None:
+        dept.code = req.code
+    if req.kind is not None:
+        if req.kind not in {"standard", "directorate"}:
+            raise HTTPException(status_code=400, detail="Loại phòng ban không hợp lệ")
+        if req.kind != dept.kind and (await db.execute(select(func.count(User.id)).where(User.department_id == dept.id))).scalar():
+            raise HTTPException(status_code=409, detail="Chuyển người dùng trước khi đổi loại phòng ban")
+        dept.kind = req.kind
 
     await db.commit()
     await db.refresh(dept)
@@ -166,7 +177,7 @@ async def update_department(
         name=dept.name,
         description=dept.description,
         created_at=dept.created_at,
-        user_count=user_count.scalar() or 0,
+        user_count=user_count.scalar() or 0, code=dept.code, kind=dept.kind,
     )
 
 
@@ -181,6 +192,14 @@ async def delete_department(
     if not dept:
         raise HTTPException(status_code=404, detail="Phòng ban không tồn tại")
 
+    references = [
+        (await db.execute(select(func.count(User.id)).where(User.department_id == dept.id))).scalar() or 0,
+        (await db.execute(select(func.count(KnowledgeBase.id)).where(KnowledgeBase.department_id == dept.id))).scalar() or 0,
+        (await db.execute(select(func.count(Document.id)).where(Document.department_id == dept.id))).scalar() or 0,
+    ]
+    references.append((await db.execute(select(func.count(KnowledgeEntry.id)).where(KnowledgeEntry.department_id == dept.id))).scalar() or 0)
+    if any(references):
+        raise HTTPException(status_code=409, detail="Chuyển người dùng, kho tri thức và tài liệu trước khi xóa phòng")
     await db.delete(dept)
     await db.commit()
     return None
@@ -244,6 +263,7 @@ async def list_users(
                 department_name=u.department.name if u.department else None,
                 avatar=u.avatar,
                 created_at=u.created_at,
+                is_active=u.is_active,
             )
             for u in users
         ],
@@ -310,22 +330,25 @@ async def update_user(
             raise HTTPException(status_code=400, detail="Email đã tồn tại")
         user.email = req.email
 
-    if req.role is not None or req.department_id is not None:
+    if req.role is not None or "department_id" in req.model_fields_set:
         next_role = req.role if req.role is not None else user.role
-        next_department_id = req.department_id if req.department_id is not None else user.department_id
+        next_department_id = req.department_id if "department_id" in req.model_fields_set else user.department_id
         department = await _get_department(db, next_department_id)
         _validate_role_by_department(next_role, department)
 
     if req.role is not None:
         user.role = req.role
 
-    if req.department_id is not None:
+    if "department_id" in req.model_fields_set:
         user.department_id = req.department_id
 
     if req.password is not None:
         if len(req.password) < 6:
             raise HTTPException(status_code=400, detail="Mật khẩu phải có ít nhất 6 ký tự")
         user.hashed_password = hash_password(req.password)
+
+    if req.is_active is not None:
+        user.is_active = req.is_active
 
     await db.commit()
     await db.refresh(user)
@@ -344,7 +367,7 @@ async def delete_user(
     if not user:
         raise HTTPException(status_code=404, detail="Người dùng không tồn tại")
 
-    await db.delete(user)
+    user.is_active = False
     await db.commit()
     return None
 
@@ -352,22 +375,25 @@ async def delete_user(
 @router.get("/chat-logs")
 async def list_chat_logs(
     search: str | None = Query(None),
+    include_content: bool = Query(False),
+    reason: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     _admin: User = Depends(_require_admin),
 ):
+    if include_content:
+        if not reason or not reason.strip():
+            raise HTTPException(status_code=400, detail="Cần lý do truy cập nội dung hội thoại")
+        db.add(AuditEvent(actor_id=_admin.id, action="read_chat_content", object_type="chat_logs", object_id=0, reason=reason.strip()))
+        await db.commit()
     stmt = select(SystemChatLog)
 
     if search:
-        stmt = stmt.where(
-            or_(
-                SystemChatLog.question.ilike(f"%{search}%"),
-                SystemChatLog.answer.ilike(f"%{search}%"),
-                SystemChatLog.ip_address.ilike(f"%{search}%"),
-                SystemChatLog.method.ilike(f"%{search}%"),
-            )
-        )
+        fields = [SystemChatLog.ip_address, SystemChatLog.method]
+        if include_content:
+            fields.extend([SystemChatLog.question, SystemChatLog.answer])
+        stmt = stmt.where(or_(*(field.ilike(f"%{search}%") for field in fields)))
 
     total_stmt = select(func.count()).select_from(stmt.subquery())
     total = (await db.execute(total_stmt)).scalar() or 0
@@ -383,8 +409,8 @@ async def list_chat_logs(
                 "ip_address": l.ip_address,
                 "timestamp": l.timestamp.isoformat() if l.timestamp else None,
                 "response_time": l.response_time,
-                "question": l.question,
-                "answer": l.answer,
+                "question": l.question if include_content else "[Nội dung hội thoại được ẩn]",
+                "answer": l.answer if include_content else "[Nội dung hội thoại được ẩn]",
                 "method": l.method,
             }
             for l in logs

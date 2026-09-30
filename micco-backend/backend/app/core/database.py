@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
+from anyio import CancelScope
 
 from app.core.config import settings
 
@@ -29,8 +30,9 @@ async_session_maker = AsyncSessionLocal
 
 
 async def get_db() -> AsyncSession:
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
+    session = AsyncSessionLocal()
+    try:
+        yield session
+    finally:
+        with CancelScope(shield=True):
             await session.close()

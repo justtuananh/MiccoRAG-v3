@@ -3,6 +3,17 @@ LLM Provider Package
 =====================
 Factory functions to create LLM and embedding providers based on config.
 
+Two providers keep a native, hand-tuned implementation:
+  - "gemini" (gemini.py) — chat_agent.py's tool-calling flow depends on
+    real google-genai Content/thought_signature objects for Gemini 3
+    multi-turn reasoning; a generic string-based gateway can't carry that.
+  - "ollama" (ollama.py) — local runtime with its own vision handling.
+
+Every other provider name (openai, deepseek, anthropic, openrouter, ...)
+is served through the LiteLLM gateway (litellm_provider.py). To add one,
+just set LLM_PROVIDER=<name>, LLM_MODEL_FAST=<model>, and <NAME>_API_KEY
+in .env — no new provider class required.
+
 Usage::
 
     from app.services.llm import get_llm_provider, get_embedding_provider
@@ -15,6 +26,28 @@ from __future__ import annotations
 from functools import lru_cache
 
 from app.services.llm.base import EmbeddingProvider, LLMProvider
+
+# provider name -> Settings field holding its API key. Falls back to
+# "<PROVIDER>_API_KEY" (e.g. "deepseek" -> DEEPSEEK_API_KEY) when not listed
+# here; thanks to Settings' `extra = "allow"`, that field doesn't even need
+# to be declared in config.py — just put it in .env.
+_API_KEY_FIELD = {
+    "openai": "OPENAI_API_KEY",
+    "cohere": "COHERE_API_KEY",
+    "ollama": None,  # local, no key
+}
+
+
+def _litellm_api_key(settings, provider: str) -> str:
+    field = _API_KEY_FIELD.get(provider, f"{provider.upper()}_API_KEY")
+    if field is None:
+        return ""
+    api_key = getattr(settings, field, "") or ""
+    if not api_key:
+        raise ValueError(
+            f"{field} is required when provider={provider!r}. Add it to .env."
+        )
+    return api_key
 
 
 @lru_cache
@@ -43,7 +76,14 @@ def get_llm_provider() -> LLMProvider:
             model=settings.OLLAMA_MODEL,
         )
 
-    raise ValueError(f"Unknown LLM_PROVIDER: {provider!r}. Supported: gemini, ollama")
+    # Everything else -> LiteLLM gateway (openai, deepseek, anthropic, ...)
+    from app.services.llm.litellm_provider import LiteLLMProvider
+
+    return LiteLLMProvider(
+        provider=provider,
+        model=settings.LLM_MODEL_FAST,
+        api_key=_litellm_api_key(settings, provider),
+    )
 
 
 @lru_cache
@@ -78,9 +118,14 @@ def get_embedding_provider() -> EmbeddingProvider:
             model=settings.KG_EMBEDDING_MODEL,
         )
 
-    raise ValueError(
-        f"Unknown KG_EMBEDDING_PROVIDER: {provider!r}. "
-        "Supported: gemini, ollama, sentence_transformers"
+    # Everything else -> LiteLLM gateway (openai, cohere, ...)
+    from app.services.llm.litellm_provider import LiteLLMEmbeddingProvider
+
+    return LiteLLMEmbeddingProvider(
+        provider=provider,
+        model=settings.KG_EMBEDDING_MODEL,
+        api_key=_litellm_api_key(settings, provider),
+        dimension=settings.KG_EMBEDDING_DIMENSION,
     )
 
 

@@ -1,3 +1,4 @@
+import ModalFocus from '../components/shared/ModalFocus';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
     Send, Bot, User, Loader2, X, Brain,
@@ -8,7 +9,41 @@ import {
     Copy, Check
 } from 'lucide-react';
 import { workspacesApi, ragChatApi, ragDocumentsApi, readSSEStream } from '../utils/api';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authContextCore';
+import { parseServerDate } from '../utils/formatters';
+import { escapeHtml, sanitizeHtml } from '../utils/sanitizeHtml';
+import ProtectedImage from '../components/chat/ProtectedImage';
+
+// Khoá localStorage lưu workspace người dùng chọn gần nhất, để khôi phục sau khi F5
+// (tránh hiểu lầm là "mất lịch sử chat" khi thực ra chỉ đang xem nhầm workspace).
+const LAST_WORKSPACE_KEY = 'micco_last_workspace_id';
+
+function SafeMarkdown({ html, ...props }) {
+    const containerRef = useRef(null);
+    useEffect(() => {
+        const objectUrls = [];
+        let active = true;
+        containerRef.current?.querySelectorAll('img[data-image-doc-id][data-image-id]').forEach(image => {
+            ragDocumentsApi.imageFile(image.dataset.imageDocId, image.dataset.imageId)
+                .then(async response => {
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const blob = await response.blob();
+                    if (!blob.type.startsWith('image/')) throw new Error('Định dạng ảnh không hợp lệ');
+                    const url = URL.createObjectURL(blob);
+                    if (active) {
+                        objectUrls.push(url);
+                        image.src = url;
+                    } else URL.revokeObjectURL(url);
+                })
+                .catch(() => { if (active) image.alt = `${image.alt} (không tải được)`; });
+        });
+        return () => {
+            active = false;
+            objectUrls.forEach(url => URL.revokeObjectURL(url));
+        };
+    }, [html]);
+    return <div {...props} ref={containerRef} dangerouslySetInnerHTML={{ __html: html }} />;
+}
 
 // ─── Default system prompt (mirror of backend DEFAULT_SYSTEM_PROMPT) ──────────
 const DEFAULT_PROMPT = `Bạn là trợ lý AI chuyên nghiệp và hỗ trợ giải đáp các câu hỏi dựa trên tài liệu được cung cấp.
@@ -63,7 +98,7 @@ function SystemPromptPanel({ workspace, onClose, onSaved }) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <ModalFocus label="Cấu hình hướng dẫn trả lời" onClose={onClose} className="fixed inset-0 z-50 flex justify-end">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
             {/* Panel */}
@@ -132,7 +167,7 @@ function SystemPromptPanel({ workspace, onClose, onSaved }) {
                     </button>
                 </div>
             </div>
-        </div>
+        </ModalFocus>
     );
 }
 
@@ -140,7 +175,7 @@ function renderMarkdown(text, sources = []) {
     if (!text) return '';
     
     let mathBlocks = [];
-    let html = text;
+    let html = escapeHtml(text);
 
     // 1. Extract and render Math (Block and Inline)
     const hasKatex = typeof window !== 'undefined' && window.katex;
@@ -153,18 +188,18 @@ function renderMarkdown(text, sources = []) {
             const id = `__MATH_BLOCK_${mathBlocks.length}__`;
             mathBlocks.push({ id, html: `<div class="katex-display-wrapper my-4 overflow-x-auto">${rendered}</div>` });
             return id;
-        } catch (e) { return match; }
+        } catch { return match; }
     });
 
     // Inline math: $ ... $
-    html = html.replace(/\$([^\s\$][^\$]*?[^\s\$])\$/g, (match, formula) => {
+    html = html.replace(/\$([^\s$][^$]*?[^\s$])\$/g, (match, formula) => {
         if (!hasKatex) return match;
         try {
             const rendered = window.katex.renderToString(formula, { displayMode: false, throwOnError: false });
             const id = `__MATH_INLINE_${mathBlocks.length}__`;
             mathBlocks.push({ id, html: `<span class="katex-inline">${rendered}</span>` });
             return id;
-        } catch (e) { return match; }
+        } catch { return match; }
     });
 
     // 2. Table handling (Basic Markdown table)
@@ -220,6 +255,8 @@ function renderMarkdown(text, sources = []) {
 
     // 3. Standard Markdown formatting
     html = html
+        .replace(/!\[([^\]]*)\]\(\/api\/v1\/documents\/(\d+)\/images\/([a-zA-Z0-9_-]+)\/file\)/g,
+            (_, alt, documentId, imageId) => `<img alt="${alt}" data-image-doc-id="${documentId}" data-image-id="${imageId}" class="max-w-full rounded-lg" />`)
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         .replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-[10px] font-mono text-pink-600 dark:text-pink-400">$1</code>')
@@ -227,7 +264,7 @@ function renderMarkdown(text, sources = []) {
         .replace(/^#{3}\s+(.+)$/gm, (match, p1) => `<h3 id="h3-${p1}" class="font-black text-xs mt-3 mb-1 text-gray-900 dark:text-white uppercase tracking-wider">${p1}</h3>`)
         .replace(/^#{2}\s+(.+)$/gm, (match, p1) => `<h2 id="h2-${p1}" class="font-black text-sm mt-4 mb-1.5 text-gray-900 dark:text-white uppercase tracking-wider">${p1}</h2>`)
         .replace(/^#{1}\s+(.+)$/gm, (match, p1) => `<h1 id="h1-${p1}" class="font-black text-base mt-5 mb-2 text-gray-900 dark:text-white uppercase tracking-wider">${p1}</h1>`)
-        .replace(/^[\-\*]\s+(.+)$/gm, '<li class="ml-4 list-disc text-gray-700 dark:text-gray-300">$1</li>')
+        .replace(/^[-*]\s+(.+)$/gm, '<li class="ml-4 list-disc text-gray-700 dark:text-gray-300">$1</li>')
         .replace(/(<li.*<\/li>)/gs, '<ul class="my-1.5 space-y-0.5">$1</ul>');
 
     // 4. Newline to Paragraphs
@@ -241,10 +278,10 @@ function renderMarkdown(text, sources = []) {
 
     // 5. Inline citations replacement
     if (sources && sources.length > 0) {
-        html = html.replace(/\[([a-zA-Z0-9_\-\.:\?]+)\]/g, (match, p1) => {
-            const src = sources.find(s => s.index === p1 || s.formatted === p1 || s.source_file === p1 || `doc:${s.document_id}` === p1);
+        html = html.replace(/\[\s*([a-zA-Z0-9_.:?-]+)\s*\]/g, (match, p1) => {
+            const src = sources.find(s => String(s.index) === p1 || `doc:${s.document_id}` === p1);
             if (src) {
-                return `<button type="button" class="citation inline-flex items-center justify-center px-1.5 py-0.5 mx-0.5 text-[10px] font-bold rounded bg-emerald-100/80 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-500/40 transition-colors cursor-pointer align-baseline ring-1 ring-emerald-200 dark:ring-emerald-500/30" data-source-id="${src.document_id}" data-index="${src.index || ''}" title="Nguồn: ${src.source_file || src.formatted || src.document_id}">[${p1}]</button>`;
+                return `<button type="button" class="citation inline-flex items-center justify-center px-1.5 py-0.5 mx-0.5 text-[10px] font-bold rounded bg-emerald-100/80 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-500/40 transition-colors cursor-pointer align-baseline ring-1 ring-emerald-200 dark:ring-emerald-500/30" data-source-id="${escapeHtml(src.document_id)}" data-index="${escapeHtml(src.index || '')}" title="Nguồn: ${escapeHtml(src.source_file || src.formatted || src.document_id)}">[${escapeHtml(p1)}]</button>`;
             }
             return match;
         });
@@ -255,7 +292,7 @@ function renderMarkdown(text, sources = []) {
         html = html.replace(block.id, block.html);
     });
 
-    return `<div class="markdown-content">${html}</div>`;
+    return sanitizeHtml(`<div class="markdown-content">${html}</div>`);
 }
 
 
@@ -271,7 +308,7 @@ function renderPreviewMarkdown(text, highlightText) {
             html = html.replace(regex, `<mark id="highlight-target" class="bg-emerald-200/60 dark:bg-emerald-500/40 text-inherit rounded-sm py-0.5">$1</mark>`);
         }
     }
-    return html;
+    return sanitizeHtml(html);
 }
 
 // ─── Reasoning Steps ──────────────────────────────────────────────────────────
@@ -294,6 +331,12 @@ const STEP_CONFIG = {
         color: 'text-emerald-500',
         bg: 'bg-emerald-50 dark:bg-emerald-500/10',
     },
+    verifying: {
+        label: 'Đang kiểm tra câu trả lời...',
+        icon: CheckCircle2,
+        color: 'text-emerald-500',
+        bg: 'bg-emerald-50 dark:bg-emerald-500/10',
+    },
     done: {
         label: 'Hoàn thành',
         icon: CheckCircle2,
@@ -304,8 +347,8 @@ const STEP_CONFIG = {
 
 function ReasoningSteps({ steps, currentStep, detail }) {
     if (!steps.length && !currentStep) return null;
-    const allSteps = ['analyzing', 'retrieving', 'generating'];
-    const completedSteps = allSteps.slice(0, allSteps.indexOf(currentStep));
+    const allSteps = ['analyzing', 'retrieving', 'generating', 'verifying'];
+    const completedSteps = allSteps.slice(0, Math.max(0, allSteps.indexOf(currentStep)));
 
     return (
         <div className="flex flex-col gap-1.5 mb-2">
@@ -371,13 +414,34 @@ function ThinkingBlock({ text }) {
     );
 }
 
+// Nhận diện câu từ chối "không tìm thấy thông tin" của model một cách linh hoạt.
+// Backend hiện có 2 chuỗi từ chối khác nhau (bất nhất, nên thống nhất ở lần sau):
+//   1. Chuỗi dài trong chat_prompt.py:190 (không dùng trong luồng chat agentic thực tế) —
+//      model không lặp lại nguyên văn mỗi lần, nên so khớp bằng vài cụm từ đặc trưng
+//      (chữ thường) và yêu cầu khớp từ 2 cụm trở lên để tránh nhận nhầm câu trả lời bình thường.
+//   2. Chuỗi thực tế đang phát ra trong luồng chat agentic: "Tài liệu không chứa thông tin..."
+//      (chat_agent.py, rag.py) — nhận diện bằng cụm đặc trưng "tài liệu không chứa thông tin".
+function isFallbackMessage(content) {
+    if (!content) return false;
+    const normalized = content.toLowerCase();
+    const markers = [
+        'không tìm thấy thông tin',
+        'tài liệu hiện có',
+        'kiểm tra lại từ khóa',
+        'cung cấp thêm hồ sơ',
+    ];
+    const matchCount = markers.reduce((count, marker) => count + (normalized.includes(marker) ? 1 : 0), 0);
+    return matchCount >= 2 || normalized.includes('tài liệu không chứa thông tin');
+}
+
 // ─── Chat Message ─────────────────────────────────────────────────────────────
-function ChatMessage({ msg, onSourceClick }) {
+function ChatMessage({ msg, onSourceClick, onRetry }) {
     const isUser = msg.role === 'user';
-    const isFallback = msg.content?.includes("Dựa trên các tài liệu hiện có trong hệ thống, tôi không tìm thấy thông tin cụ thể về câu hỏi của bạn");
+    const isFallback = isFallbackMessage(msg.content);
     const isStreaming = msg.streaming;
     const sources = msg.sources || [];
     const relatedEntities = msg.related_entities || [];
+    const imageRefs = msg.image_refs || [];
     const reasoningStep = msg.reasoningStep;
     const reasoningDetail = msg.reasoningDetail;
     const thinking = msg.thinking;
@@ -421,20 +485,20 @@ function ChatMessage({ msg, onSourceClick }) {
                                 : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-sm shadow-sm'
                         }`}>
                             {isUser ? (
-                                <div dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />
+                                <SafeMarkdown html={renderMarkdown(msg.content)} />
                             ) : (
                                 <div className="flex items-start gap-1.5">
-                                    <div 
+                                    <SafeMarkdown
                                         onClick={(e) => {
                                             const btn = e.target.closest('button.citation');
                                             if (btn && onSourceClick) {
                                                 const docId = btn.getAttribute('data-source-id');
                                                 const idx = btn.getAttribute('data-index');
-                                                const src = sources.find(s => String(s.document_id) === docId && s.index === idx) || sources.find(s => String(s.document_id) === docId);
+                                                const src = sources.find(s => String(s.document_id) === docId && String(s.index) === idx) || sources.find(s => String(s.document_id) === docId);
                                                 if (src) onSourceClick(src);
                                             }
                                         }}
-                                        dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content, msg.sources) || '' }} 
+                                        html={renderMarkdown(msg.content, msg.sources) || ''}
                                     />
                                     {isStreaming && msg.content && (
                                         <span className="inline-block w-1 h-4 bg-primary-500 dark:bg-secondary-400 animate-pulse rounded-full ml-1 flex-shrink-0 mt-0.5" />
@@ -459,6 +523,19 @@ function ChatMessage({ msg, onSourceClick }) {
                 )}
 
                 {/* Sources Collapsible */}
+                {!isUser && msg.context_compacted && !isStreaming && !msg.streamError && (
+                    <p className="text-[11px] text-gray-400 dark:text-gray-500">Đã tóm tắt phần hội thoại trước để tiếp tục cuộc trò chuyện.</p>
+                )}
+                {!isUser && msg.streamError && (
+                    <div role="alert" className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+                        <p>{msg.streamError} {msg.content ? 'Nội dung phía trên có thể chưa đầy đủ.' : ''}</p>
+                        {msg.retryQuestion && (
+                            <button type="button" onClick={() => onRetry?.(msg.retryQuestion)} className="mt-1 font-semibold underline">
+                                Đưa câu hỏi vào ô nhập để thử lại
+                            </button>
+                        )}
+                    </div>
+                )}
                 {!isUser && sources.length > 0 && !isStreaming && !isFallback && (
                     <div className="w-full mt-1.5">
                         <details className="group border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-gray-800/50 overflow-hidden shadow-sm">
@@ -481,7 +558,7 @@ function ChatMessage({ msg, onSourceClick }) {
                                         <FileText className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 opacity-60 text-emerald-600 dark:text-emerald-500" />
                                         <div className="flex flex-col min-w-0">
                                             <span className="font-medium line-clamp-1">
-                                                {typeof src === 'string' ? src : (src.source_file || src.formatted || `[${src.index}] Tài liệu ${src.document_id}`)}
+                                                {typeof src === 'string' ? src : (src.source_file || `Tài liệu ${src.document_id}`)}
                                             </span>
                                             {typeof src !== 'string' && src.heading_path && src.heading_path.length > 0 && (
                                                 <span className="text-[10px] text-gray-400 dark:text-gray-500 truncate mt-0.5" title={src.heading_path.join(' > ')}>
@@ -493,6 +570,17 @@ function ChatMessage({ msg, onSourceClick }) {
                                 ))}
                             </div>
                         </details>
+                    </div>
+                )}
+
+                {!isUser && imageRefs.length > 0 && !isStreaming && !msg.streamError && (
+                    <div className="flex flex-wrap gap-3 mt-2">
+                        {imageRefs.slice(0, 6).map(image => (
+                            <figure key={image.image_id} className="max-w-xs rounded-lg border border-gray-200 dark:border-gray-700 p-2">
+                                <ProtectedImage image={image} />
+                                {image.caption && <figcaption className="text-xs text-gray-500 mt-1">{image.caption}</figcaption>}
+                            </figure>
+                        ))}
                     </div>
                 )}
 
@@ -510,7 +598,7 @@ function ChatMessage({ msg, onSourceClick }) {
                 {/* Timestamp */}
                 {msg.created_at && (
                     <p className="text-xs text-gray-400 px-1">
-                        {new Date(msg.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                        {parseServerDate(msg.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                 )}
             </div>
@@ -536,6 +624,8 @@ export default function ChatAssistant() {
     const [input, setInput] = useState('');
     const [sending, setSending] = useState(false);
     const [historyLoading, setHistoryLoading] = useState(false);
+    const [historyWorkspaceId, setHistoryWorkspaceId] = useState(null);
+    const historyRequestRef = useRef(0);
 
     // Options
     const [mode, setMode] = useState('hybrid');
@@ -565,11 +655,23 @@ export default function ChatAssistant() {
                     const data = await res.json();
                     setWorkspaces(data);
 
-                    // Auto-select logic:
-                    // 1. If only one workspace, select it
-                    // 2. If multiple, select the one with indexed_count > 0 if exists
-                    // 3. Otherwise select first
-                    if (data.length === 1) {
+                    // Ưu tiên khôi phục workspace người dùng đã chọn gần nhất (F5 không
+                    // được reset về mặc định), nếu workspace đó vẫn còn truy cập được.
+                    let restored = null;
+                    try {
+                        const savedId = localStorage.getItem(LAST_WORKSPACE_KEY);
+                        if (savedId) {
+                            restored = data.find(w => String(w.id) === savedId) || null;
+                        }
+                    } catch { /* localStorage không khả dụng */ }
+
+                    if (restored) {
+                        setSelectedWs(restored);
+                    } else if (data.length === 1) {
+                        // Auto-select logic (fallback):
+                        // 1. If only one workspace, select it
+                        // 2. If multiple, select the one with indexed_count > 0 if exists
+                        // 3. Otherwise select first
                         setSelectedWs(data[0]);
                     } else if (data.length > 1) {
                         const withDocs = data.find(w => w.indexed_count > 0);
@@ -585,6 +687,8 @@ export default function ChatAssistant() {
     // ─── Load history when workspace changes ──────────────────────────────────
     useEffect(() => {
         if (!selectedWs) { 
+            historyRequestRef.current += 1;
+            setHistoryWorkspaceId(null);
             setMessages([]); 
             return; 
         }
@@ -595,7 +699,7 @@ export default function ChatAssistant() {
         if (!isAdmin && selectedWs.search_mode) {
             setMode(selectedWs.search_mode);
         }
-    }, [selectedWs?.id, isAdmin]);
+    }, [selectedWs, isAdmin]);
 
     const loadSuggestedQuestions = async (wsId) => {
         setSuggestionsLoading(true);
@@ -614,7 +718,9 @@ export default function ChatAssistant() {
 
 
     const loadHistory = async (wsId) => {
+        const requestId = ++historyRequestRef.current;
         setHistoryLoading(true);
+        setHistoryWorkspaceId(null);
         setMessages([]);
         try {
             const res = await ragChatApi.history(wsId);
@@ -626,13 +732,19 @@ export default function ChatAssistant() {
                     content: m.content,
                     sources: m.sources || [],
                     related_entities: m.related_entities || [],
+                    image_refs: m.image_refs || [],
                     thinking: m.thinking || null,
                     created_at: m.created_at,
                 }));
-                setMessages(mapped);
+                if (requestId === historyRequestRef.current) {
+                    setMessages(mapped);
+                }
             }
         } catch { /* silent */ } finally {
-            setHistoryLoading(false);
+            if (requestId === historyRequestRef.current) {
+                setHistoryWorkspaceId(wsId);
+                setHistoryLoading(false);
+            }
         }
     };
 
@@ -650,7 +762,7 @@ export default function ChatAssistant() {
     // ─── Send message (streaming SSE) ─────────────────────────────────────────
     const handleSend = useCallback(async () => {
         const text = input.trim();
-        if (!text || !selectedWs || sending) return;
+        if (!text || !selectedWs || sending || historyWorkspaceId !== selectedWs.id) return;
 
         setInput('');
         setSending(true);
@@ -669,12 +781,14 @@ export default function ChatAssistant() {
             reasoningStep: 'analyzing',
             reasoningDetail: '',
             thinking: '',
+            retryQuestion: text,
         }]);
 
         let accContent = '';
         let accThinking = '';
         let finalSources = [];
         let finalEntities = [];
+        let finalImages = [];
 
         const updateMsg = (patch) => {
             setMessages(prev => prev.map(m => m.id === aiId ? { ...m, ...patch } : m));
@@ -709,22 +823,22 @@ export default function ChatAssistant() {
                     } else if (evtType === 'sources') {
                         finalSources = chunk.sources || chunk.data?.sources || [];
                     } else if (evtType === 'images') {
-                        // image_refs — ignore for now
+                        finalImages = chunk.image_refs || chunk.data?.image_refs || [];
                     } else if (evtType === 'complete') {
                         const d = chunk.data || chunk;
                         if (d.answer) accContent = d.answer;
                         finalSources = d.sources || finalSources;
                         finalEntities = d.related_entities || [];
+                        finalImages = d.image_refs || finalImages;
                         if (d.thinking) accThinking = d.thinking;
                         updateMsg({
                             content: accContent,
                             thinking: accThinking || null,
                             sources: finalSources,
                             related_entities: finalEntities,
+                            image_refs: finalImages,
+                            context_compacted: d.context_compacted === true,
                         });
-                    } else if (evtType === 'error') {
-                        const errMsg = chunk.message || chunk.data?.message || 'Lỗi không xác định';
-                        updateMsg({ content: `⚠️ ${errMsg}` });
                     } else if (chunk.raw) {
                         accContent += chunk.raw;
                         updateMsg({ content: accContent });
@@ -738,8 +852,10 @@ export default function ChatAssistant() {
                             reasoningStep: null,
                             sources: finalSources,
                             related_entities: finalEntities,
+                            image_refs: finalImages,
                             thinking: accThinking || null,
                             created_at: new Date().toISOString(),
+                            retryQuestion: null,
                           }
                         : m
                     ));
@@ -748,35 +864,20 @@ export default function ChatAssistant() {
                 onError: (err) => {
                     console.error('Stream error:', err);
                     setMessages(prev => prev.map(m => m.id === aiId
-                        ? { ...m, streaming: false, reasoningStep: null, content: accContent || '⚠️ Có lỗi xảy ra. Vui lòng thử lại.', sources: [] }
+                        ? { ...m, streaming: false, reasoningStep: null, content: accContent, sources: [], streamError: err.message || 'Không thể hoàn tất câu trả lời.' }
                         : m
                     ));
                     setSending(false);
                 },
             });
         } catch (err) {
-            // Fallback: non-streaming
-            try {
-                const res = await ragChatApi.chat(selectedWs.id, text, { mode });
-                if (res.ok) {
-                    const data = await res.json();
-                    const answerContent = data.answer || data.content || data.message || JSON.stringify(data);
-                    setMessages(prev => prev.map(m => m.id === aiId
-                        ? { ...m, streaming: false, reasoningStep: null, content: answerContent, sources: data.sources || [], related_entities: data.related_entities || [], created_at: new Date().toISOString() }
-                        : m
-                    ));
-                } else {
-                    throw new Error(`HTTP ${res.status}`);
-                }
-            } catch (fallbackErr) {
-                setMessages(prev => prev.map(m => m.id === aiId
-                    ? { ...m, streaming: false, reasoningStep: null, content: '⚠️ Không thể kết nối tới MiccoRAG-v2 server. Kiểm tra VITE_RAGV2_BASE_URL trong .env.' }
-                    : m
-                ));
-            }
+            setMessages(prev => prev.map(m => m.id === aiId
+                ? { ...m, streaming: false, reasoningStep: null, content: accContent, sources: [], streamError: err.message || 'Không thể kết nối để trả lời.' }
+                : m
+            ));
             setSending(false);
         }
-    }, [input, selectedWs, sending, mode]);
+    }, [input, selectedWs, sending, mode, historyWorkspaceId]);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
@@ -796,7 +897,7 @@ export default function ChatAssistant() {
     const handleSourceClick = async (src) => {
         if (!src || typeof src === 'string' || !src.document_id) return;
         
-        const docName = src.source_file || src.formatted || `Document ${src.document_id}`;
+        const docName = src.source_file || `Tài liệu ${src.document_id}`;
         
         // Always update TargetText to scroll/highlight again if clicking a different chunk in same doc
         setPreviewDoc(prev => ({
@@ -844,7 +945,7 @@ export default function ChatAssistant() {
                 }
             }, 150);
         }
-    }, [previewDoc?.content, previewDoc?.loading, previewDoc?.targetText]);
+    }, [previewDoc]);
 
     // Parse TOC from markdown
     const previewToc = useMemo(() => {
@@ -858,7 +959,7 @@ export default function ChatAssistant() {
             }
         });
         return headers;
-    }, [previewDoc?.content]);
+    }, [previewDoc]);
 
     // ─── Render ───────────────────────────────────────────────────────────────
     return (
@@ -898,7 +999,11 @@ export default function ChatAssistant() {
                                 ) : workspaces.map(ws => (
                                     <button
                                         key={ws.id}
-                                        onClick={() => { setSelectedWs(ws); setShowWsDropdown(false); }}
+                                        onClick={() => {
+                                            setSelectedWs(ws);
+                                            setShowWsDropdown(false);
+                                            try { localStorage.setItem(LAST_WORKSPACE_KEY, String(ws.id)); } catch { /* localStorage không khả dụng */ }
+                                        }}
                                         className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm transition-colors ${
                                             selectedWs?.id === ws.id
                                                 ? 'bg-primary-50 dark:bg-primary-500/10 text-primary-700 dark:text-secondary-400'
@@ -1024,7 +1129,7 @@ export default function ChatAssistant() {
                     <div className="space-y-4">
                         {messages.map(msg => (
                             <div key={msg.id} className="animate-fade-in-up">
-                                <ChatMessage msg={msg} onSourceClick={handleSourceClick} />
+                                <ChatMessage msg={msg} onSourceClick={handleSourceClick} onRetry={(question) => { setInput(question); inputRef.current?.focus(); }} />
                             </div>
                         ))}
                     </div>
@@ -1069,7 +1174,7 @@ export default function ChatAssistant() {
                             />
                             <button
                                 onClick={handleSend}
-                                disabled={!input.trim() || sending}
+                                disabled={!input.trim() || sending || historyWorkspaceId !== selectedWs.id}
                                 className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all flex-shrink-0 shadow-sm ${
                                     input.trim() && !sending 
                                         ? 'bg-primary-600 text-white hover:bg-primary-700 active:scale-95' 
@@ -1136,9 +1241,9 @@ export default function ChatAssistant() {
                                     <span>Đang tải nội dung tài liệu...</span>
                                 </div>
                             ) : previewDoc.content ? (
-                                <div 
+                                <SafeMarkdown
                                     className="prose dark:prose-invert prose-sm max-w-none"
-                                    dangerouslySetInnerHTML={{ __html: renderPreviewMarkdown(previewDoc.content, previewDoc.targetText) }} 
+                                    html={renderPreviewMarkdown(previewDoc.content, previewDoc.targetText)}
                                 />
                             ) : (
                                 <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400">

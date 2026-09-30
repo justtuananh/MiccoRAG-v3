@@ -1,3 +1,4 @@
+import { createElement } from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, Github, Twitter, Linkedin, Mail } from 'lucide-react';
 
@@ -88,7 +89,7 @@ export default function Footer() {
                                     aria-label={label}
                                     className="w-9 h-9 rounded-lg bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-all duration-200"
                                 >
-                                    <Icon className="w-4 h-4" />
+                                    {createElement(Icon, { className: 'w-4 h-4' })}
                                 </a>
                             ))}
                         </div>

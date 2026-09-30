@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import ModalFocus from '../shared/ModalFocus';
+import { useState } from 'react';
 import { X, Save, Tag, Loader2, Lock, Globe, User } from 'lucide-react';
 import WysiwygEditor from './WysiwygEditor';
 
@@ -16,28 +17,16 @@ const CATEGORIES = [
 ];
 
 export default function KnowledgeForm({ entry, onSave, onClose, saving = false }) {
-    const [title, setTitle] = useState('');
-    const [category, setCategory] = useState('Chung');
-    const [status, setStatus] = useState('Active');
-    const [visibility, setVisibility] = useState('internal');
-    const [tags, setTags] = useState([]);
+    const [title, setTitle] = useState(entry?.title || '');
+    const [category, setCategory] = useState(entry?.category || 'Chung');
+    const [status, setStatus] = useState(entry?.status || 'Active');
+    const [visibility, setVisibility] = useState(entry?.visibility || 'internal');
+    const [tags, setTags] = useState(entry?.tags || []);
     const [tagInput, setTagInput] = useState('');
-    const [contentHtml, setContentHtml] = useState('');
-    const [contentText, setContentText] = useState('');
-
-    useEffect(() => {
-        if (entry) {
-            setTitle(entry.title || '');
-            setCategory(entry.category || 'Chung');
-            setStatus(entry.status || 'Active');
-            setVisibility(entry.visibility || 'internal');
-            setTags(entry.tags || []);
-            setContentHtml(entry.content_html || '');
-            setContentText(entry.content_text || '');
-        } else {
-            setVisibility('internal');
-        }
-    }, [entry]);
+    const [contentHtml, setContentHtml] = useState(entry?.content_html || '');
+    const [contentText, setContentText] = useState(entry?.content_text || '');
+    const [effectiveFrom, setEffectiveFrom] = useState(entry?.effective_from || '');
+    const [effectiveUntil, setEffectiveUntil] = useState(entry?.effective_until || '');
 
     const handleEditorChange = ({ html, text }) => {
         setContentHtml(html);
@@ -61,7 +50,7 @@ export default function KnowledgeForm({ entry, onSave, onClose, saving = false }
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!title.trim() || !contentText.trim()) return;
+        if (!title.trim() || !contentText.trim() || !effectiveFrom || (effectiveUntil && effectiveUntil < effectiveFrom)) return;
         onSave({
             title: title.trim(),
             content_html: contentHtml,
@@ -70,11 +59,13 @@ export default function KnowledgeForm({ entry, onSave, onClose, saving = false }
             tags,
             visibility,
             status,
+            effective_from: effectiveFrom,
+            effective_until: effectiveUntil || null,
         });
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm overflow-y-auto py-8">
+        <ModalFocus label="Soạn tri thức" onClose={onClose} className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm overflow-y-auto py-8">
             <div className="w-full max-w-4xl bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 mx-4">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
@@ -190,6 +181,20 @@ export default function KnowledgeForm({ entry, onSave, onClose, saving = false }
                         </p>
                     </div>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Ngày hiệu lực <span className="text-red-500">*</span>
+                            <input type="date" required value={effectiveFrom} onChange={e => setEffectiveFrom(e.target.value)}
+                                className="block w-full mt-1.5 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                        </label>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Ngày hết hiệu lực (nếu có)
+                            <input type="date" min={effectiveFrom || undefined} value={effectiveUntil} onChange={e => setEffectiveUntil(e.target.value)}
+                                className="block w-full mt-1.5 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                        </label>
+                        {effectiveUntil && effectiveUntil < effectiveFrom && <p className="text-sm text-red-600">Ngày hết hiệu lực phải từ ngày hiệu lực trở đi.</p>}
+                    </div>
+
                     {/* Tags */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
@@ -245,7 +250,7 @@ export default function KnowledgeForm({ entry, onSave, onClose, saving = false }
                         </button>
                         <button
                             type="submit"
-                            disabled={saving || !title.trim() || !contentText.trim()}
+                            disabled={saving || !title.trim() || !contentText.trim() || !effectiveFrom || !!(effectiveUntil && effectiveUntil < effectiveFrom)}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             {saving ? (
@@ -258,6 +263,6 @@ export default function KnowledgeForm({ entry, onSave, onClose, saving = false }
                     </div>
                 </form>
             </div>
-        </div>
+        </ModalFocus>
     );
 }

@@ -17,53 +17,22 @@ from app.services.expert_recommendation import recommend_experts
 router = APIRouter(prefix="/expert", tags=["expert"])
 
 
-async def _verify_workspace_access(
-    workspace_id: int,
-    db: AsyncSession,
-) -> KnowledgeBase:
-    """Verify knowledge base exists."""
-    from sqlalchemy import select
-    result = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == workspace_id))
-    kb = result.scalar_one_or_none()
-    if kb is None:
-        from app.core.exceptions import NotFoundError
-        raise NotFoundError("KnowledgeBase", workspace_id)
-    return kb
+async def _verify_workspace_access(workspace_id: int, db: AsyncSession, current_user: User) -> KnowledgeBase:
+    from app.api.rag import verify_workspace_access
+    return await verify_workspace_access(workspace_id, db, current_user)
 
 
-async def _get_allowed_document_ids(
-    db: AsyncSession,
-    current_user: User,
-    workspace_id: int,
-) -> list[int]:
-    """Get list of document IDs that the user has access to."""
-    from sqlalchemy import select, or_
-    from app.models.document import Document, DocumentStatus
-
-    stmt = select(Document.id).where(
-        Document.workspace_id == workspace_id,
-        Document.status == DocumentStatus.INDEXED,
-        Document.approval_status == "approved",
-    )
-
-    if current_user.role != "Admin":
-        stmt = stmt.where(
-            or_(
-                Document.visibility == "public",
-                Document.department_id == current_user.department_id,
-            )
-        )
-
-    result = await db.execute(stmt)
-    return [row[0] for row in result.all()]
+async def _get_allowed_document_ids(db: AsyncSession, current_user: User, workspace_id: int) -> list[int]:
+    from app.api.rag import get_allowed_document_ids
+    return await get_allowed_document_ids(db, current_user, workspace_id)
 
 
 @router.get(
     "/recommend/{workspace_id}",
     response_model=ExpertRecommendResponse,
-    summary="Đề xuất chuyên gia",
+    summary="Đề xuất người liên hệ tài liệu",
     description=(
-        "Đề xuất top-K chuyên gia (users đã upload nhiều tài liệu liên quan nhất) "
+        "Đề xuất top-K người cung cấp tài liệu liên quan; chưa xác nhận chuyên môn "
         "dựa trên câu hỏi của người dùng trong workspace cụ thể. "
         "Sử dụng vector search để tìm documents liên quan, sau đó group theo uploader."
     ),
@@ -76,18 +45,19 @@ async def get_expert_recommendations(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Đề xuất chuyên gia trong một workspace dựa trên câu hỏi.
+    Đề xuất người liên hệ tài liệu trong một workspace dựa trên câu hỏi.
 
     - **workspace_id**: ID của workspace
     - **query**: Câu hỏi của người dùng (required)
     - **top_k**: Số lượng chuyên gia (1-10, default 3)
 
     Returns danh sách ExpertRecommendation đã được sort theo:
-    1. Số lượng document liên quan (desc)
-    2. Avg relevance (desc)
+    1. Mức liên quan trung bình giảm dần
+    2. Số tài liệu liên quan giảm dần
+    3. ID người dùng tăng dần khi đồng điểm
     """
     # Verify workspace exists
-    await _verify_workspace_access(workspace_id, db)
+    await _verify_workspace_access(workspace_id, db, current_user)
 
     # Get allowed document IDs for this user
     allowed_ids = await _get_allowed_document_ids(db, current_user, workspace_id)

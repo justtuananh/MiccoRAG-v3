@@ -1,0 +1,19 @@
+[Unit]
+Description=MiccoRAG backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+WorkingDirectory=%h/MiccoRAG-v3/micco-backend/backend
+ExecStart=%h/MiccoRAG-v3/micco-backend/venv/bin/python %h/MiccoRAG-v3/harness/ops/run_backend.py --config %h/.config/miccorag/backend-env.json --port 8001
+ExecStartPost=%h/MiccoRAG-v3/micco-backend/venv/bin/python %h/MiccoRAG-v3/harness/ops/run_backend.py --check-ready --port 8001
+Restart=on-failure
+RestartSec=3
+TimeoutStartSec=150
+TimeoutStopSec=60
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

@@ -5,8 +5,23 @@
  * MiccoRAG-v2   → documents (workspaces), chatbot (RAG), rag processing
  */
 
-const RAG_V2_BASE = import.meta.env.VITE_RAGV2_BASE_URL || '';
+const RAG_V2_BASE = import.meta.env?.VITE_RAGV2_BASE_URL || '';
 const LEGACY_BASE = ''; // proxied through Vite
+
+// ─── AUTH-11: centralized 401 (session-expired) signal ─────────────────────
+/**
+ * ragFetch/ragFetchV2 are plain module functions (not hooks), so they can't
+ * call useAuth().logout() directly. Instead they broadcast this event on a
+ * 401, and AuthContext listens for it and calls logout() — so an expired/
+ * revoked token logs the user out and ProtectedRoute redirects to /login,
+ * instead of pages silently rendering an empty list (see R5-2).
+ */
+function notifyUnauthorized(res, requestToken) {
+  if (res && res.status === 401 && localStorage.getItem('docvault_token') === requestToken) {
+    window.dispatchEvent(new Event('auth:unauthorized'));
+  }
+  return res;
+}
 
 // ─── Auth-aware fetch (for micco-server API) ───────────────────────────────
 /**
@@ -23,7 +38,7 @@ export function ragFetch(path, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
   const url = path.startsWith('http') ? path : `${LEGACY_BASE}${path}`;
-  return fetch(url, { ...options, headers });
+  return fetch(url, { ...options, headers }).then(res => notifyUnauthorized(res, token));
 }
 
 // ─── MiccoRAG-v2 base fetch ────────────────────────────────────────────────
@@ -37,7 +52,8 @@ async function ragFetchV2(path, options = {}) {
     ...options.headers,
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  return fetch(url, { ...options, headers });
+  const res = await fetch(url, { ...options, headers });
+  return notifyUnauthorized(res, token);
 }
 
 // ─── Workspaces (MiccoRAG-v2) ───────────────────────────────────────────────
@@ -81,6 +97,7 @@ export const workspacesApi = {
  */
 
 export const documentsApi = {
+  duplicateCheck: (id) => ragFetch(`/api/documents/${id}/duplicate-check`),
   /** GET /api/documents */
   list: (params = {}) => {
     const qs = new URLSearchParams();
@@ -103,6 +120,8 @@ export const documentsApi = {
     if (options.department_id) form.append('department_id', options.department_id);
     if (options.tags) form.append('tags', options.tags);
     if (options.category) form.append('category', options.category);
+    if (options.effective_from) form.append('effective_from', options.effective_from);
+    if (options.effective_until) form.append('effective_until', options.effective_until);
     const token = localStorage.getItem('docvault_token');
     return fetch(`/api/documents/upload`, {
       method: 'POST',
@@ -124,10 +143,12 @@ export const documentsApi = {
   listVersions: (docId) => ragFetch(`/api/documents/${docId}/versions`),
 
   /** POST /api/documents/{id}/versions (multipart) */
-  uploadVersion: (docId, file, changeNote) => {
+  uploadVersion: (docId, file, changeNote, effectiveFrom, effectiveUntil) => {
     const form = new FormData();
     form.append('file', file);
     if (changeNote) form.append('change_note', changeNote);
+    if (effectiveFrom) form.append('effective_from', effectiveFrom);
+    if (effectiveUntil) form.append('effective_until', effectiveUntil);
     const token = localStorage.getItem('docvault_token');
     return fetch(`/api/documents/${docId}/versions`, {
       method: 'POST',
@@ -157,6 +178,8 @@ export const ragDocumentsApi = {
     form.append('file', file);
     if (options.visibility) form.append('visibility', options.visibility);
     if (options.department_id) form.append('department_id', options.department_id);
+    if (options.effective_from) form.append('effective_from', options.effective_from);
+    if (options.effective_until) form.append('effective_until', options.effective_until);
     
     const token = localStorage.getItem('docvault_token');
     const headers = {};
@@ -188,6 +211,10 @@ export const ragDocumentsApi = {
 
   /** GET /api/v1/documents/{docId}/download */
   downloadUrl: (docId) => `${RAG_V2_BASE}/api/v1/documents/${docId}/download`,
+
+  /** Image bytes require the same bearer auth and document permission as the source. */
+  imageFile: (docId, imageId) =>
+    ragFetchV2(`/api/v1/documents/${encodeURIComponent(docId)}/images/${encodeURIComponent(imageId)}/file`),
 };
 
 // ─── RAG Processing (MiccoRAG-v2) ───────────────────────────────────────────
@@ -298,7 +325,7 @@ export const ragChatApi = {
 // ─── Helper: parse SSE stream ────────────────────────────────────────────────
 /**
  * Reads a streaming fetch response (SSE/NDJSON) and calls onChunk for each
- * SSE data event. Calls onDone when the stream closes.
+ * SSE data event. Only an explicit complete event or [DONE] confirms success.
  *
  * Each SSE line: "data: {...json...}\n\n"
  */
@@ -308,55 +335,71 @@ export async function readSSEStream(response, { onChunk, onDone, onError }) {
     onError?.(new Error(`HTTP ${response.status}: ${text}`));
     return;
   }
+  if (!response.body) {
+    onError?.(new Error('Luồng phản hồi không có dữ liệu.'));
+    return;
+  }
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
+  let finished = false;
+
+  const processMessage = (message) => {
+    if (!message.trim() || finished) return;
+    let eventType = null;
+    const dataLines = [];
+    for (const line of message.split('\n')) {
+      if (line.startsWith('event:')) eventType = line.slice(6).trim();
+      else if (line.startsWith('data:')) dataLines.push(line.slice(5).trimStart());
+    }
+    const dataStr = dataLines.join('\n');
+    if (!dataStr) return;
+    if (dataStr === '[DONE]') {
+      finished = true;
+      onDone?.();
+      return;
+    }
+    let parsed;
+    try {
+      parsed = JSON.parse(dataStr);
+    } catch {
+      onChunk?.({ raw: dataStr });
+      return;
+    }
+    const chunk = eventType ? { ...parsed, event: eventType } : parsed;
+    const type = chunk.event || chunk.type;
+    if (type === 'error') {
+      finished = true;
+      onError?.(new Error(chunk.message || chunk.data?.message || 'Luồng trả lời bị lỗi.'));
+      return;
+    }
+    onChunk?.(chunk);
+    if (type === 'complete') {
+      finished = true;
+      onDone?.();
+    }
+  };
 
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      buffer += decoder.decode(value, { stream: true });
+      buffer += decoder.decode(value, { stream: true }).replace(/\r\n?/g, '\n');
 
       // SSE messages are separated by double newlines
       const messages = buffer.split('\n\n');
       buffer = messages.pop(); // keep incomplete last chunk
 
-      for (const message of messages) {
-        if (!message.trim()) continue;
-
-        let eventType = null;
-        let dataStr = null;
-
-        for (const line of message.split('\n')) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('event:')) {
-            eventType = trimmed.slice(6).trim();
-          } else if (trimmed.startsWith('data:')) {
-            dataStr = trimmed.slice(5).trim();
-          }
-          // ignore ':' comment lines (heartbeat)
-        }
-
-        if (!dataStr) continue;
-        if (dataStr === '[DONE]') {
-          onDone?.();
-          return;
-        }
-
-        try {
-          const parsed = JSON.parse(dataStr);
-          // Merge SSE event type into chunk so handlers can use chunk.event
-          const chunk = eventType ? { event: eventType, ...parsed } : parsed;
-          onChunk?.(chunk);
-        } catch {
-          onChunk?.({ raw: dataStr });
-        }
-      }
+      for (const message of messages) processMessage(message);
+      if (finished) return;
     }
-    onDone?.();
+    buffer += decoder.decode().replace(/\r\n?/g, '\n');
+    if (buffer.trim()) processMessage(buffer);
+    if (!finished) onError?.(new Error('Luồng trả lời kết thúc trước khi có xác nhận hoàn tất.'));
   } catch (err) {
-    onError?.(err);
+    if (!finished) onError?.(err);
+  } finally {
+    reader.releaseLock();
   }
 }
 

@@ -6,6 +6,23 @@
 
 ---
 
+
+## Cấu hình triển khai 30/09/2026
+
+Đợt cập nhật này dùng thư mục `/home/micco/MiccoRAG-v3`, tài khoản dịch vụ `micco` (UID1001). Các ví dụ `kms` trong phần cũ bên dưới là thông tin lịch sử; đối chiếu môi trường trước khi chạy. Chỉ quản lý backend8001, frontend5174 và gateway8888; không thao tác tiến trình8000 hoặc dịch vụ của dự án khác.
+
+- Backend và frontend giữ nguyên địa chỉ lắng nghe hiện tại. Gateway chuyển tiếp tới frontend Vite trên5174; build được kiểm riêng, không gọi runtime này là phục vụ bundle tĩnh.
+- PostgreSQL `nexusrag-postgres` và ChromaDB `nexusrag-chromadb` dùng `restart: unless-stopped` trong Compose và trên container. Gateway giữ `always`. Docker và cron đã bật khi máy khởi động.
+- Watchdog `harness/ops/runtime_supervisor.py` chạy bằng user `micco` qua crontab `@reboot` và mỗi phút. Nó nhận diện đúng cổng/cwd/executable trước khi nhận quản lý tiến trình, chỉ tạo tiến trình thiếu, không giết tiến trình lạ. Khởi động ứng dụng dùng môi trường riêng trong `/home/micco/.config/miccorag/{backend,frontend}-env.json` (0600), cấu hình watchdog `supervisor.json` (0600). Giữ đường dẫn Python virtualenv, không thay bằng đường dẫn đích của symlink.
+- Cờ `/home/micco/.local/state/miccorag/deploy-maintenance` ngăn watchdog khởi động giữa đợt triển khai/khôi phục. Chỉ bỏ cờ sau khi bản triển khai hoặc bản khôi phục đạt health/readiness. Trạng thái watchdog ở `state.json` cùng thư mục; log được bảo vệ trong `/home/micco/logs/miccorag/`.
+- Kiểm tra sau cập nhật: `/health` và `/ready` trên8001; giao diện5174; gateway8888 và `/health` qua gateway. Chạy `bash harness/run.sh deploy --json --md`; đọc rõ từng WARN, không coi chưa có lịch sử Alembic là đã chạy đầy đủ mọi migration cũ.
+- DB cũ được tạo qua ORM, chưa có `alembic_version`. Các patch007–010 được áp theo thứ tự trong một transaction, kiểm giữ nguyên số dòng và các cột/FK/index mới. Nhật ký migration và manifest phát hành là căn cứ; không tự stamp toàn bộ lịch sử migration chưa kiểm chứng.
+- Graph được dựng từ markdown thuộc đúng KB, lưu bản sao độc lập và đối chiếu SHA/ID trước khi thay trong cửa sổ bảo trì. Giới hạn mặc định:200nút/500cạnh mỗi lượt xem, độ sâu4;2000tài liệu/20000nút/50000cạnh/256MiB cho mỗiKB; tối đa8 namespace mỗi worker. Cảnh báo từ80%; ngưỡng RSS1,5GiB là kiểm tra tiếp nhận công việc, không phải giới hạn bộ nhớ cứng của hệ điều hành. Nếu graph chạm ngưỡng, truy xuất vector vẫn được dùng; API duyệt graph báo không khả dụng thay vì trả rỗng như thể không có dữ liệu. Cấu hình nằm trong `app/core/config.py`.
+- Backup được người dùng chấp nhận đóng hạng mục ngày30/09/2026. Không diễn giải quyết định này thành bằng chứng lịch backup hằng ngày đã hoạt động. Không reboot VPS dùng chung để thử; kiểm khởi động/phục hồi dùng tiến trình và thư mục cô lập.
+
+Kết quả thực thi, trạng thái triển khai và các giới hạn hiện tại nằm trong `evaluation/runs/20260930-deploy/` ở workspace đánh giá. Bản rollback trên máy chủ được giữ riêng, có kiểm hash và hạn chế quyền đọc; không đưa thông tin đăng nhập vào báo cáo.
+
+
 ## 1. Truy cập
 
 | Mục | Giá trị |
@@ -178,3 +195,25 @@ bash run_bk.sh
 Repo là git tại `/home/kms/MiccoRAG-v3` (branch phát triển chính). Sau khi review các
 thay đổi (harness + tài liệu), tự commit theo quy trình của bạn. Runbook này **không**
 tự động commit/push.
+
+## Runtime update — 2026-09-29 (user micco)
+
+Current checkout: `/home/micco/MiccoRAG-v3`, SSH `micco@103.237.147.91`.
+This snapshot supersedes the older kms paths and runtime/drift notes above.
+
+- Started existing `nexusrag-postgres` and `nexusrag-chromadb` containers with `docker start`; existing data retained.
+- Backend: detached screen `micco-backend`, working directory `micco-backend/backend`, command `/home/micco/MiccoRAG-v3/micco-backend/venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8001`.
+- Frontend: detached screen `micco-frontend`, working directory `micco-frontend`, command `/home/micco/node22/bin/node node_modules/vite/bin/vite.js --host 0.0.0.0 --port 5174`.
+- Screen logs: `/home/micco/logs/miccorag/backend.log` and `/home/micco/logs/miccorag/frontend.log`.
+- Inspect with `screen -ls`; attach with `screen -r micco-backend` or `screen -r micco-frontend`; detach with Ctrl+A then D. These processes survive terminal/SSH disconnect, but are not configured to restart after VPS reboot or process failure.
+- Gateway `:8888` routes frontend to `:5174` and API to `:8001`. Port `:8000` belongs to Supabase Kong, not this checkout.
+- Verified via fresh SSH connections: backend health/ready, frontend, gateway frontend/API/docs all HTTP 200.
+- `BACKEND_PORT=8001 RUN_RAG=0 bash harness/run.sh smoke deploy --json --md`: 20 PASS / 2 FAIL / 3 WARN. Both FAILs refer to the same missing optional `micco-duckdns-updater`; WARNs: dev-skip rejected (401), paid RAG query skipped, no Alembic version row. No seed or manual migration run.
+- Reports: `harness/reports/20260929-152849.{json,md}`. Full RAG chat not exercised by this startup check.
+
+## Management KB access update — 2026-09-29
+
+- Activated the management read/retrieval permission change by gracefully restarting only the backend on `127.0.0.1:8001`, retaining its command, working directory, application environment, and `/home/micco/logs/miccorag/backend.log`. New detached screen: `824312.micco-backend`; frontend screen `456011.micco-frontend` unchanged.
+- Verified `/health` and `/ready` healthy/ready, plus live authenticated workspace list, summary, and detail endpoints: both `Giám đốc` and `Phó giám đốc` can access all 7 KB; a `Nhân viên` remains scoped to 2 KB and receives 403 for the others. Retrieval document filtering exposes all 17 indexed, approved documents to each management role. Tokens were short-lived and kept in memory.
+- `BACKEND_PORT=8001 RUN_RAG=0 bash harness/run.sh deploy --json --md`: 7 PASS / 1 FAIL / 1 WARN, unchanged from baseline. The FAIL is the existing missing optional DuckDNS updater; WARN is the existing absent Alembic version row. Gateway frontend/API/docs return HTTP 200. Report: `harness/reports/20260929-161838.{json,md}`.
+- No schema migration, seed, or manual business-data changes. No paid LLM answer generation was exercised by this deployment check.

@@ -1,3 +1,4 @@
+import ModalFocus from '../components/shared/ModalFocus';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -6,7 +7,7 @@ import {
     ChevronLeft, ChevronRight, Trash2, Search, Building2,
     Lock, Globe, MoreHorizontal, Eye, Download, Share2, Clock, XCircle, Square, CheckSquare, User
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authContextCore';
 import { fileTypeIconMap, fileTypeColors, fileTypeBgColors } from '../components/documents/fileTypes';
 import DocumentsToolbar from '../components/documents/DocumentsToolbar';
 import DocumentRow from '../components/documents/DocumentRow';
@@ -17,18 +18,63 @@ import { approvalsApi } from '../utils/api';
 
 const categories = ['All', 'Tài liệu', 'Hợp đồng', 'Báo cáo', 'Biên bản', 'Quy trình', 'Khác'];
 const ROWS_PER_PAGE = 5;
+// Phải khớp với ALLOWED_EXTENSIONS ở backend (api_compat/documents.py)
+const ALLOWED_UPLOAD_EXTENSIONS = ['pdf', 'txt', 'md', 'docx', 'pptx'];
+const ALLOWED_UPLOAD_ACCEPT = ALLOWED_UPLOAD_EXTENSIONS.map(ext => `.${ext}`).join(',');
+const ALLOWED_UPLOAD_HINT = 'PDF, TXT, DOCX, PPTX, MD — Tối đa 50MB';
+const normalizeSearch = value => String(value || '').toLocaleLowerCase('vi').replace(/đ/g, 'd').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+// R5-2: shared "no rows" state for both the table and grid views — renders
+// a connection/server error (with retry) instead of the empty-state copy
+// when the list failed to load, so "no results" is never confused with
+// "couldn't reach the server".
+function DocumentsListState({ loadError, onRetry, subtitle }) {
+    if (loadError) {
+        return (
+            <>
+                <AlertCircle className="w-12 h-12 text-red-300 dark:text-red-500/40 mx-auto mb-3" />
+                <p className="text-red-500 dark:text-red-400 font-medium">{loadError}</p>
+                <button
+                    onClick={onRetry}
+                    className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-primary-600 dark:text-primary-400 hover:underline"
+                >
+                    Thử lại
+                </button>
+            </>
+        );
+    }
+    return (
+        <>
+            <Search className="w-12 h-12 text-gray-200 dark:text-gray-700 mx-auto mb-3" />
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Không tìm thấy tài liệu</p>
+            {subtitle && <p className="text-sm text-gray-400 dark:text-gray-500">{subtitle}</p>}
+        </>
+    );
+}
 
 export default function Documents() {
     const { user, authFetch, refreshApprovals } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [documents, setDocuments] = useState([]);
+    const [trashOpen, setTrashOpen] = useState(false);
+    const [deletedDocuments, setDeletedDocuments] = useState([]);
+    const [trashLoading, setTrashLoading] = useState(false);
+    // R5-2: distinguish "genuinely empty" (documents === [] with no error)
+    // from "failed to load" (network/server error) so we don't show
+    // "Không tìm thấy tài liệu" when the list simply failed to load.
+    const [loadError, setLoadError] = useState(null);
+    const [listLoading, setListLoading] = useState(true);
     const [departments, setDepartments] = useState([]);
     const [selectedDeptId, setSelectedDeptId] = useState(null);
     const [view, setView] = useState('table');
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState('All');
     const [categoryFilter, setCategoryFilter] = useState('All');
+    const [tagFilter, setTagFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All');
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const [sortOrder, setSortOrder] = useState('newest');
     const [dragActive, setDragActive] = useState(false);
     const [showUpload, setShowUpload] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
@@ -37,6 +83,10 @@ export default function Documents() {
     const [uploadTags, setUploadTags] = useState([]);
     const [uploadThumbnail, setUploadThumbnail] = useState(null);
     const [uploadVisibility, setUploadVisibility] = useState('internal');
+    const uploadReceiptRef = useRef(null);
+    const [effectiveFrom, setEffectiveFrom] = useState('');
+    const [sameNameAction, setSameNameAction] = useState('');
+    const [effectiveUntil, setEffectiveUntil] = useState('');
     const [uploadTagInput, setUploadTagInput] = useState('');
     const [stagedFiles, setStagedFiles] = useState([]);
     const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -56,6 +106,7 @@ export default function Documents() {
     const listRefreshRef = useRef(null);
     // Stable ref so the auto-refresh timer can always call the latest fetchDocuments
     const fetchDocumentsRef = useRef(null);
+    const fetchSeqRef = useRef(0);
     // Map docId → original_filename for completion notifications
     const docNamesRef = useRef({});
 
@@ -91,7 +142,7 @@ export default function Documents() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [typeFilter, categoryFilter, selectedDeptId]);
 
-    useEffect(() => { setCurrentPage(1); }, [search, typeFilter, categoryFilter, selectedDeptId, uploaderFilterId]);
+    useEffect(() => { setCurrentPage(1); }, [search, typeFilter, categoryFilter, tagFilter, statusFilter, selectedDeptId, uploaderFilterId]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -102,9 +153,11 @@ export default function Documents() {
 
     // Cleanup on unmount
     useEffect(() => {
+        const polling = pollingRef.current;
+        const listRefresh = listRefreshRef;
         return () => {
-            if (listRefreshRef.current) clearTimeout(listRefreshRef.current);
-            Object.keys(pollingRef.current).forEach(id => { pollingRef.current[id] = false; });
+            if (listRefresh.current) clearTimeout(listRefresh.current);
+            Object.keys(polling).forEach(id => { polling[id] = false; });
         };
     }, []);
 
@@ -156,7 +209,7 @@ export default function Documents() {
                     pollingRef.current[docId] = false;
                     return;
                 }
-            } catch (e) { /* silent */ }
+            } catch { /* silent */ }
             if (pollingRef.current[docId]) setTimeout(poll, 3000);
         };
         poll();
@@ -166,6 +219,8 @@ export default function Documents() {
     // Fetch document list
     // ------------------------------------------------------------------
     const fetchDocuments = async () => {
+        const requestSeq = ++fetchSeqRef.current;
+        setListLoading(true);
         try {
             const params = new URLSearchParams();
             if (typeFilter !== 'All') params.append('type', typeFilter);
@@ -173,10 +228,13 @@ export default function Documents() {
             if (selectedDeptId !== null) params.append('department_id', selectedDeptId);
             const qs = params.toString();
             const res = await authFetch(`/api/documents${qs ? '?' + qs : ''}`);
+            if (requestSeq !== fetchSeqRef.current) return;
             if (res.ok) {
                 const data = await res.json();
+                if (requestSeq !== fetchSeqRef.current) return;
                 const docs = Array.isArray(data) ? data : (data.items || []);
                 setDocuments(docs);
+                setLoadError(null);
 
                 // Start per-document polling for approved+processing docs
                 docs.forEach(doc => {
@@ -209,8 +267,22 @@ export default function Documents() {
                         if (fetchDocumentsRef.current) fetchDocumentsRef.current();
                     }, 8000);
                 }
+            } else if (res.status === 401) {
+                // Session expired — authFetch already triggered logout(),
+                // which unmounts this page via ProtectedRoute. Don't flash
+                // a connection-error message during that redirect.
+            } else {
+                setDocuments([]);
+                setLoadError('Không thể tải danh sách tài liệu. Vui lòng thử lại.');
             }
-        } catch (err) { console.error('Failed to fetch documents:', err); }
+        } catch (err) {
+            if (requestSeq !== fetchSeqRef.current) return;
+            console.error('Failed to fetch documents:', err);
+            setDocuments([]);
+            setLoadError('Mất kết nối mạng. Vui lòng kiểm tra kết nối và thử lại.');
+        } finally {
+            if (requestSeq === fetchSeqRef.current) setListLoading(false);
+        }
     };
 
     // Always keep the ref pointing to the latest fetchDocuments closure
@@ -219,8 +291,17 @@ export default function Documents() {
 
     const filteredDocs = documents.filter((doc) => {
         const name = doc.name || doc.original_filename || '';
-        const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
+        const matchesSearch = normalizeSearch(name).includes(normalizeSearch(search));
         if (!matchesSearch) return false;
+
+        const tags = Array.isArray(doc.tags) ? doc.tags : String(doc.tags || '').split(',');
+        if (tagFilter && !tags.some(tag => normalizeSearch(tag).includes(normalizeSearch(tagFilter)))) return false;
+        const status = String(doc.status || '').toLowerCase();
+        const approval = String(doc.approval_status || '').toLowerCase();
+        if (statusFilter === 'pending' && !approval.startsWith('pending')) return false;
+        if (statusFilter === 'rejected' && approval !== 'rejected') return false;
+        if (statusFilter === 'processing' && !['parsing', 'processing', 'indexing', 'pending'].includes(status)) return false;
+        if (['indexed', 'failed'].includes(statusFilter) && status !== statusFilter) return false;
 
         if (uploaderFilterId !== null) {
             const uploaderId = Number(doc.uploader_id);
@@ -228,7 +309,9 @@ export default function Documents() {
         }
 
         return true;
-    });
+    }).sort((a, b) => sortOrder === 'name'
+        ? normalizeSearch(a.name || a.original_filename).localeCompare(normalizeSearch(b.name || b.original_filename), 'vi')
+        : new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
     // Pagination
     const totalPages = Math.max(1, Math.ceil(filteredDocs.length / ROWS_PER_PAGE));
@@ -242,15 +325,32 @@ export default function Documents() {
 
     const stageFiles = (fileList) => {
         if (!fileList?.length) return;
-        setStagedFiles(prev => [...prev, ...Array.from(fileList)]);
+        const incoming = Array.from(fileList);
+        const accepted = [];
+        const rejectedNames = [];
+        for (const file of incoming) {
+            const ext = getExt(file.name).toLowerCase();
+            if (ALLOWED_UPLOAD_EXTENSIONS.includes(ext)) {
+                accepted.push(file);
+            } else {
+                rejectedNames.push(file.name);
+            }
+        }
+        if (accepted.length) {
+            setStagedFiles(prev => [...prev, ...accepted]);
+        }
         setUploadSuccess(false);
-        setUploadError('');
+        if (rejectedNames.length) {
+            setUploadError(`Định dạng file không được hỗ trợ: ${rejectedNames.join(', ')}. Chỉ chấp nhận ${ALLOWED_UPLOAD_HINT}.`);
+        } else {
+            setUploadError('');
+        }
     };
 
     const removeStagedFile = (index) => setStagedFiles(prev => prev.filter((_, i) => i !== index));
 
     const handleUpload = async () => {
-        if (!stagedFiles.length) return;
+        if (!stagedFiles.length || !effectiveFrom || (effectiveUntil && effectiveUntil < effectiveFrom)) return;
         setUploading(true);
         setUploadSuccess(false);
         setUploadError('');
@@ -259,13 +359,31 @@ export default function Documents() {
             for (const file of stagedFiles) formData.append('files', file);
             formData.append('category', uploadCategory);
             formData.append('visibility', uploadVisibility);
+            formData.append('effective_from', effectiveFrom);
+            if (sameNameAction) formData.append('same_name_action', sameNameAction);
+            if (effectiveUntil) formData.append('effective_until', effectiveUntil);
             if (uploadTags.length) formData.append('tags', uploadTags.join(','));
             if (uploadThumbnail) formData.append('thumbnail', uploadThumbnail);
-            const res = await authFetch('/api/documents/upload', { method: 'POST', body: formData });
+            const fingerprint = JSON.stringify({ files: stagedFiles.map(file => [file.name, file.size, file.lastModified]), sameNameAction, category: uploadCategory, visibility: uploadVisibility, effectiveFrom, effectiveUntil, tags: uploadTags, thumbnail: uploadThumbnail && [uploadThumbnail.name, uploadThumbnail.size, uploadThumbnail.lastModified] });
+            if (uploadReceiptRef.current?.fingerprint !== fingerprint) {
+                uploadReceiptRef.current = { fingerprint, key: crypto.randomUUID() };
+            }
+            const res = await authFetch('/api/documents/upload', { method: 'POST', body: formData, headers: { 'Idempotency-Key': uploadReceiptRef.current.key } });
             if (res.ok) {
+                const createdDocs = await res.json().catch(() => []);
+                uploadReceiptRef.current = null;
                 await fetchDocuments();
                 refreshApprovals();
-                showToast(`Tải lên ${stagedFiles.length} tài liệu thành công`);
+                // Server trả về mảng document vừa tạo, mỗi item có approval_status
+                // ("approved" khi Admin/Trưởng phòng tự duyệt, "pending"/"pending_org"
+                // khi Nhân viên upload và cần chờ duyệt) — phân nhánh toast theo đó.
+                const anyPending = Array.isArray(createdDocs) &&
+                    createdDocs.some(d => d.approval_status && d.approval_status !== 'approved');
+                showToast(
+                    anyPending
+                        ? `Tải lên ${stagedFiles.length} tài liệu thành công! Đang chờ phê duyệt.`
+                        : `Tải lên ${stagedFiles.length} tài liệu thành công`
+                );
                 setUploadSuccess(true);
                 setStagedFiles([]);
                 setTimeout(() => {
@@ -275,6 +393,8 @@ export default function Documents() {
                     setUploadTagInput('');
                     setUploadThumbnail(null);
                     setUploadVisibility('internal');
+                    setEffectiveFrom('');
+                    setEffectiveUntil('');
                     setUploadSuccess(false);
                 }, 1500);
             } else {
@@ -323,6 +443,33 @@ export default function Documents() {
             showToast('Có lỗi xảy ra khi xóa', 'error');
         }
         setDeleteTarget(null);
+    };
+
+    const loadTrash = async () => {
+        setTrashLoading(true);
+        try {
+            const res = await authFetch('/api/documents?include_deleted=true');
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            setDeletedDocuments(Array.isArray(data) ? data : (data.items || []));
+            setTrashOpen(true);
+        } catch {
+            showToast('Không thể tải thùng rác', 'error');
+        } finally {
+            setTrashLoading(false);
+        }
+    };
+
+    const restoreDocument = async (id) => {
+        try {
+            const res = await authFetch(`/api/documents/${id}/restore`, { method: 'POST' });
+            if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Khôi phục thất bại');
+            await fetchDocuments();
+            await loadTrash();
+            showToast('Đã khôi phục tài liệu');
+        } catch (err) {
+            showToast(err.message || 'Khôi phục thất bại', 'error');
+        }
     };
 
     const toggleSelect = (id) => {
@@ -415,6 +562,25 @@ export default function Documents() {
                 </div>
             )}
 
+            <div className="mx-2">
+                <button type="button" onClick={() => trashOpen ? setTrashOpen(false) : loadTrash()}
+                    className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600">
+                    {trashOpen ? 'Ẩn thùng rác' : 'Thùng rác (lưu 30 ngày)'}
+                </button>
+                {trashOpen && (
+                    <div className="mt-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+                        {trashLoading ? <p className="text-sm text-gray-500">Đang tải...</p>
+                            : deletedDocuments.length === 0 ? <p className="text-sm text-gray-500">Thùng rác trống</p>
+                                : deletedDocuments.map(item => (
+                                    <div key={item.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                                        <span className="truncate">{item.name || item.original_filename}</span>
+                                        <button type="button" onClick={() => restoreDocument(item.id)} className="text-primary-600 font-semibold">Khôi phục</button>
+                                    </div>
+                                ))}
+                    </div>
+                )}
+            </div>
+
             {/* ══════════════ Department Filter ══════════════ */}
             {departments.length > 0 && (
                 <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 mx-2 px-5 py-4">
@@ -458,11 +624,24 @@ export default function Documents() {
                     view={view}
                     onViewChange={setView}
                     onUploadClick={() => setShowUpload(!showUpload)}
+                    filtersOpen={filtersOpen}
+                    onToggleFilters={() => setFiltersOpen(open => !open)}
+                    typeFilter={typeFilter}
+                    onTypeFilterChange={setTypeFilter}
+                    categoryFilter={categoryFilter}
+                    onCategoryFilterChange={setCategoryFilter}
+                    tagFilter={tagFilter}
+                    onTagFilterChange={setTagFilter}
+                    statusFilter={statusFilter}
+                    onStatusFilterChange={setStatusFilter}
+                    sortOrder={sortOrder}
+                    onSortOrderChange={setSortOrder}
+                    categories={categories}
                 />
 
                 {/* ─── Upload Modal ─── */}
                 {showUpload && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <ModalFocus label="Tải lên tài liệu" onClose={closeUploadPanel} className="fixed inset-0 z-50 flex items-center justify-center">
                         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeUploadPanel} />
                         <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-hidden flex flex-col border border-gray-200 dark:border-gray-800 animate-fade-in">
                             {/* Header */}
@@ -512,11 +691,12 @@ export default function Documents() {
                                             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                                 {dragActive ? 'Thả tệp vào đây' : 'Kéo thả tệp hoặc nhấp để chọn'}
                                             </p>
-                                            <p className="text-xs text-gray-400">PDF, DOCX, XLSX, PPTX, PNG, JPG, MD, ZIP — Tối đa 50MB</p>
+                                            <p className="text-xs text-gray-400">{ALLOWED_UPLOAD_HINT}</p>
                                             <input
                                                 id="file-input-upload"
                                                 type="file"
                                                 multiple
+                                                accept={ALLOWED_UPLOAD_ACCEPT}
                                                 className="hidden"
                                                 onChange={handleFileInput}
                                             />
@@ -582,6 +762,24 @@ export default function Documents() {
                                                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                                     </div>
                                                 </div>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    <label className="text-xs font-semibold text-gray-500">Ngày hiệu lực *
+                                                        <input type="date" required value={effectiveFrom} onChange={e => setEffectiveFrom(e.target.value)}
+                                                            className="block w-full mt-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white" />
+                                                    </label>
+                                                    <label className="text-xs font-semibold text-gray-500">Ngày hết hiệu lực (nếu có)
+                                                        <input type="date" min={effectiveFrom || undefined} value={effectiveUntil} onChange={e => setEffectiveUntil(e.target.value)}
+                                                            className="block w-full mt-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white" />
+                                                    </label>
+                                                </div>
+                                                <label className="block text-xs mb-3">Nếu tên tệp đã tồn tại
+                                                    <select value={sameNameAction} onChange={e => setSameNameAction(e.target.value)} className="block w-full border rounded-lg p-2 mt-1 dark:bg-gray-800">
+                                                        <option value="">Dừng để kiểm tra hoặc thêm phiên bản mới</option>
+                                                        <option value="new_document">Tôi chọn tạo tài liệu riêng</option>
+                                                    </select>
+                                                </label>
+                                                {effectiveUntil && effectiveUntil < effectiveFrom && <p className="text-xs text-red-600">Ngày hết hiệu lực phải từ ngày hiệu lực trở đi.</p>}
 
                                                 {/* Visibility */}
                                                 <div>
@@ -700,7 +898,7 @@ export default function Documents() {
                                     </button>
                                     <button
                                         onClick={handleUpload}
-                                        disabled={!stagedFiles.length || uploading}
+                                        disabled={!stagedFiles.length || !effectiveFrom || !!(effectiveUntil && effectiveUntil < effectiveFrom) || uploading}
                                         className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
                                         {uploading ? (
@@ -712,7 +910,7 @@ export default function Documents() {
                                 </div>
                             )}
                         </div>
-                    </div>
+                    </ModalFocus>
                 )}
 
                 {/* ─── Table View ─── */}
@@ -724,6 +922,7 @@ export default function Documents() {
                                     <th className="pl-6 pr-2 py-4 w-10">
                                         <button
                                             onClick={toggleSelectAll}
+                                            aria-pressed={selectedIds.size === pageDocs.length && pageDocs.length > 0}
                                             className="text-gray-400 hover:text-primary-600 transition-colors"
                                             title={selectedIds.size === pageDocs.length && pageDocs.length > 0 ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
                                         >
@@ -741,18 +940,23 @@ export default function Documents() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-                                {pageDocs.length === 0 && (
+                                {listLoading && (
+                                    <tr><td colSpan={7} className="px-6 py-14 text-center text-sm text-gray-500">Đang tải tài liệu...</td></tr>
+                                )}
+                                {!listLoading && pageDocs.length === 0 && (
                                     <tr>
                                         <td colSpan={7}>
                                             <div className="px-6 py-14 text-center">
-                                                <Search className="w-12 h-12 text-gray-200 dark:text-gray-700 mx-auto mb-3" />
-                                                <p className="text-gray-500 dark:text-gray-400 font-medium">Không tìm thấy tài liệu</p>
-                                                <p className="text-sm text-gray-400 dark:text-gray-500">Hãy điều chỉnh tìm kiếm hoặc bộ lọc</p>
+                                                <DocumentsListState
+                                                    loadError={loadError}
+                                                    onRetry={fetchDocuments}
+                                                    subtitle="Hãy điều chỉnh tìm kiếm hoặc bộ lọc"
+                                                />
                                             </div>
                                         </td>
                                     </tr>
                                 )}
-                                {pageDocs.map((doc) => (
+                                {!listLoading && pageDocs.map((doc) => (
                                     <tr
                                         key={doc.id}
                                         className={`transition-colors ${
@@ -792,13 +996,13 @@ export default function Documents() {
                 {/* ─── Grid View ─── */}
                 {view === 'grid' && (
                     <div className="p-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                        {pageDocs.length === 0 && (
+                        {listLoading && <div className="col-span-full py-14 text-center text-sm text-gray-500">Đang tải tài liệu...</div>}
+                        {!listLoading && pageDocs.length === 0 && (
                             <div className="col-span-full py-14 text-center">
-                                <Search className="w-12 h-12 text-gray-200 dark:text-gray-700 mx-auto mb-3" />
-                                <p className="text-gray-500 font-medium">Không tìm thấy tài liệu</p>
+                                <DocumentsListState loadError={loadError} onRetry={fetchDocuments} />
                             </div>
                         )}
-                        {pageDocs.map((doc) => (
+                        {!listLoading && pageDocs.map((doc) => (
                             <DocumentCard
                                 key={doc.id}
                                 doc={doc}
@@ -811,7 +1015,7 @@ export default function Documents() {
                 )}
 
                 {/* ─── Pagination ─── */}
-                {filteredDocs.length > 0 && (
+                {!listLoading && filteredDocs.length > 0 && (
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-100 dark:border-gray-800">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                             Hiển thị {Math.min((currentPage - 1) * ROWS_PER_PAGE + 1, filteredDocs.length)} đến{' '}
@@ -866,25 +1070,25 @@ export default function Documents() {
 
             {/* ─── Delete Modal (single) ─── */}
             {deleteTarget && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <ModalFocus label="Xóa tài liệu" onClose={() => setDeleteTarget(null)} className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDeleteTarget(null)} />
                     <div className="relative bg-white dark:bg-gray-900 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl border border-gray-200 dark:border-gray-800 animate-fade-in">
                         <div className="w-10 h-10 rounded-md bg-red-100 dark:bg-red-500/20 flex items-center justify-center mx-auto mb-4">
                             <Trash2 className="w-5 h-5 text-red-500" />
                         </div>
                         <h3 className="text-base font-bold text-gray-900 dark:text-white text-center mb-2">Xóa tài liệu</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-5">Bạn có chắc chắn muốn xóa tài liệu này không? Hành động này không thể hoàn tác.</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-5">Bạn có chắc chắn muốn xóa tài liệu này không? Nội dung ngừng được dùng để hỏi đáp và có thể khôi phục trong thùng rác trong 30 ngày.</p>
                         <div className="flex gap-3">
                             <button onClick={() => setDeleteTarget(null)} className="flex-1 px-4 py-2 rounded-md border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Hủy</button>
                             <button onClick={() => handleDelete(deleteTarget)} className="flex-1 px-4 py-2 rounded-md bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors">Xóa</button>
                         </div>
                     </div>
-                </div>
+                </ModalFocus>
             )}
 
             {/* ─── Bulk Delete Modal ─── */}
             {showBulkDeleteModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <ModalFocus label="Xóa các tài liệu đã chọn" onClose={() => setShowBulkDeleteModal(false)} className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowBulkDeleteModal(false)} />
                     <div className="relative bg-white dark:bg-gray-900 rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl border border-gray-200 dark:border-gray-800 animate-fade-in">
                         <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center mx-auto mb-4">
@@ -892,14 +1096,14 @@ export default function Documents() {
                         </div>
                         <h3 className="text-base font-bold text-gray-900 dark:text-white text-center mb-1">Xóa {selectedIds.size} tài liệu</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-5">
-                            Bạn có chắc muốn xóa <span className="font-semibold text-red-500">{selectedIds.size}</span> tài liệu đã chọn? Hành động này không thể hoàn tác.
+                            Bạn có chắc muốn xóa <span className="font-semibold text-red-500">{selectedIds.size}</span> tài liệu đã chọn? Nội dung ngừng được dùng để hỏi đáp và có thể khôi phục trong thùng rác trong 30 ngày.
                         </p>
                         <div className="flex gap-3">
                             <button onClick={() => setShowBulkDeleteModal(false)} className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Hủy</button>
                             <button onClick={handleBulkDelete} className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-colors">Xóa tất cả</button>
                         </div>
                     </div>
-                </div>
+                </ModalFocus>
             )}
 
             {/* ─── Floating Selection Action Bar ─── */}

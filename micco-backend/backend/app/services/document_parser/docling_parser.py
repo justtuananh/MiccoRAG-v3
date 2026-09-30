@@ -294,6 +294,9 @@ class DoclingDocumentParser(BaseDocumentParser):
                 contextualized=contextualized,
             ))
 
+        from app.services.document_parser.base import ensure_media_chunks
+        chunks = ensure_media_chunks(chunks, images, tables, document_id, original_filename)
+
         if images:
             logger.info(
                 f"Image-aware chunking: {len(assigned_images)}/{len(images)} images "
@@ -404,7 +407,7 @@ class DoclingDocumentParser(BaseDocumentParser):
         for idx in pic_to_image_idx:
             if idx >= 0:
                 img = images[idx]
-                url = f"/static/doc-images/kb_{self.workspace_id}/images/{img.image_id}.png"
+                url = f"/api/v1/documents/{img.document_id}/images/{img.image_id}/file"
                 pic_url_list.append((img.caption, url))
             else:
                 pic_url_list.append(("", ""))

@@ -44,7 +44,7 @@ elif [ -d "$BACKEND_APP_DIR/tests/integration" ]; then
     sum=$(printf '%s' "$out" | grep -oE '[0-9]+ (passed|failed|error|skipped)[a-z, ]*' | tr '\n' ' ')
     [ -z "$sum" ] && sum=$(printf '%s' "$out" | tail -2 | tr '\n' ' ')
     [ "$rc" = 0 ] && ok "integration PASS — $sum" || no "integration FAIL — $sum"
-  else wn "backend không chạy — bỏ qua integration"; fi
-else note "chưa có tests/integration/"; fi
+  else no "backend không chạy — không thể kiểm integration đã yêu cầu"; fi
+else no "chưa có tests/integration/ nhưng RUN_INTEGRATION=1"; fi
 
 summary; exit $?

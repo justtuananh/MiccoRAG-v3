@@ -6,11 +6,13 @@ Workspace 3 loại:
 - Department (visibility=department, department_id=dept_id): member trong dept truy cập
 - Public (visibility=public): tất cả user đã đăng nhập truy cập
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import datetime
+from fastapi import BackgroundTasks, APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_, and_
 from sqlalchemy.orm import selectinload
 
+from app.core.permissions import can_read_all_knowledge, can_access_workspace, can_modify_workspace
 from app.core.deps import get_db
 from app.core.exceptions import NotFoundError
 from app.core.security import get_current_user
@@ -31,42 +33,15 @@ router = APIRouter(prefix="/workspaces", tags=["workspaces"])
 # ─── Access Helpers ────────────────────────────────────────────────
 
 def _can_access_workspace(user: User, kb: KnowledgeBase) -> bool:
-    """Check if user can access this workspace."""
-    if user.role == "Admin":
-        return True
-    if kb.visibility == "public":
-        return True
-    if kb.visibility == "department" and kb.department_id == user.department_id:
-        return True
-    if kb.visibility == "private" and kb.owner_id == user.id:
-        return True
-    return False
+    return can_access_workspace(user, kb)
 
 
 def _can_modify_workspace(user: User, kb: KnowledgeBase) -> bool:
-    """Check if user can modify this workspace."""
-    if user.role == "Admin":
-        return True
-    # Chỉ owner mới sửa được personal workspace
-    if kb.visibility == "private" and kb.owner_id == user.id:
-        return True
-    # Trưởng phòng sửa được workspace của phòng mình
-    if kb.visibility == "department" and kb.department_id == user.department_id and user.role == "Trưởng phòng":
-        return True
-    return False
+    return can_modify_workspace(user, kb)
 
 
 def _can_delete_workspace(user: User, kb: KnowledgeBase) -> bool:
-    """Check if user can delete this workspace."""
-    if user.role == "Admin":
-        return True
-    # Chỉ owner mới xóa được personal workspace
-    if kb.visibility == "private" and kb.owner_id == user.id:
-        return True
-    # Trưởng phòng xóa được workspace của phòng mình
-    if kb.visibility == "department" and kb.department_id == user.department_id and user.role == "Trưởng phòng":
-        return True
-    return False
+    return can_modify_workspace(user, kb)
 
 
 # ─── Response Builder ────────────────────────────────────────────────
@@ -76,7 +51,7 @@ async def _enrich_response(db: AsyncSession, kb: KnowledgeBase) -> WorkspaceResp
     from sqlalchemy import cast, String
     indexed = await db.execute(
         select(func.count(Document.id)).where(
-            Document.workspace_id == kb.id,
+            Document.workspace_id == kb.id, Document.deleted_at.is_(None),
             cast(Document.status, String).in_(["indexed", "INDEXED"]),
         )
     )
@@ -96,6 +71,7 @@ async def _enrich_response(db: AsyncSession, kb: KnowledgeBase) -> WorkspaceResp
         department_name=kb.department.name if kb.department else None,
         created_at=kb.created_at,
         updated_at=kb.updated_at,
+        deleted_at=kb.deleted_at,
     )
 
 
@@ -111,10 +87,10 @@ async def list_workspaces(
     - Admin: thấy tất cả workspaces
     - User: thấy personal (owner), department, và public workspaces
     """
-    if current_user.role == "Admin":
+    if can_read_all_knowledge(current_user):
         # Admin thấy tất cả workspaces
         result = await db.execute(
-            select(KnowledgeBase)
+            select(KnowledgeBase).where(KnowledgeBase.deleted_at.is_(None))
             .options(selectinload(KnowledgeBase.department))
             .order_by(KnowledgeBase.visibility, KnowledgeBase.updated_at.desc())
         )
@@ -122,7 +98,7 @@ async def list_workspaces(
     else:
         # User: personal (owner) + department (same dept) + public
         result = await db.execute(
-            select(KnowledgeBase)
+            select(KnowledgeBase).where(KnowledgeBase.deleted_at.is_(None))
             .options(selectinload(KnowledgeBase.department))
             .where(
                 or_(
@@ -173,6 +149,11 @@ async def create_workspace(
             detail="Chỉ Admin hoặc Trưởng phòng mới được tạo workspace phòng ban",
         )
 
+    if body.visibility == "department" and current_user.department_id is not None:
+        existing = (await db.execute(select(KnowledgeBase.id).where(KnowledgeBase.department_id == current_user.department_id))).scalar_one_or_none()
+        if existing is not None:
+            raise HTTPException(status_code=409, detail="Phòng ban đã có kho tri thức; hãy sử dụng hoặc khôi phục kho hiện có")
+
     # Personal workspace: gán owner = current_user
     # Department workspace: gán department_id = department của user
     # Public workspace: không gán department_id
@@ -222,13 +203,13 @@ async def list_workspace_summaries(
     """
     Compact list of accessible workspaces for dropdown selectors.
     """
-    if current_user.role == "Admin":
+    if can_read_all_knowledge(current_user):
         result = await db.execute(
-            select(KnowledgeBase).order_by(KnowledgeBase.name)
+            select(KnowledgeBase).where(KnowledgeBase.deleted_at.is_(None)).order_by(KnowledgeBase.name)
         )
     else:
         result = await db.execute(
-            select(KnowledgeBase)
+            select(KnowledgeBase).where(KnowledgeBase.deleted_at.is_(None))
             .where(
                 or_(
                     and_(
@@ -249,12 +230,19 @@ async def list_workspace_summaries(
     summaries = []
     for kb in kbs:
         cnt = await db.execute(
-            select(func.count(Document.id)).where(Document.workspace_id == kb.id)
+            select(func.count(Document.id)).where(Document.workspace_id == kb.id, Document.deleted_at.is_(None))
         )
         summaries.append(WorkspaceSummary(
             id=kb.id, name=kb.name, document_count=cnt.scalar() or 0
         ))
     return summaries
+
+
+@router.get("/trash", response_model=list[WorkspaceResponse])
+async def list_deleted_workspaces(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    workspaces = (await db.execute(select(KnowledgeBase).where(KnowledgeBase.deleted_at.is_not(None))
+        .options(selectinload(KnowledgeBase.department)))).scalars().all()
+    return [await _enrich_response(db, kb) for kb in workspaces if _can_modify_workspace(current_user, kb)]
 
 
 @router.get("/{workspace_id}", response_model=WorkspaceResponse)
@@ -296,6 +284,8 @@ async def update_workspace(
     if kb is None:
         raise NotFoundError("KnowledgeBase", workspace_id)
 
+    if kb.deleted_at is not None:
+        raise HTTPException(status_code=409, detail="Cần khôi phục kho tri thức trước khi sửa")
     if not _can_modify_workspace(current_user, kb):
         raise HTTPException(status_code=403, detail="Bạn không có quyền sửa workspace này")
 
@@ -303,9 +293,8 @@ async def update_workspace(
         kb.name = body.name
     if body.description is not None:
         kb.description = body.description
-    if body.visibility is not None:
-        # Không cho đổi visibility qua API (phức tạp về RBAC)
-        pass
+    if body.visibility is not None and body.visibility != kb.visibility:
+        raise HTTPException(status_code=400, detail="Không thể đổi phạm vi chia sẻ qua thao tác sửa kho tri thức")
     if body.system_prompt is not None:
         kb.system_prompt = body.system_prompt or None
     if body.kg_language is not None:
@@ -363,28 +352,30 @@ async def delete_workspace(
     if not _can_delete_workspace(current_user, kb):
         raise HTTPException(status_code=403, detail="Bạn không có quyền xóa workspace này")
 
-    # Clean up vector store
-    try:
-        from app.services.vector_store import get_vector_store
-        vs = get_vector_store(workspace_id)
-        vs.delete_collection()
-    except Exception:
-        pass
-
-    # Clean up KG data
-    try:
-        from app.services.knowledge_graph_service import KnowledgeGraphService
-        kg = KnowledgeGraphService(workspace_id)
-        await kg.delete_project_data()
-    except Exception:
-        pass
-
-    # Clean up image files
-    import shutil
-    from app.core.config import settings
-    images_dir = settings.BASE_DIR / "data" / "docling" / f"kb_{workspace_id}"
-    if images_dir.exists():
-        shutil.rmtree(images_dir, ignore_errors=True)
-
-    await db.delete(kb)
+    if kb.deleted_at is not None:
+        raise HTTPException(status_code=409, detail="Kho tri thức đã ở trong thùng rác")
+    # Keep files/indexes during the recovery window. Every read path checks the
+    # parent tombstone; deleting shared indexes here would break restoration.
+    kb.deleted_at = datetime.utcnow()
     await db.commit()
+
+
+@router.post("/{workspace_id}/restore")
+async def restore_workspace(
+    workspace_id: int, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    kb = (await db.execute(select(KnowledgeBase).where(
+        KnowledgeBase.id == workspace_id).with_for_update())).scalar_one_or_none()
+    if kb is None or kb.deleted_at is None:
+        raise HTTPException(status_code=404, detail="Kho tri thức không có trong thùng rác")
+    if not _can_modify_workspace(current_user, kb):
+        raise HTTPException(status_code=403, detail="Không có quyền khôi phục kho tri thức")
+    if (datetime.utcnow() - kb.deleted_at).days >= 30:
+        raise HTTPException(status_code=410, detail="Thời hạn khôi phục đã hết")
+    kb.deleted_at = None
+    documents = list((await db.execute(select(Document).where(Document.workspace_id == kb.id, Document.deleted_at.is_(None)).with_for_update())).scalars().all())
+    await db.commit()
+    from app.services.index_cleanup import queue_restored_documents
+    await queue_restored_documents(db, documents, background_tasks)
+    return {"id": kb.id, "message": "Đã khôi phục kho tri thức"}

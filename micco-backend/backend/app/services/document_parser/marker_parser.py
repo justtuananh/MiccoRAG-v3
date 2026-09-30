@@ -277,7 +277,7 @@ class MarkerDocumentParser(BaseDocumentParser):
         for i, img in enumerate(images):
             if i < len(filenames):
                 original_name = filenames[i]
-                served_url = f"/static/doc-images/kb_{self.workspace_id}/images/{img.image_id}.png"
+                served_url = f"/api/v1/documents/{img.document_id}/images/{img.image_id}/file"
                 # Replace in markdown: ![alt](original_name) → ![alt](served_url)
                 markdown = markdown.replace(f"]({original_name})", f"]({served_url})")
 

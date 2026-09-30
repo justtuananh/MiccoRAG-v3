@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/authContextCore';
+import { useTheme } from '../context/themeContextCore';
 import { User, Lock, Eye, EyeOff, ArrowRight, Sun, Moon, Github, Chrome } from 'lucide-react';
 
 export default function Login() {

@@ -2,12 +2,15 @@
 import { useState, useEffect } from 'react';
 
 export default function AnimatedCounter({ target, suffix = '', prefix = '' }) {
-    const [count, setCount] = useState(0);
     const num = typeof target === 'string' ? parseFloat(target) : target;
+    return <Counter key={String(num)} num={num} suffix={suffix} prefix={prefix} />;
+}
+
+function Counter({ num, suffix, prefix }) {
+    const [count, setCount] = useState(0);
 
     useEffect(() => {
-        if (isNaN(num)) { setCount(0); return; }
-        setCount(0);
+        if (isNaN(num)) return;
         const duration = 2000;
         const steps = 60;
         const stepTime = duration / steps;

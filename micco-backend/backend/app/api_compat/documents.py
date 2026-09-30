@@ -6,21 +6,26 @@ from __future__ import annotations
 
 import os
 import uuid
+import hashlib
+from datetime import date, datetime
 import aiofiles
 from pathlib import Path
 from typing import Annotated
+from pydantic import BaseModel
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi import Header, BackgroundTasks, APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy import select, func, or_, and_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
+from app.core.permissions import (can_read_all_knowledge, can_read_document, require_workspace_read, require_document_write)
 from app.core.deps import get_db
 from app.core.security import get_current_user
 from app.models.user import User
 from app.models.department import Department
+from app.models.knowledge_base import KnowledgeBase
 from app.models.document import Document, DocumentStatus
 from app.models.document_version import DocumentVersion
 from docx import Document as DocxDocument
@@ -51,53 +56,36 @@ THUMBNAIL_DIR = UPLOAD_DIR / "thumbnails"
 THUMBNAIL_DIR.mkdir(parents=True, exist_ok=True)
 
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
-ALLOWED_EXTENSIONS = {".pdf", ".txt", ".md", ".docx", ".pptx", ".xlsx", ".png", ".jpg", ".jpeg"}
+ALLOWED_EXTENSIONS = {".pdf", ".txt", ".md", ".docx", ".pptx"}
+
+
+class EffectiveDatesUpdate(BaseModel):
+    effective_from: date
+    effective_until: date | None = None
+    reason: str
 
 
 # ─── Access Control Helpers ────────────────────────────────────────
 
-def _check_doc_access(user: User, doc: Document) -> None:
-    """Raise 403 if user cannot access the document."""
-    if user.role == "Admin":
-        return
-    # Public docs: tất cả user đều truy cập được
-    if getattr(doc, "visibility", "internal") == "public":
-        return
-    # Uploader luôn truy cập được document của mình
-    if getattr(doc, "uploader_id", None) == user.id:
-        return
-    # Private docs: chỉ uploader/Admin được truy cập
-    if getattr(doc, "visibility", "internal") == "private":
-        raise HTTPException(
-            status_code=403,
-            detail="Bạn không có quyền truy cập tài liệu cá nhân này",
-        )
-    # Private docs (personal workspace): chỉ uploader truy cập (đã check ở trên)
-    # Department docs: phải cùng department
-    if getattr(doc, "visibility", "internal") == "department":
-        if doc.department_id is not None and user.department_id != doc.department_id:
-            raise HTTPException(
-                status_code=403,
-                detail="Bạn không có quyền truy cập tài liệu này",
-            )
-        return
-    # Internal: cùng department (legacy fallback)
-    if doc.department_id is not None and user.department_id != doc.department_id:
-        raise HTTPException(
-            status_code=403,
-            detail="Bạn không có quyền truy cập tài liệu này",
-        )
+async def _doc_kb(db: AsyncSession, doc: Document) -> KnowledgeBase:
+    kb = (await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == doc.workspace_id))).scalar_one_or_none()
+    if kb is None:
+        raise HTTPException(status_code=404, detail="Knowledge base not found")
+    return kb
 
 
-def _can_modify_doc(user: User, doc: Document) -> None:
-    """Raise 403 if user cannot modify/delete the document."""
-    if user.role == "Admin":
-        return
-    if doc.uploader_id != user.id:
-        raise HTTPException(
-            status_code=403,
-            detail="Chỉ người tải lên hoặc Admin mới có quyền thao tác với tài liệu này",
-        )
+async def _check_doc_access(user: User, doc: Document, db: AsyncSession) -> None:
+    kb = await _doc_kb(db, doc)
+    require_workspace_read(user, kb)
+    if not can_read_document(user, doc, kb, allow_owner_pending=True):
+        raise HTTPException(status_code=403, detail="Bạn không có quyền truy cập tài liệu này")
+
+
+async def _can_modify_doc(user: User, doc: Document, db: AsyncSession) -> None:
+    kb = await _doc_kb(db, doc)
+    require_workspace_read(user, kb)
+    if user.role != "Admin" and doc.uploader_id != user.id:
+        raise HTTPException(status_code=403, detail="Chỉ người tải lên hoặc Admin mới được sửa tài liệu")
 
 
 # ─── Document Listing ───────────────────────────────────────────────
@@ -108,6 +96,7 @@ async def list_documents(
     type_filter: str | None = Query(None, alias="type"),
     category: str | None = Query(None),
     department_id: int | None = Query(None),
+    include_deleted: bool = Query(False),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -121,9 +110,10 @@ async def list_documents(
         .outerjoin(Department, Document.department_id == Department.id)
         .outerjoin(User, Document.uploader_id == User.id)
     )
+    stmt = stmt.where(Document.deleted_at.is_not(None) if include_deleted else Document.deleted_at.is_(None))
 
     # Department + visibility scoping
-    if current_user.role != "Admin":
+    if not can_read_all_knowledge(current_user):
         stmt = stmt.where(
             or_(
                 Document.visibility == "public",
@@ -136,14 +126,16 @@ async def list_documents(
         )
 
     # Filter by selected department (admin only)
-    if department_id is not None and current_user.role == "Admin":
+    if department_id is not None and can_read_all_knowledge(current_user):
         stmt = stmt.where(Document.department_id == department_id)
 
     # Filter by approval_status:
     # - Admin: sees approved + rejected (pending handled in approvals tab)
     # - Trưởng phòng: sees approved only
     # - Nhân viên: sees approved + their own pending, but never rejected
-    if current_user.role == "Admin":
+    if include_deleted:
+        stmt = stmt.where(Document.uploader_id == current_user.id if current_user.role != "Admin" else True)
+    elif current_user.role == "Admin":
         stmt = stmt.where(Document.approval_status.notin_(["pending", "pending_org"]))
     elif current_user.role == "Trưởng phòng":
         stmt = stmt.where(Document.approval_status == "approved")
@@ -166,6 +158,15 @@ async def list_documents(
         dept_name = row[1]
         owner_name = row[2]
         mapped.append(map_rag_doc_to_legacy_with_dept(doc, owner_name=owner_name, dept_name=dept_name))
+
+    kb_ids = {row[0].workspace_id for row in rows}
+    if kb_ids:
+        kb_result = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id.in_(kb_ids)))
+        kb_by_id = {kb.id: kb for kb in kb_result.scalars().all()}
+        mapped = [item for item, row in zip(mapped, rows)
+                  if (kb := kb_by_id.get(row[0].workspace_id)) is not None
+                  and (current_user.role == "Admin" or (include_deleted and row[0].uploader_id == current_user.id)
+                       or can_read_document(current_user, row[0], kb, allow_owner_pending=True))]
 
     # Apply search
     if search:
@@ -192,6 +193,10 @@ async def upload_documents(
     category: str | None = Form(None),
     visibility: str | None = Form("internal"),
     department_id: int | None = Form(None),
+    idempotency_key: str | None = Header(None, max_length=128),
+    same_name_action: str | None = Form(None),
+    effective_from: date = Form(...),
+    effective_until: date | None = Form(None),
     thumbnail: UploadFile | None = File(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -206,143 +211,172 @@ async def upload_documents(
     - Tài liệu công khai → workspace của phòng ban tác giả (sẽ được replicate khi approve)
     Nếu user không có phòng ban → fallback về default workspace.
     """
-    requested_visibility = (visibility or "internal").lower()
-    if requested_visibility in ("personal", "private"):
-        effective_visibility = "private"
-    elif requested_visibility in ("internal", "public", "department"):
-        effective_visibility = requested_visibility
-    else:
-        effective_visibility = "internal"
+    if not files:
+        raise HTTPException(status_code=400, detail="Chưa chọn tài liệu")
+    if effective_until and effective_until < effective_from:
+        raise HTTPException(status_code=400, detail="Ngày hết hiệu lực không hợp lệ")
 
-    is_personal_upload = effective_visibility == "private"
+    requested_visibility = (visibility or "internal").lower()
+    effective_visibility = (
+        "private" if requested_visibility in ("personal", "private")
+        else requested_visibility if requested_visibility in ("internal", "public", "department")
+        else "internal"
+    )
+    # Department choice is privileged. The user's own department is authoritative
+    # for every ordinary upload, including directors whose all-KB privilege is read-only.
+    effective_dept_id = (
+        department_id if current_user.role == "Admin" and department_id is not None
+        else current_user.department_id
+    )
+    if effective_visibility == "private":
+        effective_dept_id = None
+
     is_org_approver = current_user.role in ORG_APPROVER_ROLES
     is_dept_approver = current_user.role in DEPT_APPROVER_ROLES
-    # Public docs require 2-level approval:
-    # employee -> pending (dept), TP -> pending_org (org), Admin -> approved
-    if is_personal_upload:
+    if effective_visibility == "private":
         doc_approval_status = "approved"
     elif effective_visibility == "public":
-        if is_org_approver:
-            doc_approval_status = "approved"
-        elif is_dept_approver:
-            doc_approval_status = "pending_org"
-        else:
-            doc_approval_status = "pending"
+        doc_approval_status = (
+            "approved" if is_org_approver else "pending_org" if is_dept_approver else "pending"
+        )
     else:
-        doc_approval_status = "approved" if (is_org_approver or is_dept_approver) else "pending"
-    effective_dept_id = department_id if department_id is not None else current_user.department_id
+        doc_approval_status = "approved" if (current_user.role == "Admin" or is_dept_approver) else "pending"
 
-    # Resolve workspace: personal -> personal workspace, else department/default.
-    if is_personal_upload:
-        workspace = await get_or_create_user_workspace(db, current_user.id)
-        effective_dept_id = None
-    elif effective_dept_id:
-        workspace = await get_or_create_department_workspace(db, effective_dept_id)
-    else:
-        workspace = await get_or_create_default_workspace(db)
-
-    created: list[dict] = []
-
-    for f in files:
-        if f.size and f.size > MAX_FILE_SIZE:
-            raise HTTPException(
-                status_code=400,
-                detail=f"File {f.filename} vượt quá giới hạn {MAX_FILE_SIZE // (1024*1024)}MB",
-            )
-
-        content = await f.read()
-        ext = Path(f.filename or "file").suffix.lower()
+    # Validate the entire batch before creating a workspace, DB record, or file.
+    prepared: list[tuple[UploadFile, bytes, str]] = []
+    for upload in files:
+        ext = Path(upload.filename or "file").suffix.lower()
         if ext not in ALLOWED_EXTENSIONS:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Định dạng file không được hỗ trợ: {ext}",
-            )
+            raise HTTPException(status_code=400, detail=f"Định dạng file không được hỗ trợ: {ext}")
+        content = await upload.read(MAX_FILE_SIZE + 1)
+        if len(content) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail=f"File {upload.filename} vượt quá giới hạn 50MB")
+        if not content or (ext in {".txt", ".md"} and not content.strip()):
+            raise HTTPException(status_code=400, detail="Tệp rỗng hoặc không có nội dung")
+        prepared.append((upload, content, ext))
 
-        # Save file
-        stored_name = f"{uuid.uuid4().hex}{ext}"
-        file_path = UPLOAD_DIR / stored_name
-        async with aiofiles.open(file_path, "wb") as out:
-            await out.write(content)
+    thumb_content = None
+    thumb_ext = None
+    if thumbnail:
+        thumb_ext = Path(thumbnail.filename or "file").suffix.lower()
+        if thumb_ext not in {".png", ".jpg", ".jpeg", ".webp"}:
+            raise HTTPException(status_code=400, detail="Định dạng thumbnail không được hỗ trợ")
+        thumb_content = await thumbnail.read(MAX_FILE_SIZE + 1)
+        if len(thumb_content) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail="Thumbnail vượt quá giới hạn 50MB")
 
-        # Handle thumbnail upload (shared across all files in batch)
+    written_paths: list[Path] = []
+    created_docs: list[tuple[Document, Path]] = []
+    try:
+        if effective_visibility == "private":
+            workspace = await get_or_create_user_workspace(db, current_user.id, commit=False)
+        elif effective_visibility == "public":
+            workspace = await get_or_create_default_workspace(db, commit=False)
+        elif effective_dept_id is not None:
+            workspace = await get_or_create_department_workspace(db, effective_dept_id, commit=False)
+        else:
+            workspace = await get_or_create_default_workspace(db, commit=False)
+        require_workspace_read(current_user, workspace)
+        from app.services.upload_idempotency import replay_upload, record_upload, lock_upload_hashes, require_filename_choice
+        payload = {"same_name_action":same_name_action,"files":[(item.filename,hashlib.sha256(content).hexdigest()) for item,content,_ in prepared],
+            "workspace_id":workspace.id,"visibility":effective_visibility,"department_id":effective_dept_id,
+            "effective_from":effective_from,"effective_until":effective_until,"tags":tags,"category":category,
+            "thumbnail":hashlib.sha256(thumb_content).hexdigest() if thumb_content else None}
+        replay = await replay_upload(db,current_user,"legacy-upload",idempotency_key,payload)
+        if replay is not None:
+            return replay
+        await lock_upload_hashes(db,workspace.id,[hashlib.sha256(content).hexdigest() for _,content,_ in prepared])
+        existing_hashes = set((await db.execute(select(Document.content_hash).where(
+            Document.workspace_id == workspace.id, Document.deleted_at.is_(None),
+            Document.content_hash.is_not(None),
+        ))).scalars().all())
+        batch_hashes = set()
+        for _, content, _ in prepared:
+            digest = hashlib.sha256(content).hexdigest()
+            if digest in existing_hashes or digest in batch_hashes:
+                raise HTTPException(status_code=409, detail="Nội dung trùng trong cùng kho tri thức")
+            batch_hashes.add(digest)
+
+        await require_filename_choice(db,workspace.id,[item.filename for item,_,_ in prepared],same_name_action)
+
+        dept_name = None
+        if effective_dept_id is not None:
+            dept_name = (await db.execute(
+                select(Department.name).where(Department.id == effective_dept_id)
+            )).scalar_one_or_none()
+
         thumb_name = None
-        if thumbnail:
-            thumb_content = await thumbnail.read()
-            thumb_ext = Path(thumbnail.filename or "file").suffix.lower()
+        if thumb_content is not None:
             thumb_name = f"{uuid.uuid4().hex}{thumb_ext}"
             thumb_path = THUMBNAIL_DIR / thumb_name
+            written_paths.append(thumb_path)
             async with aiofiles.open(thumb_path, "wb") as out:
                 await out.write(thumb_content)
 
-        # Create document record
-        doc = Document(
-            workspace_id=workspace.id,
-            filename=stored_name,
-            original_filename=f.filename,
-            file_type=ext[1:] if ext else "file",
-            file_size=len(content),
-            status=DocumentStatus.PENDING,
-            uploader_id=current_user.id,
-            department_id=effective_dept_id,
-            visibility=effective_visibility,
-            approval_status=doc_approval_status,
-            category=category,
-            tags=tags,
-            thumbnail=thumb_name,
-        )
-        db.add(doc)
+        for upload, content, ext in prepared:
+            stored_name = f"{uuid.uuid4().hex}{ext}"
+            file_path = UPLOAD_DIR / stored_name
+            written_paths.append(file_path)
+            async with aiofiles.open(file_path, "wb") as out:
+                await out.write(content)
+            doc = Document(
+                workspace_id=workspace.id,
+                filename=stored_name,
+                original_filename=upload.filename,
+                file_type=ext[1:],
+                file_size=len(content),
+                status=(DocumentStatus.PROCESSING if doc_approval_status == "approved"
+                        else DocumentStatus.PENDING),
+                uploader_id=current_user.id,
+                department_id=effective_dept_id,
+                visibility=effective_visibility,
+                approval_status=doc_approval_status,
+                effective_from=effective_from,
+                effective_until=effective_until,
+                content_hash=hashlib.sha256(content).hexdigest(),
+                approved_by=current_user.id if doc_approval_status == "approved" else None,
+                approved_at=datetime.utcnow() if doc_approval_status == "approved" else None,
+                category=category,
+                tags=tags,
+                thumbnail=thumb_name,
+            )
+            db.add(doc)
+            await db.flush()
+            db.add(DocumentVersion(
+                document_id=doc.id, version_number=1, version_label="V 1.0",
+                filename=stored_name, original_filename=upload.filename,
+                file_size=len(content), change_note="Phiên bản gốc",
+                created_by=current_user.id, is_current=True,
+                approval_status=doc_approval_status,
+                processing_status="processing" if doc_approval_status == "approved" else "pending",
+                effective_from=effective_from,
+                effective_until=effective_until,
+                approved_by=current_user.id if doc_approval_status == "approved" else None,
+                approved_at=datetime.utcnow() if doc_approval_status == "approved" else None,
+            ))
+            created_docs.append((doc, file_path))
+
         await db.flush()
-
-        # Create initial version V1.0
-        version = DocumentVersion(
-            document_id=doc.id,
-            version_number=1,
-            version_label="V 1.0",
-            filename=stored_name,
-            original_filename=f.filename,
-            file_size=len(content),
-            change_note="Phiên bản gốc",
-            created_by=current_user.id,
-            is_current=True,
-        )
-        db.add(version)
-
-        # Auto-approved docs (admin/truongphong/personal): mark as PROCESSING and launch bg task
-        if doc_approval_status == "approved":
-            doc.status = DocumentStatus.PROCESSING
+        response = [map_rag_doc_to_legacy_with_dept(
+            doc, owner_name=current_user.name, dept_name=dept_name
+        ) for doc, _ in created_docs]
+        record_upload(db,current_user,"legacy-upload",idempotency_key,payload,response)
         await db.commit()
+    except Exception:
+        await db.rollback()
+        for path in written_paths:
+            path.unlink(missing_ok=True)
+        raise
 
-        # Launch background processing for auto-approved uploads
-        if doc_approval_status == "approved":
-            import asyncio
-            from app.api.documents import process_document_background
+    # Start processing only after every file and DB record has committed.
+    if doc_approval_status == "approved":
+        import asyncio
+        from app.api.documents import process_document_background
+        for doc, file_path in created_docs:
             asyncio.get_event_loop().create_task(
                 process_document_background(doc.id, str(file_path), workspace.id)
             )
-            # If public: also index into all other department workspaces
-            if effective_visibility == "public":
-                other_workspaces = await get_all_department_workspaces(db)
-                for other_ws in other_workspaces:
-                    if other_ws.id != workspace.id:
-                        asyncio.get_event_loop().create_task(
-                            process_document_background(doc.id, str(file_path), other_ws.id)
-                        )
-
-        # Reload with department + uploader
-        result = await db.execute(
-            select(Document, Department.name.label("dept_name"), User.name.label("owner_name"))
-            .outerjoin(Department, Document.department_id == Department.id)
-            .outerjoin(User, Document.uploader_id == User.id)
-            .where(Document.id == doc.id)
-        )
-        row = result.one_or_none()
-        if row:
-            doc, dept_name, owner_name = row
-            created.append(map_rag_doc_to_legacy_with_dept(doc, owner_name=owner_name, dept_name=dept_name))
-        else:
-            created.append(map_rag_doc_to_legacy_with_dept(doc, owner_name=current_user.name))
-
-    return created
+    return response
 
 
 # ─── Processing Status ────────────────────────────────────
@@ -406,6 +440,15 @@ async def get_processing_status(
     )
     result = await db.execute(stmt)
     rows = result.all()
+    kb_ids = {doc.workspace_id for doc, _, _ in rows}
+    kb_by_id = {}
+    if kb_ids:
+        kb_rows = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id.in_(kb_ids)))
+        kb_by_id = {kb.id: kb for kb in kb_rows.scalars().all()}
+    rows = [row for row in rows
+            if (kb := kb_by_id.get(row[0].workspace_id)) is not None
+            and (current_user.role == "Admin" or
+                 can_read_document(current_user, row[0], kb, allow_owner_pending=True))]
 
     items = [
         ProcessingStatusResponse(
@@ -423,22 +466,21 @@ async def get_processing_status(
         for doc, dept_name, uploader_name in rows
     ]
 
-    # ── Compute counts for ALL groups (for tab badges) ────────────
-    count_stmt = (
-        select(
-            func.count(Document.id).filter(Document.status.in_(ACTIVE_STATUSES)).label("processing"),
-            func.count(Document.id).filter(Document.status == "INDEXED").label("indexed"),
-            func.count(Document.id).filter(Document.status == "FAILED").label("failed"),
-        )
-        .where(
-            Document.approval_status != "rejected",
-            scope_filter,
-        )
-    )
-    count_row = (await db.execute(count_stmt)).one()
-    cnt_processing = count_row.processing or 0
-    cnt_indexed = count_row.indexed or 0
-    cnt_failed = count_row.failed or 0
+    # Count only documents through the same KB and document policy as items.
+    all_status_rows = (await db.execute(select(Document).where(
+        Document.approval_status != "rejected", scope_filter,
+    ))).scalars().all()
+    missing_kb_ids = {doc.workspace_id for doc in all_status_rows} - set(kb_by_id)
+    if missing_kb_ids:
+        more = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id.in_(missing_kb_ids)))
+        kb_by_id.update({kb.id: kb for kb in more.scalars().all()})
+    visible_docs = [doc for doc in all_status_rows
+                    if (kb := kb_by_id.get(doc.workspace_id)) is not None
+                    and (current_user.role == "Admin" or
+                         can_read_document(current_user, doc, kb, allow_owner_pending=True))]
+    cnt_processing = sum(doc.status.value.upper() in ACTIVE_STATUSES for doc in visible_docs)
+    cnt_indexed = sum(doc.status == DocumentStatus.INDEXED for doc in visible_docs)
+    cnt_failed = sum(doc.status == DocumentStatus.FAILED for doc in visible_docs)
 
     counts = StatusCounts(
         all=cnt_processing,          # "Tất cả" badge = active docs
@@ -475,7 +517,7 @@ async def get_document(
     dept_name = row[1]
     owner_name = row[2]
 
-    _check_doc_access(current_user, doc)
+    await _check_doc_access(current_user, doc, db)
 
     return map_rag_doc_to_legacy_with_dept(doc, owner_name=owner_name, dept_name=dept_name)
 
@@ -493,7 +535,7 @@ async def download_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    _check_doc_access(current_user, doc)
+    await _check_doc_access(current_user, doc, db)
 
     file_path = UPLOAD_DIR / doc.filename
     if not file_path.exists():
@@ -524,7 +566,7 @@ async def preview_document_text(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    _check_doc_access(current_user, doc)
+    await _check_doc_access(current_user, doc, db)
 
     file_path = UPLOAD_DIR / doc.filename
     if not file_path.exists():
@@ -570,7 +612,7 @@ async def get_thumbnail(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    _check_doc_access(current_user, doc)
+    await _check_doc_access(current_user, doc, db)
 
     # Thumbnail is stored in the document record as a path string
     thumb_path_str = getattr(doc, "thumbnail", None) or ""
@@ -607,16 +649,32 @@ async def get_document_versions(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    _check_doc_access(current_user, doc)
+    await _check_doc_access(current_user, doc, db)
+
+    from app.services.document_lifecycle import version_family_root
+    try:
+        root_id = await version_family_root(db, doc)
+    except ValueError:
+        raise HTTPException(status_code=409, detail="Dòng phiên bản không hợp lệ")
 
     versions = (
         await db.execute(
             select(DocumentVersion)
             .options(selectinload(DocumentVersion.creator))
-            .where(DocumentVersion.document_id == doc_id)
+            .where(DocumentVersion.document_id == root_id)
             .order_by(DocumentVersion.version_number.desc())
         )
     ).scalars().all()
+
+    kb = await _doc_kb(db, doc)
+    visible = []
+    for version in versions:
+        target = await db.get(Document, version.document_ref_id) if version.document_ref_id else await db.get(Document, root_id)
+        if target and can_read_document(current_user, target, kb, allow_owner_pending=True):
+            visible.append(version)
+    from app.api.rag import get_allowed_document_ids
+    current_ids = set(await get_allowed_document_ids(db, current_user, doc.workspace_id))
+    versions = visible
 
     return [
         LegacyDocumentVersionResponse(
@@ -628,7 +686,7 @@ async def get_document_versions(
             size=v.size_human,
             change_note=v.change_note,
             created_by_name=v.creator_name,
-            is_current=bool(v.is_current),
+            is_current=(v.document_ref_id or root_id) in current_ids,
             created_at=v.created_at,
         )
         for v in versions
@@ -640,23 +698,39 @@ async def upload_new_version(
     doc_id: int,
     file: UploadFile = File(...),
     change_note: str | None = Form(None),
+    effective_from: date = Form(...),
+    effective_until: date | None = Form(None),
+    idempotency_key: str | None = Header(None, alias="Idempotency-Key", max_length=128),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """
     Upload a new version of an existing document.
-    - Marks all previous versions as non-current.
-    - Creates a new version record.
-    - Updates the document's pointer to the latest file.
+    Creates an independent candidate. The previous approved file stays intact.
     """
     doc = (await db.execute(select(Document).where(Document.id == doc_id))).scalar_one_or_none()
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
+    if doc.deleted_at is not None:
+        raise HTTPException(status_code=410, detail="Tài liệu đã bị xóa")
+    if effective_until and effective_until < effective_from:
+        raise HTTPException(status_code=400, detail="Ngày hết hiệu lực không hợp lệ")
 
-    _can_modify_doc(current_user, doc)
+    await _can_modify_doc(current_user, doc, db)
+
+    from app.services.document_lifecycle import version_family_root
+    try:
+        root_id = await version_family_root(db, doc)
+    except ValueError:
+        raise HTTPException(status_code=409, detail="Dòng phiên bản không hợp lệ")
+    # Every version request locks the same root before calculating its number.
+    root = (await db.execute(select(Document).where(Document.id == root_id).with_for_update())).scalar_one()
+    await db.refresh(doc)
+    if root.deleted_at is not None or doc.deleted_at is not None:
+        raise HTTPException(status_code=410, detail="Tài liệu đã bị xóa")
 
     # Read file
-    content = await file.read()
+    content = await file.read(MAX_FILE_SIZE + 1)
     if len(content) > MAX_FILE_SIZE:
         raise HTTPException(
             status_code=400,
@@ -670,72 +744,120 @@ async def upload_new_version(
             detail=f"Định dạng file không được hỗ trợ: {ext}",
         )
 
+    if not content or (ext in {".txt", ".md"} and not content.strip()):
+        raise HTTPException(status_code=400, detail="Tệp rỗng hoặc không có nội dung")
+
+    from app.services.upload_idempotency import lock_upload_hashes, replay_upload, record_upload
+    digest = hashlib.sha256(content).hexdigest()
+    payload = {"document_id": root_id, "parent_document_id": doc_id,
+               "filename": file.filename, "hash": digest,
+               "change_note": change_note, "effective_from": effective_from,
+               "effective_until": effective_until}
+    replay = await replay_upload(db, current_user, "legacy-version", idempotency_key, payload)
+    if replay is not None:
+        return replay["version"]
+    await lock_upload_hashes(db,doc.workspace_id,[digest])
+    duplicate = (await db.execute(select(Document).where(
+        Document.workspace_id == doc.workspace_id, Document.deleted_at.is_(None),
+        Document.content_hash == digest,
+    ).limit(1))).scalar_one_or_none()
+    if duplicate is not None:
+        kb = await _doc_kb(db, duplicate)
+        detail = "Nội dung phiên bản đã tồn tại trong kho tri thức"
+        if can_read_document(current_user, duplicate, kb, allow_owner_pending=True):
+            detail += f" (ID: {duplicate.id})"
+        raise HTTPException(status_code=409, detail=detail)
+
     # Save new file
     stored_name = f"{uuid.uuid4().hex}{ext}"
     file_path = UPLOAD_DIR / stored_name
-    async with aiofiles.open(file_path, "wb") as out:
-        await out.write(content)
+    try:
+        async with aiofiles.open(file_path, "wb") as out:
+            await out.write(content)
 
-    # Get next version number
-    max_ver_row = await db.execute(
-        select(func.max(DocumentVersion.version_number)).where(
-            DocumentVersion.document_id == doc_id
+        # Get next version number
+        max_ver_row = await db.execute(
+            select(func.max(DocumentVersion.version_number)).where(
+                DocumentVersion.document_id == root_id
+            )
         )
-    )
-    max_ver = max_ver_row.scalar() or 0
-    next_ver = max_ver + 1
+        max_ver = max_ver_row.scalar() or 0
+        next_ver = max_ver + 1
 
-    # Mark old current versions as non-current
-    await db.execute(
-        update(DocumentVersion)
-        .where(DocumentVersion.document_id == doc_id, DocumentVersion.is_current == True)
-        .values(is_current=False)
-    )
-
-    # Create new version
-    new_version = DocumentVersion(
-        document_id=doc_id,
-        version_number=next_ver,
-        version_label=f"V {next_ver}.0",
-        filename=stored_name,
-        original_filename=file.filename,
-        file_size=len(content),
-        change_note=change_note or f"Phiên bản {next_ver}.0",
-        created_by=current_user.id,
-        is_current=True,
-    )
-    db.add(new_version)
-
-    # Update document pointer to new file
-    doc.filename = stored_name
-    doc.original_filename = file.filename
-    doc.file_size = len(content)
-    doc.file_type = ext[1:] if ext else "file"
-    is_org_approver = current_user.role in ORG_APPROVER_ROLES
-    is_dept_approver = current_user.role in DEPT_APPROVER_ROLES
-    is_personal_doc = (doc.visibility or "internal") == "private"
-    if is_personal_doc:
-        doc.approval_status = "approved"
-    elif (doc.visibility or "internal") == "public":
-        if is_org_approver:
-            doc.approval_status = "approved"
-        elif is_dept_approver:
-            doc.approval_status = "pending_org"
+        # A candidate gets its own document/vector identity. The approved document
+        # stays intact until this candidate is approved, indexed, and effective.
+        is_personal_doc = (doc.visibility or "internal") == "private"
+        if is_personal_doc or current_user.role == "Admin":
+            next_approval = "approved"
+        elif (doc.visibility or "internal") == "public":
+            next_approval = "approved" if current_user.role in {"Giám đốc", "Phó giám đốc"} else "pending_org" if current_user.role == "Trưởng phòng" else "pending"
         else:
-            doc.approval_status = "pending"
-    else:
-        doc.approval_status = "approved" if (is_org_approver or is_dept_approver) else "pending"
-    doc.status = DocumentStatus.PROCESSING if doc.approval_status == "approved" else DocumentStatus.PENDING
+            next_approval = "approved" if current_user.role == "Trưởng phòng" and doc.department_id == current_user.department_id else "pending"
+        candidate = Document(
+            workspace_id=doc.workspace_id, filename=stored_name, original_filename=file.filename,
+            file_type=ext[1:], file_size=len(content),
+            status=DocumentStatus.PROCESSING if next_approval == "approved" else DocumentStatus.PENDING,
+            uploader_id=current_user.id, department_id=doc.department_id,
+            visibility=doc.visibility, approval_status=next_approval,
+            effective_from=effective_from, effective_until=effective_until,
+            approved_by=current_user.id if next_approval == "approved" else None,
+            approved_at=datetime.utcnow() if next_approval == "approved" else None,
+            content_hash=hashlib.sha256(content).hexdigest(),
+            supersedes_document_id=doc.id, category=doc.category, tags=doc.tags,
+        )
+        db.add(candidate)
+        await db.flush()
 
-    await db.commit()
+        current_version_id = (await db.execute(select(DocumentVersion.id).where(
+            DocumentVersion.document_id == root_id,
+            DocumentVersion.document_ref_id == doc.id if doc.id != root_id
+            else DocumentVersion.document_ref_id.is_(None),
+        ).order_by(DocumentVersion.version_number.desc()).limit(1))).scalar_one_or_none()
+        new_version = DocumentVersion(
+            document_id=root_id,
+            version_number=next_ver,
+            version_label=f"V {next_ver}.0",
+            filename=stored_name,
+            original_filename=file.filename,
+            file_size=len(content),
+            change_note=change_note or f"Phiên bản {next_ver}.0",
+            created_by=current_user.id,
+            is_current=False,
+            approval_status=next_approval,
+            processing_status="processing" if next_approval == "approved" else "pending",
+            effective_from=effective_from,
+            effective_until=effective_until,
+            approved_by=current_user.id if next_approval == "approved" else None,
+            approved_at=datetime.utcnow() if next_approval == "approved" else None,
+            supersedes_version_id=current_version_id,
+            document_ref_id=candidate.id,
+        )
+        db.add(new_version)
+        await db.flush()
+        response = LegacyDocumentVersionResponse(
+            id=new_version.id, document_id=root_id, version_number=next_ver,
+            version_label=new_version.version_label, filename=stored_name,
+            size=new_version.size_human, change_note=new_version.change_note,
+            created_by_name=current_user.name, is_current=False,
+            created_at=new_version.created_at,
+        )
+        record_upload(db, current_user, "legacy-version", idempotency_key, payload,
+                      {"id": candidate.id, "version": response})
+
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        file_path.unlink(missing_ok=True)
+        raise
+
     await db.refresh(new_version)
 
-    if doc.approval_status == "approved":
+    if next_approval == "approved":
         import asyncio
         from app.api.documents import process_document_background
 
         asyncio.get_event_loop().create_task(
-            process_document_background(doc.id, str(file_path), doc.workspace_id)
+            process_document_background(candidate.id, str(file_path), doc.workspace_id)
         )
 
     # Load creator
@@ -772,18 +894,29 @@ async def download_version(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    _check_doc_access(current_user, doc)
+    await _check_doc_access(current_user, doc, db)
+    from app.services.document_lifecycle import version_family_root
+    try:
+        root_id = await version_family_root(db, doc)
+    except ValueError:
+        raise HTTPException(status_code=409, detail="Dòng phiên bản không hợp lệ")
 
     version = (
         await db.execute(
             select(DocumentVersion).where(
                 DocumentVersion.id == version_id,
-                DocumentVersion.document_id == doc_id,
+                DocumentVersion.document_id == root_id,
             )
         )
     ).scalar_one_or_none()
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
+
+    if version.document_ref_id is not None:
+        candidate = await db.get(Document, version.document_ref_id)
+        if candidate is None:
+            raise HTTPException(status_code=404, detail="Version not found")
+        await _check_doc_access(current_user, candidate, db)
 
     file_path = UPLOAD_DIR / version.filename
     if not file_path.exists():
@@ -797,6 +930,31 @@ async def download_version(
 
 
 # ─── Delete Document ───────────────────────────────────────────────
+
+@router.put("/{doc_id}/effective-dates")
+async def confirm_effective_dates(
+    doc_id: int, body: EffectiveDatesUpdate,
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user),
+):
+    """Admin records confirmed source metadata for a historical document."""
+    if current_user.role != "Admin":
+        raise HTTPException(status_code=403, detail="Chỉ Admin được bổ sung metadata lịch sử")
+    if not body.reason.strip():
+        raise HTTPException(status_code=400, detail="Cần lý do xác nhận metadata")
+    if body.effective_until and body.effective_until < body.effective_from:
+        raise HTTPException(status_code=400, detail="Ngày hết hiệu lực không hợp lệ")
+    doc = (await db.execute(select(Document).where(Document.id == doc_id).with_for_update())).scalar_one_or_none()
+    if not doc or doc.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    doc.effective_from = body.effective_from
+    doc.effective_until = body.effective_until
+    doc.approved_by = current_user.id
+    doc.approved_at = datetime.utcnow()
+    doc.approval_note = body.reason.strip()
+    from app.models.audit_event import AuditEvent
+    db.add(AuditEvent(actor_id=current_user.id, action="confirm_effective_dates", object_type="document", object_id=doc.id, reason=body.reason.strip()))
+    await db.commit()
+    return {"id": doc.id, "effective_from": doc.effective_from, "effective_until": doc.effective_until}
 
 @router.delete("/{doc_id}")
 async def delete_document(
@@ -812,25 +970,92 @@ async def delete_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    _can_modify_doc(current_user, doc)
+    await _can_modify_doc(current_user, doc, db)
 
-    # Delete file from disk
-    file_path = UPLOAD_DIR / doc.filename
-    if file_path.exists():
-        os.remove(file_path)
-
-    # Delete all version files
-    versions = (
-        await db.execute(
-            select(DocumentVersion).where(DocumentVersion.document_id == doc_id)
-        )
-    ).scalars().all()
-    for v in versions:
-        vp = UPLOAD_DIR / v.filename
-        if vp.exists():
-            os.remove(vp)
-
-    await db.delete(doc)
+    if doc.deleted_at is not None:
+        raise HTTPException(status_code=409, detail="Tài liệu đã ở trong thùng rác")
+    from app.services.document_lifecycle import set_family_deleted
+    await set_family_deleted(db, doc)
     await db.commit()
-    return {"message": "Xóa tài liệu thành công"}
+    return {"message": "Đã chuyển tài liệu vào thùng rác"}
 
+
+@router.post("/{doc_id}/restore")
+async def restore_document(doc_id: int, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    doc = (await db.execute(select(Document).where(Document.id == doc_id))).scalar_one_or_none()
+    if not doc or doc.deleted_at is None:
+        raise HTTPException(status_code=404, detail="Tài liệu không có trong thùng rác")
+    if current_user.role != "Admin" and doc.uploader_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    if (datetime.utcnow() - doc.deleted_at).days >= 30:
+        raise HTTPException(status_code=410, detail="Thời hạn khôi phục đã hết")
+    from app.services.document_lifecycle import set_family_deleted
+    try:
+        restored = await set_family_deleted(db, doc, restore=True)
+    except ValueError as exc:
+        if str(exc) == 'Duplicate content on restore':
+            raise HTTPException(status_code=409, detail="Nội dung đã tồn tại trong kho tri thức; không thể khôi phục")
+        raise
+    await db.commit()
+    from app.services.index_cleanup import queue_restored_documents
+    await queue_restored_documents(db, restored, background_tasks)
+    return {"id": doc.id, "message": "Đã khôi phục; quyền và hiệu lực được kiểm lại khi truy cập"}
+
+
+class SourceAuthorityUpdate(BaseModel):
+    issuer: str
+    scope: str
+    rank: int | None = None
+    reason: str
+
+
+@router.put("/{doc_id}/source-authority")
+async def confirm_source_authority(doc_id: int, body: SourceAuthorityUpdate,
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role != 'Admin':
+        raise HTTPException(status_code=403,detail='Chỉ Admin được xác nhận thẩm quyền nguồn')
+    if not body.reason.strip() or len(body.reason)>1000:
+        raise HTTPException(status_code=400,detail='Cần lý do và căn cứ xác nhận thẩm quyền')
+    if body.rank is not None and (not 1 <= body.rank <= 100 or not body.issuer.strip() or not body.scope.strip()):
+        raise HTTPException(status_code=400,detail='Cần đơn vị ban hành, phạm vi và cấp ưu tiên từ 1 đến 100')
+    if len(body.issuer)>250 or len(body.scope)>250:
+        raise HTTPException(status_code=400,detail='Metadata thẩm quyền quá dài')
+    doc=(await db.execute(select(Document).where(Document.id==doc_id).with_for_update())).scalar_one_or_none()
+    if doc is None or doc.deleted_at is not None:
+        raise HTTPException(status_code=404,detail='Document not found')
+    doc.issuer=body.issuer.strip() or None;doc.authority_scope=body.scope.strip() or None;doc.authority_rank=body.rank
+    doc.authority_verified_by=current_user.id if body.rank is not None else None
+    doc.authority_verified_at=datetime.utcnow() if body.rank is not None else None
+    from app.models.audit_event import AuditEvent
+    from app.services.source_authority import authority_metadata
+    db.add(AuditEvent(actor_id=current_user.id,action='confirm_source_authority',object_type='document',object_id=doc.id,reason=body.reason.strip()))
+    await db.commit()
+    return {'id':doc.id,'authority':authority_metadata(doc)}
+
+
+@router.get("/{doc_id}/duplicate-check")
+async def get_content_duplicate_check(
+    doc_id: int, db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Expose content comparison without revealing an inaccessible match."""
+    doc = await db.get(Document, doc_id)
+    if doc is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    await _check_doc_access(current_user, doc, db)
+    exact_id = getattr(doc, 'duplicate_of_document_id', None)
+    near_id = getattr(doc, 'near_duplicate_document_id', None)
+    match_type = 'exact' if exact_id else 'similar' if near_id else None
+    target = await db.get(Document, exact_id or near_id) if match_type else None
+    match = None
+    if target is not None and target.workspace_id == doc.workspace_id:
+        kb = await db.get(KnowledgeBase, target.workspace_id)
+        if kb is not None and can_read_document(current_user, target, kb, allow_owner_pending=True):
+            match = {'id': target.id, 'name': target.original_filename}
+    return {
+        'checked': bool(getattr(doc, 'text_fingerprint', None)),
+        'match_type': match_type,
+        'similarity': getattr(doc, 'duplicate_similarity', None) if match_type == 'similar' else None,
+        'match': match,
+        'scope': 'workspace',
+    }

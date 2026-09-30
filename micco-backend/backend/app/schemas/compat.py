@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, date
 from pydantic import BaseModel
 
 
@@ -63,6 +63,8 @@ class KnowledgeCreateRequest(BaseModel):
     tags: list[str] = []
     visibility: str = "internal"
     status: str = "Active"
+    effective_from: date | None = None
+    effective_until: date | None = None
 
 
 class KnowledgeUpdateRequest(BaseModel):
@@ -73,6 +75,8 @@ class KnowledgeUpdateRequest(BaseModel):
     tags: list[str] | None = None
     visibility: str | None = None
     status: str | None = None
+    effective_from: date | None = None
+    effective_until: date | None = None
 
 
 class LegacyDocumentVersionResponse(BaseModel):
@@ -104,6 +108,7 @@ class AdminUpdateUserRequest(BaseModel):
     role: str | None = None
     department_id: int | None = None
     password: str | None = None
+    is_active: bool | None = None
 
 
 class AdminUserResponse(BaseModel):
@@ -115,6 +120,7 @@ class AdminUserResponse(BaseModel):
     department_name: str | None = None
     avatar: str | None = None
     created_at: datetime | None = None
+    is_active: bool = True
 
 
 class AdminListUsersResponse(BaseModel):
@@ -129,11 +135,15 @@ class AdminListUsersResponse(BaseModel):
 class DepartmentCreateRequest(BaseModel):
     name: str
     description: str | None = None
+    code: str | None = None
+    kind: str = "standard"
 
 
 class DepartmentUpdateRequest(BaseModel):
     name: str | None = None
     description: str | None = None
+    code: str | None = None
+    kind: str | None = None
 
 
 class DepartmentResponse(BaseModel):
@@ -142,6 +152,8 @@ class DepartmentResponse(BaseModel):
     description: str | None = None
     created_at: datetime | None = None
     user_count: int = 0
+    code: str | None = None
+    kind: str = "standard"
 
 
 # ─── Processing Status Schemas ─────────────────────────────────────

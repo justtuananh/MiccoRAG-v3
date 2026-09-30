@@ -1,12 +1,14 @@
 """
 RAG-related Pydantic schemas for request/response validation.
 """
+from datetime import date
 from typing import Literal
 from pydantic import BaseModel, Field, field_validator
 
 
 class RAGQueryRequest(BaseModel):
     """Request schema for RAG query endpoint."""
+    as_of: date | None = None
     question: str = Field(..., min_length=1, max_length=1000, description="The question to query")
     top_k: int = Field(default=5, ge=1, le=20, description="Number of chunks to retrieve")
     document_ids: list[int] | None = Field(default=None, description="Filter to specific document IDs")
@@ -169,6 +171,7 @@ class ChatMessageSchema(BaseModel):
 
 class ChatRequest(BaseModel):
     """Request for the chat endpoint."""
+    as_of: date | None = None
     message: str = Field(..., min_length=1, max_length=5000)
     history: list[ChatMessageSchema] = []
     document_ids: list[int] | None = None
@@ -181,6 +184,7 @@ class ChatSourceChunk(BaseModel):
     """A source chunk referenced in the chat answer."""
     index: str  # 4-char alphanumeric ID, e.g. "a3x9" (was: int)
     chunk_id: str
+    authority: dict | None = None
 
     @field_validator("index", mode="before")
     @classmethod
@@ -188,6 +192,7 @@ class ChatSourceChunk(BaseModel):
         return str(v) if not isinstance(v, str) else v
     content: str
     document_id: int
+    source_file: str = ""
     page_no: int = 0
     heading_path: list[str] = []
     score: float = 0.0
@@ -195,6 +200,7 @@ class ChatSourceChunk(BaseModel):
 
 
 class ChatImageRef(BaseModel):
+    authority: dict | None = None
     """An image referenced in the chat answer."""
     ref_id: str | None = None  # 4-char alphanumeric ID, e.g. "p4f2"
     image_id: str
@@ -214,6 +220,8 @@ class ChatResponse(BaseModel):
     kg_summary: str | None = None
     image_refs: list[ChatImageRef] = []
     thinking: str | None = None
+    context_compacted: bool = False
+    context_status: str = "empty"
 
 
 class PersistedChatMessage(BaseModel):
@@ -291,6 +299,8 @@ class DebugRetrievedSource(BaseModel):
 
 class ExpertRecommendation(BaseModel):
     """An expert user recommendation based on relevant documents."""
+    verified_expert: bool = False
+    recommendation_type: str = "document_contact"
     user_id: int
     name: str
     email: str

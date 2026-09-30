@@ -20,11 +20,15 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = Field(default="postgresql+asyncpg://postgres:postgres@localhost:5433/nexusrag")
 
-    # LLM Provider: "gemini" | "ollama"
+    # LLM Provider: "gemini" | "ollama" (native) — any other value (openai,
+    # deepseek, anthropic, ...) is routed through the LiteLLM gateway.
     LLM_PROVIDER: str = Field(default="gemini")
 
     # Google AI
     GOOGLE_AI_API_KEY: str = Field(default="")
+
+    # OpenAI (used via the LiteLLM gateway)
+    OPENAI_API_KEY: str = Field(default="")
 
     # Ollama
     OLLAMA_HOST: str = Field(default="http://localhost:11434")
@@ -42,7 +46,7 @@ class Settings(BaseSettings):
     # Gemini 3.1 Flash-Lite supports up to 65536
     LLM_MAX_OUTPUT_TOKENS: int = Field(default=8192)
 
-    # KG Embedding provider (can differ from LLM provider)
+    # KG Embedding provider (can differ from LLM provider): "gemini" | "ollama" | "sentence_transformers" | "openai"
     KG_EMBEDDING_PROVIDER: str = Field(default="gemini")
     KG_EMBEDDING_MODEL: str = Field(default="gemini-embedding-001")
     KG_EMBEDDING_DIMENSION: int = Field(default=3072)
@@ -61,6 +65,19 @@ class Settings(BaseSettings):
     NEXUSRAG_CHUNK_MAX_TOKENS: int = 512
     NEXUSRAG_KG_QUERY_TIMEOUT: float = 30.0
     NEXUSRAG_KG_CHUNK_TOKEN_SIZE: int = 800   # Smaller chunks = faster LLM extraction per chunk
+    NEXUSRAG_KG_GRAPH_MAX_DEPTH: int = Field(default=4, ge=1)
+    NEXUSRAG_KG_GRAPH_MAX_NODES: int = Field(default=200, ge=1)
+    NEXUSRAG_KG_GRAPH_MAX_EDGES: int = Field(default=500, ge=1)
+    NEXUSRAG_KG_ENTITY_PAGE_MAX: int = Field(default=200, ge=1)
+    NEXUSRAG_KG_RELATIONSHIP_PAGE_MAX: int = Field(default=500, ge=1)
+    NEXUSRAG_KG_MAX_DOCUMENTS_PER_KB: int = Field(default=2000, ge=1)
+    NEXUSRAG_KG_MAX_NODES_PER_KB: int = Field(default=20000, ge=1)
+    NEXUSRAG_KG_MAX_EDGES_PER_KB: int = Field(default=50000, ge=1)
+    NEXUSRAG_KG_MAX_DISK_BYTES_PER_KB: int = Field(default=268435456, ge=1)
+    NEXUSRAG_KG_MAX_ACTIVE_KBS_PER_PROCESS: int = Field(default=8, ge=1)
+    NEXUSRAG_KG_MAX_PROCESS_RSS_BYTES: int = Field(default=1610612736, ge=1)
+    NEXUSRAG_KG_INIT_RESERVE_BYTES: int = Field(default=134217728, ge=0)
+    NEXUSRAG_KG_CAPACITY_WARN_RATIO: float = Field(default=0.8, gt=0, le=1)
     # Max output tokens for the KG entity/relation extraction LLM call. LightRAG's
     # delimiter-based extraction format is verbose (one line per entity/relation) and
     # can exceed the previous 8192 default on entity-dense chunks, causing Gemini to
@@ -163,8 +180,16 @@ class Settings(BaseSettings):
     model_config = {
         "env_file": str(ENV_FILE),
         "env_file_encoding": "utf-8",
-        "extra": "ignore"
+        # "allow" (not "ignore") so a new provider's "<NAME>_API_KEY" in .env
+        # is readable via getattr(settings, ...) without declaring a field
+        # here first — see app/services/llm/__init__.py's LiteLLM fallback.
+        "extra": "allow",
     }
+
+    def validate_runtime_security(self) -> None:
+        """Reject an unconfigured signing key before serving non-development traffic."""
+        if not self.DEBUG and self.JWT_SECRET_KEY.strip() in {"", "change-me-in-env"}:
+            raise RuntimeError("JWT_SECRET_KEY must be configured outside DEBUG mode")
 
 
 @lru_cache

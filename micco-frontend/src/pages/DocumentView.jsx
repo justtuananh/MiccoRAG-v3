@@ -1,15 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
+import ModalFocus from '../components/shared/ModalFocus';
+import SourceAuthorityEditor from '../components/shared/SourceAuthorityEditor';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Trash2, CheckCircle2, Copy, Eye, Info,
     Upload, Download, Lock, File, Loader2, X, AlertCircle
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authContextCore';
 import Breadcrumb from '../components/shared/Breadcrumb';
 import { documentsApi, approvalsApi } from '../utils/api';
 import { formatBytes, formatDate, timeAgo, getInitials, avatarColor } from '../utils/formatters';
 import { renderAsync } from 'docx-preview';
+import { sanitizeHtml } from '../utils/sanitizeHtml';
 import ProcessingProgressBar from '../components/shared/ProcessingProgressBar';
+import DuplicateCheckPanel from '../components/documents/DuplicateCheckPanel';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -22,13 +26,6 @@ function MetaRow({ label, value }) {
     );
 }
 
-function formatBytesSimple(bytes) {
-    if (!bytes) return '—';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-}
-
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function DocumentView() {
@@ -37,7 +34,12 @@ export default function DocumentView() {
     const { user, authFetch } = useAuth();
 
     const [doc, setDoc] = useState(null);
+    const [confirmedDate, setConfirmedDate] = useState('');
+    const [confirmationReason, setConfirmationReason] = useState('');
+    const [metadataError, setMetadataError] = useState('');
+    const [savingMetadata, setSavingMetadata] = useState(false);
     const [versions, setVersions] = useState([]);
+    const [duplicateCheck, setDuplicateCheck] = useState(null);
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState(false);
     const [shareModal, setShareModal] = useState(false);
@@ -47,12 +49,13 @@ export default function DocumentView() {
     const [showUploadVersion, setShowUploadVersion] = useState(false);
     const [versionFile, setVersionFile] = useState(null);
     const [versionNote, setVersionNote] = useState('');
+    const [versionEffectiveFrom, setVersionEffectiveFrom] = useState('');
+    const [versionEffectiveUntil, setVersionEffectiveUntil] = useState('');
     const [uploadingVersion, setUploadingVersion] = useState(false);
     const [versionError, setVersionError] = useState('');
 
     const [previewUrl, setPreviewUrl] = useState(null);
     const [previewText, setPreviewText] = useState(null);
-    const [previewHtml, setPreviewHtml] = useState(null);
     const [previewError, setPreviewError] = useState(null);
     const [docxBuffer, setDocxBuffer] = useState(null);
     const previewUrlRef = useRef(null);
@@ -65,14 +68,6 @@ export default function DocumentView() {
     // Processing status polling for approved docs
     const [processingStatus, setProcessingStatus] = useState(null);
     const pollingRef = useRef(false);
-
-    useEffect(() => {
-        fetchDoc();
-        return () => {
-            if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
-            pollingRef.current = false;
-        };
-    }, [id]);
 
     // Start polling when doc is approved and processing
     useEffect(() => {
@@ -105,42 +100,7 @@ export default function DocumentView() {
         }
     }, [doc, canPollApprovalStatus]);
 
-    const fetchDoc = async () => {
-        setLoading(true);
-        try {
-            const res = await documentsApi.get(id);
-            if (!res.ok) { navigate('/documents'); return; }
-            const data = await res.json();
-            setDoc(data);
-            
-            const extStr = (data.type || '').toLowerCase();
-            const type = extStr.startsWith('.') ? extStr.slice(1) : extStr;
-            
-            // Load preview if applicable
-            if (['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'].includes(type)) {
-                fetchPreview(id, type);
-            } else if (['docx', 'txt', 'md'].includes(type)) {
-                fetchTextPreview(id, type);
-            }
-        } catch { navigate('/documents'); }
-        finally { setLoading(false); }
-    };
-
-    const fetchVersions = async () => {
-        try {
-            const res = await documentsApi.listVersions(id);
-            if (res.ok) {
-                const data = await res.json();
-                setVersions(Array.isArray(data) ? data : (data.items || []));
-            }
-        } catch { /* silent */ }
-    };
-
-    useEffect(() => {
-        if (doc) fetchVersions();
-    }, [doc?.id]);
-
-    const fetchPreview = async (docId, type) => {
+    const fetchPreview = useCallback(async (docId, type) => {
         try {
             const res = await authFetch(`/api/documents/${docId}/download`);
             if (!res.ok) return;
@@ -151,9 +111,9 @@ export default function DocumentView() {
             previewUrlRef.current = url;
             setPreviewUrl(url);
         } catch { /* silent */ }
-    };
+    }, [authFetch]);
 
-    const fetchTextPreview = async (docId, type) => {
+    const fetchTextPreview = useCallback(async (docId, type) => {
         try {
             if (type === 'docx') {
                 const res = await authFetch(`/api/documents/${docId}/download`);
@@ -170,17 +130,73 @@ export default function DocumentView() {
                     setPreviewError(data.message || 'Không hỗ trợ xem trước');
                 }
             }
-        } catch (err) {
+        } catch {
             setPreviewError('Lỗi tải bản xem trước');
         }
-    };
+    }, [authFetch]);
+
+    const fetchDoc = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await documentsApi.get(id);
+            if (!res.ok) { navigate('/documents'); return; }
+            const data = await res.json();
+            setDoc(data);
+
+            const extStr = (data.type || '').toLowerCase();
+            const type = extStr.startsWith('.') ? extStr.slice(1) : extStr;
+
+            // Load preview if applicable
+            if (['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'].includes(type)) {
+                fetchPreview(id, type);
+            } else if (['docx', 'txt', 'md'].includes(type)) {
+                fetchTextPreview(id, type);
+            }
+        } catch { navigate('/documents'); }
+        finally { setLoading(false); }
+    }, [id, navigate, fetchPreview, fetchTextPreview]);
+
+    useEffect(() => {
+        const frame = requestAnimationFrame(() => fetchDoc());
+        return () => {
+            cancelAnimationFrame(frame);
+            if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+            pollingRef.current = false;
+        };
+    }, [fetchDoc]);
+
+    const fetchVersions = useCallback(async () => {
+        try {
+            const res = await documentsApi.listVersions(id);
+            if (res.ok) {
+                const data = await res.json();
+                setVersions(Array.isArray(data) ? data : (data.items || []));
+            }
+        } catch { /* silent */ }
+    }, [id]);
+
+    useEffect(() => {
+        if (doc?.id) fetchVersions();
+    }, [doc?.id, fetchVersions]);
+
+    useEffect(() => {
+        let active = true;
+        const documentId = Number(id);
+        if (!Number.isInteger(documentId) || documentId <= 0) return;
+        documentsApi.duplicateCheck(documentId)
+            .then(async response => response.ok ? response.json() : null)
+            .then(result => { if (active) setDuplicateCheck({ documentId, result }); })
+            .catch(() => { if (active) setDuplicateCheck({ documentId, result: null }); });
+        return () => { active = false; };
+    }, [id, processingStatus?.status]);
 
     // Render DOCX natively when buffer is ready
     useEffect(() => {
         if (!docxBuffer || !docxContainerRef.current) return;
         const container = docxContainerRef.current;
         container.innerHTML = '';
-        renderAsync(docxBuffer, container, undefined, {
+        const detached = document.createElement('div');
+        renderAsync(docxBuffer, detached, undefined, {
             className: 'docx-preview',
             inWrapper: true,
             ignoreWidth: true,
@@ -190,12 +206,29 @@ export default function DocumentView() {
             useBase64URL: true,
             renderHeaders: true,
             renderFooters: true,
+        }).then(() => {
+            if (docxContainerRef.current === container) container.innerHTML = sanitizeHtml(detached.innerHTML);
         }).catch(err => {
             setPreviewError('Lỗi hiển thị nội dung DOCX: ' + err.message);
         });
     }, [docxBuffer]);
 
     // ─── Actions ─────────────────────────────────────────────────────────────
+
+    const confirmEffectiveDate = async (event) => {
+        event.preventDefault();
+        setSavingMetadata(true);
+        setMetadataError('');
+        try {
+            const response = await authFetch(`/api/documents/${doc.id}/effective-dates`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ effective_from: confirmedDate, reason: confirmationReason.trim() }),
+            });
+            if (!response.ok) throw new Error((await response.json()).detail || 'Không thể xác nhận ngày hiệu lực');
+            await fetchDoc();
+        } catch (error) { setMetadataError(error.message || 'Không thể lưu thông tin'); }
+        finally { setSavingMetadata(false); }
+    };
 
     const handleDownload = async () => {
         try {
@@ -240,15 +273,17 @@ export default function DocumentView() {
     };
 
     const handleUploadVersion = async () => {
-        if (!versionFile) return;
+        if (!versionFile || !versionEffectiveFrom || (versionEffectiveUntil && versionEffectiveUntil < versionEffectiveFrom)) return;
         setUploadingVersion(true);
         setVersionError('');
         try {
-            const res = await documentsApi.uploadVersion(doc.id, versionFile, versionNote);
+            const res = await documentsApi.uploadVersion(doc.id, versionFile, versionNote, versionEffectiveFrom, versionEffectiveUntil);
             if (res.ok) {
                 setShowUploadVersion(false);
                 setVersionFile(null);
                 setVersionNote('');
+                setVersionEffectiveFrom('');
+                setVersionEffectiveUntil('');
                 await fetchVersions();
             } else {
                 const body = await res.json().catch(() => ({}));
@@ -289,14 +324,14 @@ export default function DocumentView() {
             bg: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400',
             user: doc?.owner || 'Người dùng',
             action: 'đã tải tài liệu này lên',
-            time: doc?.date || doc?.created_at,
+            time: doc?.created_at || doc?.date,
         },
         {
             icon: <Info className="w-4 h-4" />,
             bg: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
             user: 'Hệ thống',
             action: doc?.approval_status === 'approved' ? 'đã phê duyệt tài liệu này' : 'đang chờ phê duyệt',
-            time: doc?.date || doc?.created_at,
+            time: doc?.created_at || doc?.date,
         },
     ];
 
@@ -333,7 +368,7 @@ export default function DocumentView() {
                     <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
                         {doc?.department && <span>{doc.department}</span>}
                         {doc?.owner && <span>• {doc.owner}</span>}
-                        <span>• {formatBytesSimple(doc?.size || doc?.size_bytes)}</span>
+                        <span>• {formatBytes(doc?.size ?? doc?.size_bytes)}</span>
                     </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 shrink-0 lg:ml-4">
@@ -414,9 +449,28 @@ export default function DocumentView() {
                             Thông tin tệp
                         </h3>
                         <div className="space-y-3">
-                            <MetaRow label="Kích thước" value={formatBytesSimple(doc?.size || doc?.size_bytes)} />
+                            <MetaRow label="Kích thước" value={formatBytes(doc?.size ?? doc?.size_bytes)} />
                             <MetaRow label="Loại" value={ext || '—'} />
                             <MetaRow label="Ngày tải lên" value={formatDate(doc?.date || doc?.created_at)} />
+                            <MetaRow label="Ngày hiệu lực" value={doc?.effective_from || 'Chưa được xác nhận'} />
+                            {!doc?.effective_from && user?.role === 'Admin' && (
+                                <form onSubmit={confirmEffectiveDate} className="space-y-3 mt-3">
+                                    <p className="text-sm text-amber-700">Tài liệu chưa được dùng để hỏi đáp cho đến khi xác nhận ngày hiệu lực từ nguồn nghiệp vụ.</p>
+                                    <label className="block text-sm">Ngày hiệu lực đã xác nhận
+                                        <input required type="date" value={confirmedDate} onChange={event => setConfirmedDate(event.target.value)} className="block w-full border rounded-lg p-2" />
+                                    </label>
+                                    <label className="block text-sm">Căn cứ xác nhận
+                                        <textarea required maxLength={500} value={confirmationReason} onChange={event => setConfirmationReason(event.target.value)} className="block w-full border rounded-lg p-2" />
+                                    </label>
+                                    {metadataError && <p role="alert" className="text-sm text-red-600">{metadataError}</p>}
+                                    <button disabled={savingMetadata || !confirmedDate || !confirmationReason.trim()} className="rounded-lg px-3 py-2 bg-primary-600 text-white disabled:opacity-50">{savingMetadata ? 'Đang lưu…' : 'Xác nhận ngày hiệu lực'}</button>
+                                </form>
+                            )}
+                            <MetaRow label="Đơn vị ban hành" value={doc?.issuer || 'Chưa xác minh'} />
+                            <MetaRow label="Phạm vi thẩm quyền" value={doc?.authority_scope || 'Chưa xác minh'} />
+                            <MetaRow label="Cấp ưu tiên đã xác minh" value={doc?.authority_verified_at ? doc.authority_rank : 'Chưa xác minh'} />
+                            {user?.role === 'Admin' && doc && <SourceAuthorityEditor key={doc.id} doc={doc} onSaved={fetchDoc} />}
+                            <MetaRow label="Ngày hết hiệu lực" value={doc?.effective_until || 'Không xác định'} />
                             <MetaRow label="Chủ sở hữu" value={
                                 <div className="flex items-center gap-2">
                                     <span>{doc?.owner || '—'}</span>
@@ -463,6 +517,8 @@ export default function DocumentView() {
                             )}
                         </div>
                     </div>
+
+                    <DuplicateCheckPanel result={duplicateCheck?.documentId === Number(id) ? duplicateCheck.result : null} />
 
                     {/* ─ Version History ─ */}
                     <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-800">
@@ -572,7 +628,7 @@ export default function DocumentView() {
 
             {/* ── Delete Modal ──────────────────────────────────────── */}
             {deleteModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <ModalFocus label="Xóa tài liệu" onClose={() => setDeleteModal(false)} className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDeleteModal(false)} />
                     <div className="relative bg-white dark:bg-slate-900 rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl border border-slate-200 dark:border-slate-800">
                         <div className="w-11 h-11 rounded-xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center mx-auto mb-4">
@@ -593,12 +649,12 @@ export default function DocumentView() {
                             </button>
                         </div>
                     </div>
-                </div>
+                </ModalFocus>
             )}
 
             {/* ── Share Modal ──────────────────────────────────────── */}
             {shareModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <ModalFocus label="Chia sẻ tài liệu" onClose={() => setShareModal(false)} className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShareModal(false)} />
                     <div className="relative bg-white dark:bg-slate-900 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-slate-200 dark:border-slate-800">
                         <div className="flex items-center justify-between mb-5">
@@ -624,12 +680,12 @@ export default function DocumentView() {
                             Chia sẻ với bất kỳ ai trong tổ chức của bạn có quyền truy cập.
                         </p>
                     </div>
-                </div>
+                </ModalFocus>
             )}
 
             {/* ── Upload Version Modal ─────────────────────────────── */}
             {showUploadVersion && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <ModalFocus label="Tải lên phiên bản mới" onClose={() => { setShowUploadVersion(false); setVersionFile(null); setVersionNote(''); setVersionError(''); }} className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setShowUploadVersion(false); setVersionFile(null); setVersionNote(''); setVersionError(''); }} />
                     <div className="relative bg-white dark:bg-slate-900 rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl border border-slate-200 dark:border-slate-800">
                         <div className="flex items-center justify-between mb-5">
@@ -666,6 +722,19 @@ export default function DocumentView() {
                             </div>
 
                             {/* Change note */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <label className="text-xs font-semibold text-slate-500">Ngày hiệu lực *
+                                    <input type="date" required value={versionEffectiveFrom} onChange={e => setVersionEffectiveFrom(e.target.value)}
+                                        className="block w-full mt-1.5 px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+                                </label>
+                                <label className="text-xs font-semibold text-slate-500">Ngày hết hiệu lực
+                                    <input type="date" min={versionEffectiveFrom || undefined} value={versionEffectiveUntil} onChange={e => setVersionEffectiveUntil(e.target.value)}
+                                        className="block w-full mt-1.5 px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+                                </label>
+                            </div>
+                            {versionEffectiveUntil && versionEffectiveUntil < versionEffectiveFrom && <p className="text-xs text-red-600">Ngày hết hiệu lực phải từ ngày hiệu lực trở đi.</p>}
+
+                            {/* Change note */}
                             <div>
                                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Ghi chú thay đổi</label>
                                 <textarea
@@ -693,7 +762,7 @@ export default function DocumentView() {
                             </button>
                             <button
                                 onClick={handleUploadVersion}
-                                disabled={!versionFile || uploadingVersion}
+                                disabled={!versionFile || !versionEffectiveFrom || !!(versionEffectiveUntil && versionEffectiveUntil < versionEffectiveFrom) || uploadingVersion}
                                 className="flex-1 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
                             >
                                 {uploadingVersion ? (
@@ -704,7 +773,7 @@ export default function DocumentView() {
                             </button>
                         </div>
                     </div>
-                </div>
+                </ModalFocus>
             )}
         </div>
     );

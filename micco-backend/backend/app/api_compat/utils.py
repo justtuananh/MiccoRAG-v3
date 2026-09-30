@@ -12,33 +12,42 @@ from app.models.user import User
 from app.models.department import Department
 
 
-async def get_or_create_default_workspace(db: AsyncSession) -> KnowledgeBase:
+async def get_or_create_default_workspace(db: AsyncSession, *, commit: bool = True) -> KnowledgeBase:
     """Return the global default workspace (for backward compat)."""
     ws_id = settings.COMPAT_DEFAULT_WORKSPACE_ID
-    result = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == ws_id))
+    result = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == ws_id, KnowledgeBase.visibility == "public", KnowledgeBase.deleted_at.is_(None)))
     workspace = result.scalar_one_or_none()
     if workspace:
         return workspace
+
+    existing_public = (await db.execute(select(KnowledgeBase).where(
+        KnowledgeBase.name == settings.COMPAT_DEFAULT_WORKSPACE_NAME,
+        KnowledgeBase.visibility == "public", KnowledgeBase.deleted_at.is_(None)
+    ).order_by(KnowledgeBase.id).limit(1))).scalar_one_or_none()
+    if existing_public:
+        return existing_public
 
     if not settings.COMPAT_AUTO_CREATE_DEFAULT_WORKSPACE:
         raise RuntimeError("Default workspace does not exist and auto-creation is disabled")
 
     workspace = KnowledgeBase(
-        id=ws_id,
         name=settings.COMPAT_DEFAULT_WORKSPACE_NAME,
         description=settings.COMPAT_DEFAULT_WORKSPACE_DESCRIPTION,
         visibility="public",
         owner_id=None,
     )
     db.add(workspace)
-    await db.commit()
-    await db.refresh(workspace)
+    await db.flush()
+    if commit:
+        await db.commit()
+        await db.refresh(workspace)
     return workspace
 
 
 async def get_or_create_department_workspace(
     db: AsyncSession,
     department_id: int,
+    *, commit: bool = True,
 ) -> KnowledgeBase:
     """
     Get or create the workspace that belongs to a department.
@@ -48,11 +57,16 @@ async def get_or_create_department_workspace(
     """
     # Find existing workspace for this department
     result = await db.execute(
-        select(KnowledgeBase).where(KnowledgeBase.department_id == department_id)
+        select(KnowledgeBase).where(KnowledgeBase.department_id == department_id, KnowledgeBase.visibility == "department", KnowledgeBase.deleted_at.is_(None)).order_by(KnowledgeBase.id).limit(1)
     )
     workspace = result.scalar_one_or_none()
     if workspace:
         return workspace
+
+    deleted = (await db.execute(select(KnowledgeBase.id).where(KnowledgeBase.department_id == department_id, KnowledgeBase.deleted_at.is_not(None)))).scalar_one_or_none()
+    if deleted is not None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=409, detail="Kho phòng ban đang ở trong thùng rác; cần khôi phục trước khi gửi tài liệu")
 
     # Look up department name for a friendly workspace name
     dept_result = await db.execute(
@@ -69,20 +83,22 @@ async def get_or_create_department_workspace(
         search_mode="hybrid",
     )
     db.add(workspace)
-    await db.commit()
-    await db.refresh(workspace)
+    await db.flush()
+    if commit:
+        await db.commit()
+        await db.refresh(workspace)
     return workspace
 
 
 async def get_all_department_workspaces(db: AsyncSession) -> list[KnowledgeBase]:
     """Return all workspaces that are linked to a department."""
     result = await db.execute(
-        select(KnowledgeBase).where(KnowledgeBase.department_id.isnot(None))
+        select(KnowledgeBase).where(KnowledgeBase.department_id.isnot(None), KnowledgeBase.visibility == "department", KnowledgeBase.deleted_at.is_(None))
     )
     return list(result.scalars().all())
 
 
-async def get_or_create_user_workspace(db: AsyncSession, user_id: int) -> KnowledgeBase:
+async def get_or_create_user_workspace(db: AsyncSession, user_id: int, *, commit: bool = True) -> KnowledgeBase:
     """
     Get or create a personal workspace for a user.
 
@@ -92,10 +108,10 @@ async def get_or_create_user_workspace(db: AsyncSession, user_id: int) -> Knowle
     result = await db.execute(
         select(KnowledgeBase).where(
             KnowledgeBase.owner_id == user_id,
-            KnowledgeBase.visibility == "private"
+            KnowledgeBase.visibility == "private", KnowledgeBase.deleted_at.is_(None)
         )
     )
-    workspace = result.scalar_one_or_none()
+    workspace = result.scalars().first()
     if workspace:
         return workspace
 
@@ -107,8 +123,10 @@ async def get_or_create_user_workspace(db: AsyncSession, user_id: int) -> Knowle
         department_id=None,
     )
     db.add(workspace)
-    await db.commit()
-    await db.refresh(workspace)
+    await db.flush()
+    if commit:
+        await db.commit()
+        await db.refresh(workspace)
     return workspace
 
 
@@ -136,11 +154,22 @@ def map_rag_doc_to_legacy(doc: Any, owner_name: str = "System") -> dict[str, Any
         "owner": owner_name,
         "department": None,
         "date": doc.created_at.strftime("%Y-%m-%d") if doc.created_at else "",
+        # "date" chỉ có ngày nên frontend không tính được "x giờ trước";
+        # trả thêm mốc thời gian đầy đủ (UTC) cho các chỗ cần độ chính xác tới giờ.
+        "created_at": doc.created_at.isoformat() if doc.created_at else None,
         "tags": [],
         "thumbnail": None,
         "visibility": getattr(doc, "visibility", "internal"),
         "approval_status": getattr(doc, "approval_status", "approved"),
         "approval_note": getattr(doc, "approval_note", None),
+        "issuer": getattr(doc, "issuer", None),
+        "authority_scope": getattr(doc, "authority_scope", None),
+        "authority_rank": getattr(doc, "authority_rank", None),
+        "authority_verified_at": getattr(doc, "authority_verified_at", None),
+        "effective_from": getattr(doc, "effective_from", None),
+        "effective_until": getattr(doc, "effective_until", None),
+        "deleted_at": getattr(doc, "deleted_at", None),
+        "supersedes_document_id": getattr(doc, "supersedes_document_id", None),
         "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
         # Extra RBAC fields for frontend
         "uploader_id": getattr(doc, "uploader_id", None),
@@ -166,11 +195,21 @@ def map_rag_doc_to_legacy_with_dept(
         "owner": owner_name,
         "department": dept_name,
         "date": doc.created_at.strftime("%Y-%m-%d") if doc.created_at else "",
+        # Xem chú thích ở map_rag_doc_to_legacy: "date" mất phần giờ.
+        "created_at": doc.created_at.isoformat() if doc.created_at else None,
         "tags": tags,
         "thumbnail": getattr(doc, "thumbnail", None),
         "visibility": getattr(doc, "visibility", "internal"),
         "approval_status": getattr(doc, "approval_status", "approved"),
         "approval_note": getattr(doc, "approval_note", None),
+        "issuer": getattr(doc, "issuer", None),
+        "authority_scope": getattr(doc, "authority_scope", None),
+        "authority_rank": getattr(doc, "authority_rank", None),
+        "authority_verified_at": getattr(doc, "authority_verified_at", None),
+        "effective_from": getattr(doc, "effective_from", None),
+        "effective_until": getattr(doc, "effective_until", None),
+        "deleted_at": getattr(doc, "deleted_at", None),
+        "supersedes_document_id": getattr(doc, "supersedes_document_id", None),
         "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
         # Extra RBAC fields for frontend
         "uploader_id": getattr(doc, "uploader_id", None),

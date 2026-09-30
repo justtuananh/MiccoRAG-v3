@@ -1,14 +1,16 @@
+import ModalFocus from '../components/shared/ModalFocus';
+import TrashPanel from '../components/shared/TrashPanel';
 /**
  * WorkspaceManagement.jsx
  * Trang quản lý Workspace: tạo, sửa, xóa workspace.
  * Mỗi user chỉ thấy workspace mình có quyền truy cập.
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Plus, Search, MoreVertical, Edit2, Trash2,
-  Lock, Building2, Globe, X, ChevronDown, FolderKanban
+  Lock, Building2, Globe, X, ChevronDown, FolderKanban, AlertCircle
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authContextCore';
 
 const VISIBILITY_CONFIG = {
   private:   { label: 'Cá nhân',   icon: Lock,      color: 'text-purple-600', bg: 'bg-purple-50',    badge: 'purple' },
@@ -34,6 +36,8 @@ export default function WorkspaceManagement() {
   const { authFetch, user } = useAuth();
   const [workspaces, setWorkspaces] = useState([]);
   const [loading, setLoading] = useState(true);
+  // R5-2 pattern: distinguish "no workspaces yet" from "failed to load".
+  const [loadError, setLoadError] = useState(null);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [showModal, setShowModal] = useState(false);
@@ -51,24 +55,27 @@ export default function WorkspaceManagement() {
   });
 
   // ── Fetch ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    fetchWorkspaces();
-  }, []);
-
-  const fetchWorkspaces = async () => {
+  const fetchWorkspaces = useCallback(async () => {
     setLoading(true);
     try {
       const res = await authFetch('/api/v1/workspaces');
       if (res.ok) {
         const data = await res.json();
         setWorkspaces(data);
+        setLoadError(null);
+      } else if (res.status === 401) {
+        // Session expired — authFetch already triggered logout()/redirect.
+      } else {
+        setLoadError('Không thể tải danh sách workspace. Vui lòng thử lại.');
       }
-    } catch (_) {
-      showToast('Không thể tải danh sách workspace', 'error');
+    } catch {
+      setLoadError('Mất kết nối mạng. Vui lòng kiểm tra kết nối và thử lại.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [authFetch]);
+
+  useEffect(() => { fetchWorkspaces(); }, [fetchWorkspaces]);
 
   // ── RBAC helpers ──────────────────────────────────────────────────
   const canCreateType = (visibility) => {
@@ -125,10 +132,13 @@ export default function WorkspaceManagement() {
         ? `/api/v1/workspaces/${editingWS.id}`
         : '/api/v1/workspaces';
 
+      const payload = editingWS
+        ? { name: form.name, description: form.description, search_mode: form.search_mode }
+        : form;
       const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -191,6 +201,7 @@ export default function WorkspaceManagement() {
         </button>
       </div>
 
+      <TrashPanel listPath="/api/v1/workspaces/trash" restorePath={id => `/api/v1/workspaces/${id}/restore`} onRestored={fetchWorkspaces} />
       {/* ── Toolbar ── */}
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <div className="flex-1 relative">
@@ -256,6 +267,14 @@ export default function WorkspaceManagement() {
           <div className="flex items-center justify-center py-16">
             <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
           </div>
+        ) : loadError ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <AlertCircle size={48} className="mb-3 text-red-300 dark:text-red-500/40" />
+            <p className="text-sm font-medium text-red-500 dark:text-red-400">{loadError}</p>
+            <button onClick={fetchWorkspaces} className="mt-2 text-sm text-primary-600 hover:underline">
+              Thử lại
+            </button>
+          </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-gray-400">
             <FolderKanban size={48} className="mb-3 opacity-40" />
@@ -319,6 +338,7 @@ export default function WorkspaceManagement() {
                       {(canEdit || canDel) ? (
                         <div className="relative inline-block">
                           <button
+                            aria-label="Thao tác kho tri thức"
                             onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === ws.id ? null : ws.id); }}
                             className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 transition"
                           >
@@ -362,7 +382,7 @@ export default function WorkspaceManagement() {
 
       {/* ── Modal Tạo / Sửa ── */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
+        <ModalFocus label="Tạo hoặc sửa kho tri thức" onClose={() => setShowModal(false)} className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
           <div
             className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md"
             onClick={e => e.stopPropagation()}
@@ -399,8 +419,12 @@ export default function WorkspaceManagement() {
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Loại workspace <span className="text-red-500">*</span>
                 </label>
+                {editingWS && <p className="text-xs text-amber-700 dark:text-amber-400 mb-2">Không thể đổi phạm vi của workspace đã tạo. Hãy tạo workspace mới với phạm vi phù hợp.</p>}
                 <div className="space-y-2">
                   {VISIBILITY_OPTIONS.map(opt => {
+                    // Chỉ dùng để hiển thị gợi ý — KHÔNG chặn lựa chọn của người dùng.
+                    // Máy chủ mới là nơi quyết định (trả 403 kèm thông báo rõ ràng nếu
+                    // không đủ quyền); tuyệt đối không âm thầm đổi lựa chọn về loại khác.
                     const allowed = canCreateType(opt.value);
                     return (
                       <label
@@ -409,22 +433,24 @@ export default function WorkspaceManagement() {
                           form.visibility === opt.value
                             ? 'border-primary-500 bg-primary-50 dark:bg-primary-950'
                             : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                        } ${!allowed ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        }`}
                       >
                         <input
                           type="radio"
                           name="visibility"
                           value={opt.value}
                           checked={form.visibility === opt.value}
-                          onChange={() => allowed && setForm({ ...form, visibility: opt.value })}
-                          disabled={!allowed}
+                          onChange={() => setForm({ ...form, visibility: opt.value })}
+                          disabled={!!editingWS}
                           className="mt-0.5 accent-primary-600"
                         />
                         <div>
                           <div className="font-medium text-sm text-gray-900 dark:text-white">{opt.label}</div>
                           <div className="text-xs text-gray-500 mt-0.5">{opt.desc}</div>
                           {!allowed && (
-                            <div className="text-xs text-red-500 mt-0.5">Bạn không có quyền tạo loại này</div>
+                            <div className="text-xs text-amber-600 dark:text-amber-500 mt-0.5">
+                              ⚠️ Vai trò hiện tại của bạn có thể không đủ quyền tạo loại này — máy chủ sẽ báo lỗi khi lưu nếu không đủ quyền.
+                            </div>
                           )}
                         </div>
                       </label>
@@ -481,12 +507,12 @@ export default function WorkspaceManagement() {
               </div>
             </form>
           </div>
-        </div>
+        </ModalFocus>
       )}
 
       {/* ── Delete Confirm ── */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalFocus label="Xóa kho tri thức" onClose={() => setShowDeleteConfirm(null)} className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-sm p-6">
             <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-950 mx-auto mb-4">
               <Trash2 size={24} className="text-red-600" />
@@ -495,7 +521,7 @@ export default function WorkspaceManagement() {
               Xóa Workspace?
             </h2>
             <p className="text-sm text-gray-500 text-center mb-6">
-              Workspace <strong>"{showDeleteConfirm.name}"</strong> và toàn bộ dữ liệu (vector store, knowledge graph) sẽ bị xóa vĩnh viễn.
+              Workspace <strong>"{showDeleteConfirm.name}"</strong> sẽ được chuyển vào thùng rác và ngừng phục vụ hỏi đáp. Bạn có thể khôi phục trong 30 ngày.
             </p>
             <div className="flex gap-3">
               <button
@@ -512,7 +538,7 @@ export default function WorkspaceManagement() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalFocus>
       )}
 
       {/* ── Toast ── */}

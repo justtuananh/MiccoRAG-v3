@@ -1,11 +1,10 @@
-import { Link, useLocation } from 'react-router-dom';
-import { useTheme } from '../../context/ThemeContext';
+import { Link } from 'react-router-dom';
+import { useTheme } from '../../context/themeContextCore';
 import { FileText, Sun, Moon, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Navbar() {
     const { isDark, toggleTheme } = useTheme();
-    const location = useLocation();
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const links = [

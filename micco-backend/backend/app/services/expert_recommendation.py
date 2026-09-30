@@ -34,6 +34,8 @@ logger = logging.getLogger(__name__)
 
 class ExpertRecommendation(BaseModel):
     """Schema cho một chuyên gia được đề xuất."""
+    verified_expert: bool = False
+    recommendation_type: str = "document_contact"
     user_id: int
     name: str
     email: str
@@ -77,6 +79,8 @@ async def recommend_experts(
 
     if not query or not query.strip():
         return []
+    if allowed_document_ids == []:
+        return []
 
     # ── Step 1: Embed câu hỏi ──────────────────────────────────────────────
     embedder = get_embedding_service()
@@ -89,7 +93,7 @@ async def recommend_experts(
     vector_store = get_vector_store(workspace_id)
 
     where: dict | None = None
-    if allowed_document_ids:
+    if allowed_document_ids is not None:
         where = {"document_id": {"$in": allowed_document_ids}}
 
     try:
@@ -117,6 +121,8 @@ async def recommend_experts(
     for i, meta in enumerate(metadatas):
         doc_id = int(meta.get("document_id", 0)) if meta.get("document_id") else 0
         if doc_id == 0:
+            continue
+        if allowed_document_ids is not None and doc_id not in allowed_document_ids:
             continue
         distance = distances[i] if i < len(distances) else 1.0
         relevance = _cosine_to_relevance(distance)
@@ -168,8 +174,8 @@ async def recommend_experts(
         user_stats[user_id] = (doc_count, avg_rel)
 
     # ── Step 7: Sort by document_count desc, lấy top_K ─────────────────────
-    sorted_users = sorted(user_stats.items(), key=lambda x: x[1][0], reverse=True)
-    top_user_ids = [uid for uid, _ in sorted_users[:top_k]]
+    sorted_users = sorted(user_stats.items(), key=lambda x: (-x[1][1], -x[1][0], x[0]))
+    top_user_ids = [uid for uid, _ in sorted_users]
 
     if not top_user_ids:
         return []
@@ -178,7 +184,7 @@ async def recommend_experts(
     stmt = (
         select(User)
         .options(selectinload(User.department))
-        .where(User.id.in_(top_user_ids))
+        .where(User.id.in_(top_user_ids), User.is_active.is_(True))
     )
     result = await db.execute(stmt)
     users = list(result.scalars().all())
@@ -189,8 +195,10 @@ async def recommend_experts(
     experts: list[ExpertRecommendation] = []
     for user_id in top_user_ids:
         user = user_map.get(user_id)
-        if user is None:
+        if user is None or getattr(user, "is_active", True) is False:
             continue
+        if len(experts) >= top_k:
+            break
         doc_count, avg_rel = user_stats[user_id]
         experts.append(ExpertRecommendation(
             user_id=user.id,

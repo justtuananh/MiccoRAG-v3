@@ -3,8 +3,9 @@ import {
     Clock, FileSearch, Loader2, CheckCircle2, XCircle, AlertCircle,
     RefreshCw, File, ChevronDown, X, Wifi, WifiOff
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authContextCore';
 import Breadcrumb from '../components/shared/Breadcrumb';
+import { parseServerDate } from '../utils/formatters';
 
 // Trạng thái processing theo thứ tự
 const PROCESSING_STEPS = [
@@ -97,7 +98,9 @@ function formatBytes(bytes) {
 
 function timeAgo(dateStr) {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
+    // parseServerDate guards against naive (no "Z") UTC timestamps from the
+    // backend being misread as local time.
+    const date = parseServerDate(dateStr);
     const now = new Date();
     const diffMs = now - date;
     const diffSec = Math.floor(diffMs / 1000);
@@ -123,17 +126,25 @@ export default function ProcessingStatus() {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [activeFilter, setActiveFilter] = useState('processing');
     const [counts, setCounts] = useState({ all: 0, processing: 0, indexed: 0, failed: 0 });
+    const [loadError, setLoadError] = useState(false);
+    const [loadedFilter, setLoadedFilter] = useState(null);
     const pollingRef = useRef(null);
+    const requestId = useRef(0);
 
     const fetchDocs = useCallback(async (filterKey) => {
+        const currentRequest = ++requestId.current;
         try {
             const res = await authFetch(`/api/documents/processing-status?filter=${filterKey ?? 'all'}`);
-            if (res.ok) {
-                const data = await res.json();
-                setDocs(data.items || []);
-                if (data.counts) setCounts(data.counts);
-            }
-        } catch (_) {}
+            if (!res.ok) throw new Error('Failed to load processing status');
+            const data = await res.json();
+            if (currentRequest !== requestId.current) return;
+            setDocs(data.items || []);
+            if (data.counts) setCounts(data.counts);
+            setLoadedFilter(filterKey);
+            setLoadError(false);
+        } catch {
+            if (currentRequest === requestId.current) setLoadError(true);
+        }
     }, [authFetch]);
 
     const handleRefresh = async () => {
@@ -149,7 +160,6 @@ export default function ProcessingStatus() {
 
     // Initial load
     useEffect(() => {
-        setLoading(true);
         fetchDocs('processing').finally(() => setLoading(false));
     }, [fetchDocs]);
 
@@ -179,9 +189,9 @@ export default function ProcessingStatus() {
 
     // Live indicator: pulsing dot
     const hasActive = docs.some(d => !['indexed', 'failed'].includes(d.status));
+    const showingOtherFilter = loadedFilter && loadedFilter !== activeFilter;
 
     // Stats from backend counts
-    const total = docs.length;
     const done = counts.indexed;
     const failed = counts.failed;
     const processing = counts.processing;
@@ -208,12 +218,14 @@ export default function ProcessingStatus() {
                 <div className="flex items-center gap-3">
                     {/* Live status */}
                     <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${
-                        hasActive
+                        loadError || showingOtherFilter
+                            ? 'bg-red-50 border-red-200 text-red-700 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-400'
+                            : hasActive
                             ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-500/10 dark:border-green-500/30 dark:text-green-400'
                             : 'bg-gray-50 border-gray-200 text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
                     }`}>
-                        <span className={`w-2 h-2 rounded-full ${hasActive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
-                        {hasActive ? 'Đang xử lý' : 'Đã hoàn tất'}
+                        <span className={`w-2 h-2 rounded-full ${loadError || showingOtherFilter ? 'bg-red-500' : hasActive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+                        {loadError || showingOtherFilter ? 'Chưa cập nhật' : hasActive ? 'Đang xử lý' : 'Đã hoàn tất'}
                     </div>
 
                     {/* Online status */}
@@ -235,6 +247,15 @@ export default function ProcessingStatus() {
                     </button>
                 </div>
             </div>
+
+            {(loadError || showingOtherFilter) && (
+                <div role="alert" className="mx-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+                    {loadError ? 'Không thể tải trạng thái xử lý.' : 'Đang tải trạng thái của bộ lọc mới.'} {loadedFilter
+                        ? `Dữ liệu hiển thị là kết quả lần tải trước${loadedFilter !== activeFilter ? ` (${STATUS_FILTERS.find(f => f.key === loadedFilter)?.label || loadedFilter})` : ''}.`
+                        : 'Chưa có dữ liệu được tải.'}
+                    <button type="button" onClick={handleRefresh} disabled={refreshing} className="ml-2 font-semibold underline disabled:opacity-50">Thử lại</button>
+                </div>
+            )}
 
             {/* ── Stats ── */}
             <div className="grid grid-cols-3 gap-5 px-2">
@@ -293,14 +314,16 @@ export default function ProcessingStatus() {
                             </button>
                         ))}
                     </div>
-                    <span className="text-xs text-gray-400 pb-2">{docs.length} tài liệu</span>
+                    <span className="text-xs text-gray-400 pb-2">{docs.length} tài liệu{(loadError || showingOtherFilter) && loadedFilter ? ' (dữ liệu cũ)' : ''}</span>
                 </div>
 
                 {loading ? (
                     <div className="flex items-center justify-center py-16">
                         <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
                     </div>
-                ) : docs.length === 0 ? (
+                ) : docs.length === 0 && loadError ? (
+                    <div className="py-16 text-center text-sm text-red-600 dark:text-red-400">Không có dữ liệu trạng thái đã tải. Vui lòng thử lại.</div>
+                ) : docs.length === 0 && activeFilter === 'processing' ? (
                     <div className="py-16 text-center">
                         <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
                             <CheckCircle2 className="w-8 h-8 text-gray-300 dark:text-gray-600" />

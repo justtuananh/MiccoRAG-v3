@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import String, Integer, DateTime, ForeignKey
+from sqlalchemy import String, Integer, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -19,6 +19,7 @@ class User(Base):
     department_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("departments.id", ondelete="SET NULL"), nullable=True)
     avatar: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     department: Mapped["Department | None"] = relationship(back_populates="users")
-    knowledge_entries: Mapped[list["KnowledgeEntry"]] = relationship(back_populates="owner")
+    knowledge_entries: Mapped[list["KnowledgeEntry"]] = relationship(back_populates="owner", foreign_keys="KnowledgeEntry.owner_id")

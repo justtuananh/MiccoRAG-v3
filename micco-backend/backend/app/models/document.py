@@ -1,6 +1,6 @@
-from sqlalchemy import String, ForeignKey, DateTime, Integer, Text, Enum
+from sqlalchemy import String, ForeignKey, DateTime, Date, Integer, Text, Enum, Float, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime
+from datetime import datetime, date
 import enum
 
 from app.core.database import Base
@@ -19,6 +19,7 @@ class DocumentStatus(str, enum.Enum):
 
 class Document(Base):
     __tablename__ = "documents"
+    __table_args__ = (Index('ix_documents_workspace_text_fingerprint', 'workspace_id', 'text_fingerprint'),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     workspace_id: Mapped[int] = mapped_column(ForeignKey("knowledge_bases.id", ondelete="CASCADE"))
@@ -45,6 +46,27 @@ class Document(Base):
     # - "internal": legacy — treated same as "department"
     approval_status: Mapped[str] = mapped_column(String(20), default="pending") # "pending", "approved", "rejected"
     approval_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    effective_from: Mapped[date | None] = mapped_column(Date, nullable=True)
+    effective_until: Mapped[date | None] = mapped_column(Date, nullable=True)
+    approved_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    index_cleaned_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    index_cleanup_attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    index_cleanup_error: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    content_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    text_fingerprint: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    duplicate_of_document_id: Mapped[int | None] = mapped_column(ForeignKey("documents.id", ondelete="SET NULL"), nullable=True)
+    near_duplicate_document_id: Mapped[int | None] = mapped_column(ForeignKey("documents.id", ondelete="SET NULL"), nullable=True)
+    duplicate_similarity: Mapped[float | None] = mapped_column(Float, nullable=True)
+    knowledge_entry_id: Mapped[int | None] = mapped_column(ForeignKey("knowledge_entries.id", ondelete="SET NULL"), nullable=True)
+    supersedes_document_id: Mapped[int | None] = mapped_column(ForeignKey("documents.id", ondelete="SET NULL"), nullable=True)
+
+    issuer: Mapped[str | None] = mapped_column(String(250), nullable=True)
+    authority_scope: Mapped[str | None] = mapped_column(String(250), nullable=True)
+    authority_rank: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    authority_verified_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    authority_verified_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     # NexusRAG fields
     markdown_content: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -69,6 +91,7 @@ class Document(Base):
     )
     versions: Mapped[list["DocumentVersion"]] = relationship(
         back_populates="document",
+        foreign_keys="DocumentVersion.document_id",
         cascade="all, delete-orphan",
         order_by="DocumentVersion.version_number.desc()",
     )
