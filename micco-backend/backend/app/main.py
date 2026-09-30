@@ -2,12 +2,12 @@
 MiccoRAG — standalone Knowledge Base + RAG application.
 """
 from contextlib import asynccontextmanager
-from pathlib import Path
+import asyncio
+import httpx
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 import logging
 
 from datetime import datetime, timedelta
@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    settings.validate_runtime_security()
     logger.info("Starting MiccoRAG API...")
     import os
     auto_create = os.environ.get("AUTO_CREATE_TABLES", "true").lower() == "true"
@@ -126,37 +127,23 @@ async def lifespan(app: FastAPI):
         
         logger.info("Lifespan: Database tables created/verified")
 
-        # Recover stale processing documents (stuck from previous runs)
-        from app.models.document import Document, DocumentStatus
-        from sqlalchemy.ext.asyncio import AsyncSession
-        from sqlalchemy import select as sa_select
-        async with AsyncSession(engine) as session:
-            timeout = settings.NEXUSRAG_PROCESSING_TIMEOUT_MINUTES
-            cutoff = datetime.utcnow() - timedelta(minutes=timeout)
-            stale_statuses = [
-                DocumentStatus.PROCESSING,
-                DocumentStatus.PARSING,
-                DocumentStatus.INDEXING,
-            ]
-            result = await session.execute(
-                update(Document)
-                .where(
-                    Document.status.in_(stale_statuses),
-                    Document.updated_at < cutoff,
-                )
-                .values(
-                    status=DocumentStatus.FAILED,
-                    error_message=f"Processing timeout ({timeout}min). Click Analyze to retry.",
-                )
-                .returning(Document.id)
-            )
-            stale_ids = [row[0] for row in result.fetchall()]
-            if stale_ids:
-                await session.commit()
-                logger.warning(f"Recovered {len(stale_ids)} stale documents: {stale_ids}")
     else:
         logger.info("AUTO_CREATE_TABLES=false — skipping auto-migration")
-    yield
+    from app.services.processing_recovery import recover_stale_processing
+    from sqlalchemy.ext.asyncio import AsyncSession
+    async with AsyncSession(engine) as recovery_session:
+        recovered = await recover_stale_processing(recovery_session, settings.NEXUSRAG_PROCESSING_TIMEOUT_MINUTES)
+        logger.info("Recovered abandoned ingest jobs: %s", recovered)
+    from app.services.index_cleanup import maintenance_loop
+    maintenance = asyncio.create_task(maintenance_loop())
+    try:
+        yield
+    finally:
+        maintenance.cancel()
+        try:
+            await maintenance
+        except asyncio.CancelledError:
+            pass
     logger.info("Shutting down...")
     await engine.dispose()
 
@@ -195,7 +182,31 @@ async def health():
 
 @app.get("/ready")
 async def ready():
-    return {"status": "ready"}
+    async def database_check():
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+
+    async def vector_check():
+        async with httpx.AsyncClient(timeout=2.0, trust_env=False) as client:
+            response = await client.get(
+                f"http://{settings.CHROMA_HOST}:{settings.CHROMA_PORT}/api/v2/heartbeat"
+            )
+            response.raise_for_status()
+            if not isinstance(response.json().get("nanosecond heartbeat"), int):
+                raise RuntimeError("Invalid vector heartbeat")
+
+    results = await asyncio.gather(
+        asyncio.wait_for(database_check(), timeout=3.0),
+        asyncio.wait_for(vector_check(), timeout=3.0),
+        return_exceptions=True,
+    )
+    checks = {name: not isinstance(result, BaseException)
+              for name, result in zip(("database", "vector"), results)}
+    healthy = all(checks.values())
+    return JSONResponse(
+        status_code=200 if healthy else 503,
+        content={"status": "ready" if healthy else "not_ready", "checks": checks},
+    )
 
 
 # API routes
@@ -224,10 +235,7 @@ if settings.COMPAT_ENABLE_LEGACY_ROUTES:
     if getattr(settings, "COMPAT_LEGACY_DASHBOARD_ENABLE", True):
         app.include_router(dashboard_router)
 
-# Static files — document images extracted by MiccoRAG (Docling)
-_docling_data = Path(__file__).resolve().parent.parent / "data" / "docling"
-_docling_data.mkdir(parents=True, exist_ok=True)
-app.mount("/static/doc-images", StaticFiles(directory=str(_docling_data)), name="static_doc_images")
+# Document images are served by authenticated document routes, never a public mount.
 
 # Import models so SQLAlchemy registers them
 from app.models import knowledge_base, document, chat_message  # noqa: E402, F401

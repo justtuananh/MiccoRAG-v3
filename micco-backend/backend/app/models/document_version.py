@@ -4,9 +4,9 @@ Each re-upload of the same logical document creates a new version.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, date
 
-from sqlalchemy import String, Text, DateTime, ForeignKey, BigInteger, Boolean, Integer
+from sqlalchemy import String, Text, DateTime, Date, ForeignKey, BigInteger, Boolean, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -29,10 +29,18 @@ class DocumentVersion(Base):
         ForeignKey("users.id", ondelete="CASCADE"), nullable=True
     )
     is_current: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    approval_status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    processing_status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    effective_from: Mapped[date | None] = mapped_column(Date, nullable=True)
+    effective_until: Mapped[date | None] = mapped_column(Date, nullable=True)
+    approved_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    supersedes_version_id: Mapped[int | None] = mapped_column(ForeignKey("document_versions.id", ondelete="SET NULL"), nullable=True)
+    document_ref_id: Mapped[int | None] = mapped_column(ForeignKey("documents.id", ondelete="SET NULL"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    document: Mapped["Document"] = relationship(back_populates="versions")
+    document: Mapped["Document"] = relationship(back_populates="versions", foreign_keys=[document_id])
     creator: Mapped["User | None"] = relationship("User", foreign_keys=[created_by])
 
     @property

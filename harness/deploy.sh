@@ -10,7 +10,7 @@ echo "    backend :$BPORT | nginx :8888"
 section "1) CONTAINERS (nexusrag-*/micco-*)"
 if have_docker; then
   for c in nexusrag-postgres nexusrag-chromadb micco-nginx-gw micco-duckdns-updater; do
-    st=$(dki "$c" '{{.State.Status}}'); [ "$st" = running ] && ok "$c running" || no "$c = ${st:-missing}"
+    check_container "$c"
   done
 else wn "không quyền docker — bỏ qua containers"; fi
 

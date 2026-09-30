@@ -296,3 +296,20 @@ class BaseDocumentParser(ABC):
             )
 
         return chunks
+
+
+def ensure_media_chunks(chunks, images, tables, document_id, original_filename):
+    """Keep evidence from image-only/table-only pages absent from text chunks."""
+    assigned_images = {ref for chunk in chunks for ref in chunk.image_refs}
+    assigned_tables = {ref for chunk in chunks for ref in chunk.table_refs}
+    for img in images or []:
+        if img.image_id not in assigned_images:
+            chunks.append(EnrichedChunk(content=f"[Image on page {img.page_no}]: {img.caption or 'Image without readable caption'}",
+                chunk_index=len(chunks),source_file=original_filename,document_id=document_id,
+                page_no=img.page_no,image_refs=[img.image_id]))
+    for table in tables or []:
+        if table.table_id not in assigned_tables:
+            chunks.append(EnrichedChunk(content=table.content_markdown + ('\n' + table.caption if table.caption else ''),
+                chunk_index=len(chunks),source_file=original_filename,document_id=document_id,
+                page_no=table.page_no,table_refs=[table.table_id],has_table=True))
+    return chunks

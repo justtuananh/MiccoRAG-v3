@@ -1,11 +1,12 @@
+import TrashPanel from '../components/shared/TrashPanel';
 // Knowledge.jsx - Knowledge Base Management page
 // New "Tri thức" tab for managing knowledge entries
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
     Search, Plus, Filter, Grid, List, BookOpen,
     CheckCircle2, AlertCircle, Loader2, X
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authContextCore';
 import KnowledgeCard from '../components/knowledge/KnowledgeCard';
 import KnowledgeForm from '../components/knowledge/KnowledgeForm';
 import Breadcrumb from '../components/shared/Breadcrumb';
@@ -37,7 +38,7 @@ export default function Knowledge() {
     const STATUSES = ['Tất cả', 'Hoạt động', 'Chờ duyệt', 'Bị từ chối', 'Bản nháp', 'Lưu trữ'];
 
     // Fetch entries
-    const fetchEntries = async () => {
+    const fetchEntries = useCallback(async () => {
         try {
             setLoading(true);
             const res = await authFetch('/api/knowledge');
@@ -45,16 +46,16 @@ export default function Knowledge() {
                 const data = await res.json();
                 setEntries(data.items || []);
             }
-        } catch (err) {
-            showToast('Không thể tải danh sách tri thức', 'error');
+        } catch {
+            setToast({ msg: 'Không thể tải danh sách tri thức', type: 'error', id: Date.now() });
         } finally {
             setLoading(false);
         }
-    };
+    }, [authFetch]);
 
     useEffect(() => {
         fetchEntries();
-    }, []);
+    }, [fetchEntries]);
 
     // Debounced search
     useEffect(() => {
@@ -113,7 +114,7 @@ export default function Knowledge() {
                 const err = await res.json();
                 showToast(err.detail || 'Thao tác thất bại', 'error');
             }
-        } catch (err) {
+        } catch {
             showToast('Có lỗi xảy ra', 'error');
         } finally {
             setSaving(false);
@@ -143,6 +144,7 @@ export default function Knowledge() {
 
     return (
         <div className="space-y-6 px-2 md:px-4">
+            <TrashPanel listPath="/api/knowledge/trash" restorePath={id => `/api/knowledge/${id}/restore`} onRestored={fetchEntries} />
             {/* Breadcrumb */}
             <div className="px-2 pt-4">
                 <Breadcrumb items={[
@@ -290,7 +292,7 @@ export default function Knowledge() {
 
             {/* Knowledge Form Modal */}
             {formOpen && (
-                <KnowledgeForm
+                <KnowledgeForm key={editEntry?.id ?? 'new'}
                     entry={editEntry}
                     onSave={handleSave}
                     onClose={() => { setFormOpen(false); setEditEntry(null); }}

@@ -41,6 +41,7 @@ class WorkspaceResponse(BaseModel):
     department_name: str | None = None  # Tên department để hiển thị
     created_at: datetime
     updated_at: datetime
+    deleted_at: datetime | None = None
 
 
     model_config = {"from_attributes": True}

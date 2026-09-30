@@ -18,6 +18,7 @@ from app.services.document_loader import load_document, LoadedDocument
 from app.services.chunker import DocumentChunker, TextChunk
 from app.services.embedder import EmbeddingService, get_embedding_service
 from app.services.vector_store import VectorStore, get_vector_store
+from app.services.text_duplicate import claim_extracted_text
 
 logger = logging.getLogger(__name__)
 
@@ -96,16 +97,17 @@ class RAGService:
 
             import asyncio
 
-            def _process_sync():
-                # Load document
-                logger.info(f"Loading document {document_id} from {file_path}")
-                loaded = load_document(file_path)
+            loaded = await asyncio.to_thread(load_document, file_path)
+            document.markdown_content = loaded.content
+            await claim_extracted_text(self.db, document, loaded.content)
+            original_filename = document.original_filename
 
+            def _process_sync():
                 # Chunk text
                 logger.info(f"Chunking document {document_id}")
                 chunks = self.chunker.split_text(
                     text=loaded.content,
-                    source=document.original_filename,
+                    source=original_filename,
                     extra_metadata={
                         "document_id": document_id,
                         "file_type": loaded.file_type,
@@ -149,13 +151,8 @@ class RAGService:
             chunks = await asyncio.to_thread(_process_sync)
 
             if not chunks:
-                document.status = DocumentStatus.INDEXED
-                document.chunk_count = 0
-                await self.db.commit()
-                logger.warning(f"Document {document_id} produced no chunks (empty content)")
-                return 0
+                raise ValueError("Không trích xuất được nội dung để lập chỉ mục")
 
-            # Update document status
             document.status = DocumentStatus.INDEXED
             document.chunk_count = len(chunks)
             await self.db.commit()
@@ -197,12 +194,14 @@ class RAGService:
         Returns:
             RAGQueryResult with retrieved chunks and assembled context
         """
+        if document_ids == []:
+            return RAGQueryResult(chunks=[], context="", query=question)
         # Generate query embedding
         query_embedding = self.embedder.embed_query(question)
 
         # Build filter
         where = None
-        if document_ids:
+        if document_ids is not None:
             where = {"document_id": {"$in": document_ids}}
 
         # Query vector store
@@ -215,6 +214,8 @@ class RAGService:
         # Build retrieved chunks
         chunks = []
         for i, doc in enumerate(results["documents"]):
+            if document_ids is not None and results["metadatas"][i].get("document_id") not in document_ids:
+                continue
             chunks.append(RetrievedChunk(
                 content=doc,
                 metadata=results["metadatas"][i] if results["metadatas"] else {},

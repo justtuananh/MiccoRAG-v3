@@ -1,9 +1,10 @@
+import { createElement } from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import {
     FileText, HardDrive, Upload, Database, Layers,
     CheckCircle2, Clock, AlertCircle, RefreshCw, Server
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authContextCore';
 import Breadcrumb from '../components/shared/Breadcrumb';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -12,9 +13,13 @@ import {
 
 // ─── Animated counter ─────────────────────────────────────────────────────────
 function AnimatedNumber({ value, suffix = '', prefix = '' }) {
+    return <AnimatedNumberValue key={String(value)} value={value} suffix={suffix} prefix={prefix} />;
+}
+
+function AnimatedNumberValue({ value, suffix, prefix }) {
     const [display, setDisplay] = useState(0);
     useEffect(() => {
-        if (value === 0) { setDisplay(0); return; }
+        if (value === 0) return;
         let start = 0;
         const step = value / 30;
         const timer = setInterval(() => {
@@ -34,7 +39,7 @@ function StatCard({ label, value, numValue, icon: Icon, gradient, suffix = '', p
             <div className={`absolute top-0 right-0 w-28 h-28 rounded-bl-full opacity-5 bg-gradient-to-br ${gradient}`} />
             <div className="flex items-start gap-4">
                 <div className={`w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center bg-gradient-to-br ${gradient} shadow-md`}>
-                    <Icon className="w-5 h-5 text-white" />
+                    {createElement(Icon, { className: 'w-5 h-5 text-white' })}
                 </div>
                 <div className="min-w-0">
                     <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">{label}</p>
@@ -81,7 +86,9 @@ function CustomTooltip({ active, payload, label, unit = '' }) {
 }
 
 export default function Dashboard() {
-    const { authFetch } = useAuth();
+    const { authFetch, user } = useAuth();
+    const scopeLabel = ['Admin', 'Giám đốc', 'Phó giám đốc'].includes(user?.role)
+        ? 'Toàn công ty' : user?.role === 'Trưởng phòng' ? 'Phòng của tôi' : 'Của tôi';
     const [stats, setStats] = useState(null);
     const [uploadsData, setUploadsData] = useState([]);
     const [statusData, setStatusData] = useState([]);
@@ -119,28 +126,28 @@ export default function Dashboard() {
 
     const statCards = stats ? [
         {
-            label: 'Tổng tài liệu',
+            label: `Tài liệu · ${scopeLabel}`,
             numValue: stats.totalFiles,
             icon: FileText,
             gradient: 'from-indigo-500 to-purple-600',
             sub: `${stats.indexedDocs || 0} đã lập chỉ mục`,
         },
         {
-            label: 'Dung lượng',
+            label: `Dung lượng · ${scopeLabel}`,
             value: stats.storageUsed,
             icon: HardDrive,
             gradient: 'from-violet-500 to-purple-600',
             sub: `${stats.totalChunks?.toLocaleString('vi-VN') || 0} chunks`,
         },
         {
-            label: 'Tải lên 7 ngày',
+            label: `Tải lên 7 ngày · ${scopeLabel}`,
             numValue: stats.recentUploads,
             icon: Upload,
             gradient: 'from-emerald-500 to-teal-600',
             sub: 'tài liệu gần đây',
         },
         {
-            label: 'Workspaces',
+            label: `Kho tri thức · ${scopeLabel}`,
             numValue: stats.totalWorkspaces,
             icon: Database,
             gradient: 'from-amber-500 to-orange-500',
@@ -152,9 +159,9 @@ export default function Dashboard() {
         <div className="space-y-6 pb-6 px-2 md:px-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2 md:px-2 pt-4 md:pt-6">
                 <div>
-                    <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Tổng quan hệ thống</h1>
+                    <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Tổng quan · {scopeLabel}</h1>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Cập nhật {lastRefresh?.toLocaleTimeString('vi-VN')}
+                        Cập nhật {lastRefresh?.toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })} (giờ Việt Nam)
                     </p>
                 </div>
                 <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit">
@@ -197,10 +204,18 @@ export default function Dashboard() {
                         )}
                     </div>
 
+                    <div className="flex flex-wrap gap-3 px-2" aria-label="Thống kê phê duyệt">
+                        {Object.entries({pending: 'Chờ Trưởng phòng', pending_org: 'Chờ Ban giám đốc', approved: 'Đã duyệt', rejected: 'Từ chối'}).map(([key, label]) => (
+                            <span key={key} className="rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2 text-xs">
+                                {label}: <strong>{stats?.approvalCounts?.[key] || 0}</strong>
+                            </span>
+                        ))}
+                    </div>
+
                     {/* Row 1 Charts */}
                     <div className="grid lg:grid-cols-3 gap-5 px-2 md:px-2">
                         <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Lượt tải lên</h3>
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Lượt tải lên · {scopeLabel} · giờ Việt Nam</h3>
                             <ResponsiveContainer width="100%" height={200}>
                                 <AreaChart data={uploadsData} margin={{ top: 5, right: 10, left: -30, bottom: 0 }}>
                                     <XAxis dataKey="month" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />

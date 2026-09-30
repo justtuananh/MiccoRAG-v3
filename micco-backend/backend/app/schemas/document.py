@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, date
 from app.models.document import DocumentStatus
 
 
@@ -37,6 +37,9 @@ class DocumentResponse(DocumentBase):
     department_id: int | None = None
     visibility: str = "internal"
     approval_status: str = "approved"
+    effective_from: date | None = None
+    effective_until: date | None = None
+    deleted_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 

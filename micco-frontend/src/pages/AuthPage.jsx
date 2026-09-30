@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/authContextCore';
+import { useTheme } from '../context/themeContextCore';
 import { resolveApiBase } from '../utils/apiBase';
 import { User, Mail, Lock, ArrowRight, Sun, Moon, ShieldCheck, Building2 } from 'lucide-react';
 
@@ -18,7 +18,9 @@ function useAuthHandlers() {
             navigate('/dashboard');
         } else {
             setLoading(false);
-            setError(result.error || 'Đăng nhập thất bại');
+            // Luôn hiện thông báo tiếng Việt cố định cho đăng nhập — API có thể trả
+            // nguyên văn tiếng Anh (vd "Invalid email or password"), không hiển thị trực tiếp.
+            setError('Đăng nhập thất bại');
         }
     };
 
@@ -37,18 +39,12 @@ function useAuthHandlers() {
 
 export default function AuthPage() {
     const location = useLocation();
-    const [isSignUp, setIsSignUp] = useState(location.pathname === '/register');
+    const isSignUp = location.pathname === '/register';
     const navigate = useNavigate();
     const { isDark, toggleTheme } = useTheme();
     const { handleLogin, handleRegister } = useAuthHandlers();
 
-    // Sync URL → state
-    useEffect(() => {
-        setIsSignUp(location.pathname === '/register');
-    }, [location.pathname]);
-
     const toggle = (toSignUp) => {
-        setIsSignUp(toSignUp);
         navigate(toSignUp ? '/register' : '/login', { replace: true });
     };
 

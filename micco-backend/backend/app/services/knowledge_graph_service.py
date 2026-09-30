@@ -14,9 +14,12 @@ Usage:
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
+import resource
 import shutil
+import weakref
 from pathlib import Path
 from typing import Optional
 
@@ -27,6 +30,30 @@ from app.services.llm import get_embedding_provider, get_llm_provider
 from app.services.llm.types import LLMMessage
 
 logger = logging.getLogger(__name__)
+_INGEST_LOCKS: weakref.WeakValueDictionary[int, asyncio.Lock] = weakref.WeakValueDictionary()
+_ACTIVE_KB_NAMESPACES: set[int] = set()
+_INIT_LOCK = asyncio.Lock()
+
+
+class KGCapacityExceeded(RuntimeError):
+    """The graph is unavailable because its configured capacity was reached."""
+
+
+def _ingest_lock(workspace_id: int) -> asyncio.Lock:
+    lock = _INGEST_LOCKS.get(workspace_id)
+    if lock is None:
+        lock = asyncio.Lock()
+        _INGEST_LOCKS[workspace_id] = lock
+    return lock
+
+
+def _process_rss_bytes() -> int:
+    """Current Linux resident set; high-water fallback if /proc is unavailable."""
+    try:
+        pages = int(Path('/proc/self/statm').read_text().split()[1])
+        return pages * os.sysconf('SC_PAGE_SIZE')
+    except (OSError, ValueError, IndexError):
+        return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024
 
 
 # ---------------------------------------------------------------------------
@@ -154,10 +181,42 @@ class KnowledgeGraphService:
         self._chunk_to_doc_map = mapping
         return mapping
 
+    @staticmethod
+    def _source_allowed(source_id: str, allowed_ids: set[str], chunk_map: dict[str, str]) -> bool:
+        """A merged KG fact is safe only when every source is known and readable."""
+        sources = [part.strip() for part in (source_id or "").replace("<SEP>", ",").split(",") if part.strip()]
+        if not sources:
+            return False
+        for source in sources:
+            doc_id = chunk_map.get(source)
+            if doc_id is None:
+                alternate = source[6:] if source.startswith("chunk-") else f"chunk-{source}"
+                doc_id = chunk_map.get(alternate)
+            if doc_id not in allowed_ids:
+                return False
+        return True
+
     async def _get_rag(self):
         """Lazy-initialize LightRAG instance."""
         if self._rag is not None and self._initialized:
             return self._rag
+        async with _INIT_LOCK:
+            return await self._get_rag_locked()
+
+    async def _get_rag_locked(self):
+        if self._rag is not None and self._initialized:
+            return self._rag
+        # LightRAG retains process-global workspace data after finalize_storages;
+        # there is no safe per-workspace eviction while another request may use it.
+        # Bound how many different namespaces this worker may load. Restarting a
+        # worker after a maintenance window releases the global cache.
+        if (self.workspace_id not in _ACTIVE_KB_NAMESPACES and
+                len(_ACTIVE_KB_NAMESPACES) >= settings.NEXUSRAG_KG_MAX_ACTIVE_KBS_PER_PROCESS):
+            raise KGCapacityExceeded("KG active workspace limit reached in this process")
+        if (self.workspace_id not in _ACTIVE_KB_NAMESPACES and
+                _process_rss_bytes() + settings.NEXUSRAG_KG_INIT_RESERVE_BYTES >=
+                settings.NEXUSRAG_KG_MAX_PROCESS_RSS_BYTES):
+            raise KGCapacityExceeded("KG worker RSS limit reached before workspace load")
 
         from lightrag import LightRAG
         from lightrag.utils import wrap_embedding_func_with_attrs
@@ -186,8 +245,13 @@ class KnowledgeGraphService:
         async def embedding_func(texts: list[str]) -> np.ndarray:
             return await _kg_embed(texts)
 
+        # LightRAG's in-process shared stores are keyed by workspace, not by
+        # working_dir. Use its workspace namespace while keeping the existing
+        # on-disk data/lightrag/kb_<id>/ paths unchanged.
+        workspace_namespace = f"kb_{self.workspace_id}"
         self._rag = LightRAG(
-            working_dir=self.working_dir,
+            working_dir=str(Path(self.working_dir).parent),
+            workspace=workspace_namespace,
             llm_model_func=_kg_llm_complete,
             embedding_func=embedding_func,
             chunk_token_size=settings.NEXUSRAG_KG_CHUNK_TOKEN_SIZE,
@@ -211,8 +275,9 @@ class KnowledgeGraphService:
         )
 
         await self._rag.initialize_storages()
-        await initialize_pipeline_status()
+        await initialize_pipeline_status(workspace=workspace_namespace)
         self._initialized = True
+        _ACTIVE_KB_NAMESPACES.add(self.workspace_id)
 
         logger.info(
             f"LightRAG initialized for workspace {self.workspace_id} "
@@ -220,29 +285,102 @@ class KnowledgeGraphService:
         )
         return self._rag
 
+    def _disk_bytes(self) -> int:
+        """Count this KB's persisted storage, including vector and cache files."""
+        total = 0
+        for path in Path(self.working_dir).rglob("*"):
+            if path.is_symlink():
+                raise ValueError("Unsafe symlink in KG storage")
+            if path.is_file():
+                total += path.stat().st_size
+        return total
+
     async def ingest(self, markdown_content: str, document_id: int | None = None) -> None:
         """
         Ingest markdown content into the knowledge graph.
         LightRAG extracts entities and relationships automatically.
         """
-        rag = await self._get_rag()
+        async with _ingest_lock(self.workspace_id):
+            await self._ingest_locked(markdown_content, document_id)
 
+    async def _ingest_locked(self, markdown_content: str, document_id: int | None) -> None:
         if not markdown_content.strip():
             logger.warning(f"Empty content for workspace {self.workspace_id}, skipping KG ingest")
             return
+        if document_id is None:
+            raise ValueError("KG capacity control requires a document ID")
+
+        rag = await self._get_rag()
+        # LightRAG's JSON full-doc file is durable after each completed ingest.
+        # Fail closed if it cannot be read rather than bypassing the quota.
+        full_docs_path = Path(self.working_dir) / "kv_store_full_docs.json"
+        full_docs = json.loads(full_docs_path.read_text()) if full_docs_path.exists() else {}
+        if not isinstance(full_docs, dict):
+            raise ValueError("Invalid KG full-doc storage")
+        # An already ingested document must not be deleted by a quota rollback.
+        # LightRAG treats repeated IDs as duplicates, so there is no work to do.
+        if await rag.full_docs.get_by_id(str(document_id)) is not None:
+            logger.info("KG document %s already present in workspace %s", document_id, self.workspace_id)
+            return
+        doc_count = len(full_docs)
+        node_count = len(await rag.chunk_entity_relation_graph.get_all_nodes())
+        edge_count = len(await rag.chunk_entity_relation_graph.get_all_edges())
+        disk_bytes = self._disk_bytes()
+        rss_bytes = _process_rss_bytes()
+        max_docs = settings.NEXUSRAG_KG_MAX_DOCUMENTS_PER_KB
+        max_nodes = settings.NEXUSRAG_KG_MAX_NODES_PER_KB
+        max_edges = settings.NEXUSRAG_KG_MAX_EDGES_PER_KB
+        max_bytes = settings.NEXUSRAG_KG_MAX_DISK_BYTES_PER_KB
+        if (doc_count >= max_docs or node_count >= max_nodes or
+                edge_count >= max_edges or disk_bytes >= max_bytes or
+                rss_bytes >= settings.NEXUSRAG_KG_MAX_PROCESS_RSS_BYTES):
+            logger.warning(
+                "KG capacity reached for workspace %s: docs=%s/%s nodes=%s/%s "
+                "edges=%s/%s disk=%s/%s rss=%s/%s; skipping document %s",
+                self.workspace_id, doc_count, max_docs, node_count, max_nodes,
+                edge_count, max_edges, disk_bytes, max_bytes, rss_bytes,
+                settings.NEXUSRAG_KG_MAX_PROCESS_RSS_BYTES, document_id,
+            )
+            return
+        if (doc_count / max_docs >= settings.NEXUSRAG_KG_CAPACITY_WARN_RATIO or
+                node_count / max_nodes >= settings.NEXUSRAG_KG_CAPACITY_WARN_RATIO or
+                edge_count / max_edges >= settings.NEXUSRAG_KG_CAPACITY_WARN_RATIO or
+                disk_bytes / max_bytes >= settings.NEXUSRAG_KG_CAPACITY_WARN_RATIO or
+                rss_bytes / settings.NEXUSRAG_KG_MAX_PROCESS_RSS_BYTES >=
+                settings.NEXUSRAG_KG_CAPACITY_WARN_RATIO):
+            logger.warning(
+                "KG capacity nearing limit for workspace %s: docs=%s/%s nodes=%s/%s "
+                "edges=%s/%s disk=%s/%s rss=%s/%s",
+                self.workspace_id, doc_count, max_docs, node_count, max_nodes,
+                edge_count, max_edges, disk_bytes, max_bytes, rss_bytes,
+                settings.NEXUSRAG_KG_MAX_PROCESS_RSS_BYTES,
+            )
 
         try:
-            doc_ids = [str(document_id)] if document_id else None
-            await rag.ainsert(markdown_content, ids=doc_ids)
+            await rag.ainsert(markdown_content, ids=[str(document_id)])
+            self._chunk_to_doc_map = None
+            after_nodes = len(await rag.chunk_entity_relation_graph.get_all_nodes())
+            after_edges = len(await rag.chunk_entity_relation_graph.get_all_edges())
+            after_bytes = self._disk_bytes()
+            after_docs = json.loads(full_docs_path.read_text()) if full_docs_path.exists() else {}
+            if not isinstance(after_docs, dict):
+                raise ValueError("Invalid KG full-doc storage after ingestion")
+            if (after_nodes > max_nodes or after_edges > max_edges or
+                    after_bytes > max_bytes or len(after_docs) > max_docs or
+                    _process_rss_bytes() > settings.NEXUSRAG_KG_MAX_PROCESS_RSS_BYTES):
+                await rag.adelete_by_doc_id(str(document_id))
+                self._chunk_to_doc_map = None
+                raise RuntimeError(
+                    f"KG capacity exceeded for workspace {self.workspace_id}; "
+                    f"rolled back document {document_id}"
+                )
             logger.info(
                 f"KG ingested {len(markdown_content)} chars for doc {document_id} in workspace {self.workspace_id}"
             )
 
             # Check if entities were actually extracted
             try:
-                all_nodes = await rag.chunk_entity_relation_graph.get_all_nodes()
-                if not all_nodes:
-                    from app.core.config import settings
+                if not after_nodes:
                     model = (
                         settings.OLLAMA_MODEL
                         if settings.LLM_PROVIDER.lower() == "ollama"
@@ -265,6 +403,7 @@ class KnowledgeGraphService:
         question: str,
         mode: str = "hybrid",
         top_k: int = 10,
+        allowed_doc_ids: list[int] | None = None,
     ) -> str:
         """
         Query the knowledge graph.
@@ -277,6 +416,11 @@ class KnowledgeGraphService:
         Returns:
             LightRAG response text with KG-augmented answer
         """
+        if allowed_doc_ids is not None:
+            # LightRAG's generated answer has no document provenance. A scoped
+            # request can only use factual graph context that we can verify.
+            return await self.get_relevant_context(question, allowed_doc_ids=allowed_doc_ids)
+
         from lightrag import QueryParam
 
         rag = await self._get_rag()
@@ -316,6 +460,7 @@ class KnowledgeGraphService:
         rag = await self._get_rag()
         try:
             await rag.adelete_by_doc_id(str(document_id))
+            self._chunk_to_doc_map = None
             logger.info(f"Deleted document {document_id} from Knowledge Graph")
         except Exception as e:
             logger.error(f"Failed to delete document {document_id} from KG: {e}")
@@ -368,20 +513,7 @@ class KnowledgeGraphService:
             
             # Filtering by allowed document IDs
             if allowed_ids_str is not None:
-                is_allowed = False
-                # Nodes in LightRAG often have source_id which is a comma-separated list of chunks
-                node_chunks = [c.strip() for c in source_id.replace("<SEP>", ",").split(",") if c.strip()]
-                for chunk in node_chunks:
-                    # Try exact match, then with/without chunk- prefix
-                    doc_id = chunk_map.get(chunk)
-                    if not doc_id:
-                        alt_chunk = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else f"chunk-{chunk}"
-                        doc_id = chunk_map.get(alt_chunk)
-                    if doc_id in allowed_ids_str:
-                        is_allowed = True
-                        break
-                
-                if not is_allowed:
+                if not self._source_allowed(source_id, allowed_ids_str, chunk_map):
                     continue
 
             # Existing filters
@@ -391,10 +523,13 @@ class KnowledgeGraphService:
                 continue
 
             # Get degree (number of relationships)
-            try:
-                degree = await storage.node_degree(node_id)
-            except Exception:
-                degree = 0
+            if allowed_ids_str is not None:
+                degree = 0  # storage degree includes edges from unreadable documents
+            else:
+                try:
+                    degree = await storage.node_degree(node_id)
+                except Exception:
+                    degree = 0
 
             entities.append({
                 "name": node_id,
@@ -406,6 +541,8 @@ class KnowledgeGraphService:
         # Sort by degree descending
         entities.sort(key=lambda e: e["degree"], reverse=True)
 
+        offset = max(0, offset)
+        limit = max(1, min(limit, settings.NEXUSRAG_KG_ENTITY_PAGE_MAX))
         return entities[offset:offset + limit]
 
     async def get_relationships(
@@ -431,6 +568,17 @@ class KnowledgeGraphService:
         # Build allowed IDs set for fast lookup
         allowed_ids_str = set(str(id) for id in allowed_doc_ids) if allowed_doc_ids is not None else None
         chunk_map = await self._get_chunk_to_doc_map() if allowed_ids_str is not None else None
+        allowed_node_names = None
+        if allowed_ids_str is not None:
+            try:
+                nodes = await storage.get_all_nodes()
+            except Exception as e:
+                logger.error(f"Failed to verify KG edge endpoints for workspace {self.workspace_id}: {e}")
+                return []
+            allowed_node_names = {
+                node.get("id") for node in nodes
+                if self._source_allowed(node.get("source_id", ""), allowed_ids_str, chunk_map)
+            }
 
         relationships = []
         for edge in all_edges:
@@ -440,18 +588,9 @@ class KnowledgeGraphService:
             
             # Filtering by allowed document IDs
             if allowed_ids_str is not None:
-                is_allowed = False
-                edge_chunks = [c.strip() for c in source_id.replace("<SEP>", ",").split(",") if c.strip()]
-                for chunk in edge_chunks:
-                    doc_id = chunk_map.get(chunk)
-                    if not doc_id:
-                        alt_chunk = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else f"chunk-{chunk}"
-                        doc_id = chunk_map.get(alt_chunk)
-                    if doc_id in allowed_ids_str:
-                        is_allowed = True
-                        break
-                
-                if not is_allowed:
+                if not self._source_allowed(source_id, allowed_ids_str, chunk_map):
+                    continue
+                if src not in allowed_node_names or tgt not in allowed_node_names:
                     continue
 
             if entity_name:
@@ -466,6 +605,7 @@ class KnowledgeGraphService:
                 "weight": float(edge.get("weight", 1.0)),
             })
 
+        limit = max(1, min(limit, settings.NEXUSRAG_KG_RELATIONSHIP_PAGE_MAX))
         return relationships[:limit]
 
     async def get_graph_data(
@@ -480,6 +620,8 @@ class KnowledgeGraphService:
         """
         rag = await self._get_rag()
         storage = rag.chunk_entity_relation_graph
+        max_depth = max(1, min(max_depth, settings.NEXUSRAG_KG_GRAPH_MAX_DEPTH))
+        max_nodes = max(1, min(max_nodes, settings.NEXUSRAG_KG_GRAPH_MAX_NODES))
 
         try:
             label = center_entity if center_entity else "*"
@@ -498,6 +640,7 @@ class KnowledgeGraphService:
         
         nodes = []
         allowed_node_ids = set()
+        nodes_truncated = False
         for n in kg.nodes:
             # Type hinting for linter
             node_id = getattr(n, "id", None)
@@ -508,24 +651,20 @@ class KnowledgeGraphService:
             # Filtering by allowed domain if requested
             if allowed_ids_str is not None:
                 source_id = props.get("source_id", "")
-                is_allowed = False
-                chunks = [c.strip() for c in source_id.replace("<SEP>", ",").split(",") if c.strip()]
-                for chunk in chunks:
-                    doc_id = chunk_map.get(chunk)
-                    if not doc_id:
-                        alt_chunk = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else f"chunk-{chunk}"
-                        doc_id = chunk_map.get(alt_chunk)
-                    if doc_id in allowed_ids_str:
-                        is_allowed = True
-                        break
-                if not is_allowed:
+                if not self._source_allowed(source_id, allowed_ids_str, chunk_map):
                     continue
+            if len(nodes) >= max_nodes:
+                nodes_truncated = True
+                break
             
             allowed_node_ids.add(node_id)
-            try:
-                degree = await storage.node_degree(node_id)
-            except Exception:
+            if allowed_ids_str is not None:
                 degree = 0
+            else:
+                try:
+                    degree = await storage.node_degree(node_id)
+                except Exception:
+                    degree = 0
             nodes.append({
                 "id": node_id,
                 "label": node_id,
@@ -534,6 +673,7 @@ class KnowledgeGraphService:
             })
 
         edges = []
+        edges_truncated = False
         for e in kg.edges:
             source = getattr(e, "source", None)
             target = getattr(e, "target", None)
@@ -545,18 +685,11 @@ class KnowledgeGraphService:
             props = getattr(e, "properties", {})
             if allowed_ids_str is not None:
                 source_id = props.get("source_id", "")
-                is_allowed = False
-                chunks = [c.strip() for c in source_id.replace("<SEP>", ",").split(",") if c.strip()]
-                for chunk in chunks:
-                    doc_id = chunk_map.get(chunk)
-                    if not doc_id:
-                        alt_chunk = chunk.replace("chunk-", "") if chunk.startswith("chunk-") else f"chunk-{chunk}"
-                        doc_id = chunk_map.get(alt_chunk)
-                    if doc_id in allowed_ids_str:
-                        is_allowed = True
-                        break
-                if not is_allowed:
+                if not self._source_allowed(source_id, allowed_ids_str, chunk_map):
                     continue
+            if len(edges) >= settings.NEXUSRAG_KG_GRAPH_MAX_EDGES:
+                edges_truncated = True
+                break
 
             edges.append({
                 "source": source,
@@ -568,7 +701,8 @@ class KnowledgeGraphService:
         return {
             "nodes": nodes,
             "edges": edges,
-            "is_truncated": kg.is_truncated if hasattr(kg, "is_truncated") else False,
+            "is_truncated": bool(getattr(kg, "is_truncated", False) or
+                                 nodes_truncated or edges_truncated),
         }
 
     async def get_relevant_context(
@@ -576,6 +710,7 @@ class KnowledgeGraphService:
         question: str,
         max_entities: int = 20,
         max_relationships: int = 30,
+        allowed_doc_ids: list[int] | None = None,
     ) -> str:
         """
         Build RAG context from raw KG data (no LLM generation).
@@ -590,6 +725,8 @@ class KnowledgeGraphService:
         Returns:
             Structured string of entities + relationships, or "" if nothing found.
         """
+        if allowed_doc_ids == []:
+            return ""
         rag = await self._get_rag()
         storage = rag.chunk_entity_relation_graph
 
@@ -599,6 +736,15 @@ class KnowledgeGraphService:
         except Exception as e:
             logger.error(f"Failed to get raw KG data for workspace {self.workspace_id}: {e}")
             return ""
+
+        if allowed_doc_ids is not None:
+            allowed = {str(doc_id) for doc_id in allowed_doc_ids}
+            chunk_map = await self._get_chunk_to_doc_map()
+            all_nodes = [node for node in all_nodes if self._source_allowed(node.get("source_id", ""), allowed, chunk_map)]
+            allowed_names = {node.get("id") for node in all_nodes}
+            all_edges = [edge for edge in all_edges if
+                         edge.get("source") in allowed_names and edge.get("target") in allowed_names
+                         and self._source_allowed(edge.get("source_id", ""), allowed, chunk_map)]
 
         if not all_nodes:
             return ""
@@ -737,12 +883,14 @@ class KnowledgeGraphService:
         )
         return result
 
-    async def get_analytics(self) -> dict:
+    async def get_analytics(self, allowed_doc_ids: list[int] | None = None) -> dict:
         """
         Compute KG analytics summary.
 
         Returns: entity_count, relationship_count, entity_types, top_entities, avg_degree.
         """
+        if allowed_doc_ids == []:
+            return {"entity_count": 0, "relationship_count": 0, "entity_types": {}, "top_entities": [], "avg_degree": 0.0}
         rag = await self._get_rag()
         storage = rag.chunk_entity_relation_graph
 
@@ -759,6 +907,15 @@ class KnowledgeGraphService:
                 "avg_degree": 0.0,
             }
 
+        if allowed_doc_ids is not None:
+            allowed = {str(doc_id) for doc_id in allowed_doc_ids}
+            chunk_map = await self._get_chunk_to_doc_map()
+            all_nodes = [node for node in all_nodes if self._source_allowed(node.get("source_id", ""), allowed, chunk_map)]
+            names = {node.get("id") for node in all_nodes}
+            all_edges = [edge for edge in all_edges if edge.get("source") in names
+                         and edge.get("target") in names
+                         and self._source_allowed(edge.get("source_id", ""), allowed, chunk_map)]
+
         entity_count = len(all_nodes)
         relationship_count = len(all_edges)
 
@@ -768,10 +925,13 @@ class KnowledgeGraphService:
         for node in all_nodes:
             etype = node.get("entity_type", "Unknown")
             type_counts[etype] = type_counts.get(etype, 0) + 1
-            try:
-                degree = await storage.node_degree(node.get("id", ""))
-            except Exception:
+            if allowed_doc_ids is not None:
                 degree = 0
+            else:
+                try:
+                    degree = await storage.node_degree(node.get("id", ""))
+                except Exception:
+                    degree = 0
             entities_with_degree.append({
                 "name": node.get("id", ""),
                 "entity_type": etype,

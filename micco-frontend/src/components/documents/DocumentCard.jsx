@@ -1,17 +1,17 @@
 import { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { File, Eye, Download, Share2, Trash2, MoreVertical, Clock, XCircle, Loader2 } from 'lucide-react';
-import { fileTypeIconMap, fileTypeColors, fileTypeBgColors, thumbnailBg } from './fileTypes';
-import { getExt, formatDate, getCategoryLabel } from '../../utils/formatters';
+import { fileTypeIconMap, fileTypeColors, fileTypeBgColors } from './fileTypes';
+import { getExt, formatDate } from '../../utils/formatters';
 
 /* ─── Portal Dropdown (same pattern as DocumentRow) ─── */
-function CardDropdown({ anchorEl, onClose, children }) {
+function CardDropdown({ anchorRef, onClose, children }) {
     const menuRef = useRef(null);
     const [style, setStyle] = useState({ opacity: 0 });
 
     useEffect(() => {
-        if (!anchorEl) return;
-        const rect = anchorEl.getBoundingClientRect();
+        if (!anchorRef.current) return;
+        const rect = anchorRef.current.getBoundingClientRect();
         const MENU_W = 176;
         const MENU_H = 185;
         const vw = window.innerWidth;
@@ -24,19 +24,20 @@ function CardDropdown({ anchorEl, onClose, children }) {
         let top = rect.bottom + 4;
         if (top + MENU_H > vh - 8) top = rect.top - MENU_H - 4;
 
-        setStyle({ top, left, opacity: 1 });
-    }, [anchorEl]);
+        const frame = requestAnimationFrame(() => setStyle({ top, left, opacity: 1 }));
+        return () => cancelAnimationFrame(frame);
+    }, [anchorRef]);
 
     useEffect(() => {
         const handler = (e) => {
             if (
                 menuRef.current && !menuRef.current.contains(e.target) &&
-                anchorEl && !anchorEl.contains(e.target)
+                anchorRef.current && !anchorRef.current.contains(e.target)
             ) onClose();
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
-    }, [anchorEl, onClose]);
+    }, [anchorRef, onClose]);
 
     return createPortal(
         <div
@@ -163,7 +164,7 @@ export default function DocumentCard({ doc, onView, onDownload, onDelete }) {
                     </button>
 
                     {menuOpen && (
-                        <CardDropdown anchorEl={menuBtnRef.current} onClose={() => setMenuOpen(false)}>
+                        <CardDropdown anchorRef={menuBtnRef} onClose={() => setMenuOpen(false)}>
                             <button
                                 onClick={() => { onView(doc); setMenuOpen(false); }}
                                 className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"

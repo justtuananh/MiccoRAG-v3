@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
     Users, HardDrive, Zap,
     Plus,
-    CheckCircle2, AlertCircle, Brain, RefreshCw, Building2,
+    CheckCircle2, AlertCircle, Brain, Building2,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authContextCore';
 import StatCard from '../components/admin/StatCard';
 import UserModal from '../components/admin/UserModal';
 import UsersTable, { PAGE_SIZE } from '../components/admin/UsersTable';
@@ -23,82 +23,126 @@ export default function Admin() {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState('Tất cả');
-    
+    const [appliedUserFilters, setAppliedUserFilters] = useState({ search: '', role: 'Tất cả' });
+    // R5-2 pattern: distinguish "no users match" from "failed to load".
+    const [usersError, setUsersError] = useState(null);
+
     // -- Logs State --
     const [activeTab, setActiveTab] = useState('users'); // 'users' | 'logs' | 'departments'
     const [logs, setLogs] = useState([]);
     const [logTotal, setLogTotal] = useState(0);
     const [logPage, setLogPage] = useState(1);
     const [logSearch, setLogSearch] = useState('');
+    const [appliedLogSearch, setAppliedLogSearch] = useState('');
+    const [logAccessReason, setLogAccessReason] = useState('');
     const [selectedLog, setSelectedLog] = useState(null);
+    // R5-2 pattern: distinguish "no logs match" from "failed to load".
+    const [logsError, setLogsError] = useState(null);
 
     const [openMenu, setOpenMenu] = useState(null);
     const [addModal, setAddModal] = useState(false);
     const [editUser, setEditUser] = useState(null);
     const [deleteUser, setDeleteUser] = useState(null);
     const [toast, setToast] = useState(null);
-    const searchDebounce = useRef(null);
-    const [buildingCommunities, setBuildingCommunities] = useState(false);
+    const userSearchDebounce = useRef(null);
+    const logSearchDebounce = useRef(null);
 
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
     const logTotalPages = Math.max(1, Math.ceil(logTotal / LOG_PAGE_SIZE));
-
-    useEffect(() => { fetchStats(); }, []);
-    
-    // Users effect
-    useEffect(() => {
-        clearTimeout(searchDebounce.current);
-        searchDebounce.current = setTimeout(() => { setPage(1); fetchUsers(1); }, 350);
-        return () => clearTimeout(searchDebounce.current);
-    }, [search, roleFilter]);
-    useEffect(() => { if (activeTab === 'users') fetchUsers(page); }, [page, activeTab]);
-
-    // Logs effect
-    useEffect(() => {
-        clearTimeout(searchDebounce.current);
-        searchDebounce.current = setTimeout(() => { setLogPage(1); fetchLogs(1); }, 350);
-        return () => clearTimeout(searchDebounce.current);
-    }, [logSearch]);
-    useEffect(() => { if (activeTab === 'logs') fetchLogs(logPage); }, [logPage, activeTab]);
 
     const showToast = (msg, type = 'success') => {
         setToast({ msg, type, id: Date.now() });
         setTimeout(() => setToast(null), 3500);
     };
 
-    const fetchStats = async () => {
+    const fetchStats = useCallback(async () => {
         try {
             const res = await authFetch('/api/admin/stats');
             if (res.ok) setStats(await res.json());
         } catch { /* silent */ }
-    };
+    }, [authFetch]);
 
-    const fetchUsers = async (p = page) => {
+    const fetchUsers = useCallback(async (p, filters = appliedUserFilters) => {
         try {
             const params = new URLSearchParams({ page: p, page_size: PAGE_SIZE });
-            if (search) params.append('search', search);
-            if (roleFilter !== 'Tất cả') params.append('role', roleFilter);
+            if (filters.search) params.append('search', filters.search);
+            if (filters.role !== 'Tất cả') params.append('role', filters.role);
             const res = await authFetch(`/api/admin/users?${params}`);
             if (res.ok) {
                 const data = await res.json();
                 setUsers(data.users);
                 setTotal(data.total);
+                setUsersError(null);
+            } else if (res.status !== 401) {
+                // 401 → authFetch already triggered logout()/redirect.
+                setUsersError('Không thể tải danh sách người dùng. Vui lòng thử lại.');
             }
-        } catch { /* silent */ }
-    };
+        } catch {
+            setUsersError('Mất kết nối mạng. Vui lòng kiểm tra kết nối và thử lại.');
+        }
+    }, [authFetch, appliedUserFilters]);
 
-    const fetchLogs = async (p = logPage) => {
+    const fetchLogs = useCallback(async (p, reveal = false, reason = '', searchFilter = appliedLogSearch) => {
         try {
             const params = new URLSearchParams({ page: p, page_size: LOG_PAGE_SIZE });
-            if (logSearch) params.append('search', logSearch);
+            if (searchFilter) params.append('search', searchFilter);
+            if (reveal && reason.trim()) {
+                params.append('include_content', 'true');
+                params.append('reason', reason.trim());
+            }
             const res = await authFetch(`/api/admin/chat-logs?${params}`);
             if (res.ok) {
                 const data = await res.json();
                 setLogs(data.logs);
                 setLogTotal(data.total);
+                setLogsError(null);
+            } else if (res.status !== 401) {
+                setLogsError('Không thể tải nhật ký. Vui lòng thử lại.');
             }
-        } catch { /* silent */ }
-    };
+        } catch {
+            setLogsError('Mất kết nối mạng. Vui lòng kiểm tra kết nối và thử lại.');
+        }
+    }, [authFetch, appliedLogSearch]);
+
+    useEffect(() => {
+        const frame = requestAnimationFrame(() => fetchStats());
+        return () => cancelAnimationFrame(frame);
+    }, [fetchStats]);
+
+    // Users effect
+    useEffect(() => {
+        clearTimeout(userSearchDebounce.current);
+        userSearchDebounce.current = setTimeout(() => {
+            setPage(1);
+            setAppliedUserFilters(previous =>
+                previous.search === search && previous.role === roleFilter
+                    ? previous : { search, role: roleFilter }
+            );
+            fetchUsers(1, { search, role: roleFilter });
+        }, 350);
+        return () => clearTimeout(userSearchDebounce.current);
+    }, [search, roleFilter, fetchUsers]);
+    useEffect(() => {
+        if (activeTab !== 'users') return;
+        const frame = requestAnimationFrame(() => fetchUsers(page));
+        return () => cancelAnimationFrame(frame);
+    }, [page, activeTab, fetchUsers]);
+
+    // Logs effect
+    useEffect(() => {
+        clearTimeout(logSearchDebounce.current);
+        logSearchDebounce.current = setTimeout(() => {
+            setLogPage(1);
+            setAppliedLogSearch(logSearch);
+            fetchLogs(1, false, '', logSearch);
+        }, 350);
+        return () => clearTimeout(logSearchDebounce.current);
+    }, [logSearch, fetchLogs]);
+    useEffect(() => {
+        if (activeTab !== 'logs') return;
+        const frame = requestAnimationFrame(() => fetchLogs(logPage));
+        return () => cancelAnimationFrame(frame);
+    }, [logPage, activeTab, fetchLogs]);
 
     const handleSave = async (form) => {
         try {
@@ -117,7 +161,7 @@ export default function Admin() {
             if (res.ok) {
                 setAddModal(false);
                 setEditUser(null);
-                await fetchUsers();
+                await fetchUsers(page);
                 await fetchStats();
                 showToast(isEdit ? `Cập nhật ${form.name} thành công` : `Thêm ${form.name} thành công`);
             } else {
@@ -132,9 +176,9 @@ export default function Admin() {
             const res = await authFetch(`/api/admin/users/${id}`, { method: 'DELETE' });
             if (res.ok || res.status === 204) {
                 setDeleteUser(null);
-                await fetchUsers();
+                await fetchUsers(page);
                 await fetchStats();
-                showToast('Xóa người dùng thành công');
+                showToast('Đã vô hiệu hóa tài khoản');
             } else {
                 const err = await res.json();
                 showToast(err.detail || 'Xóa thất bại', 'error');
@@ -160,19 +204,10 @@ export default function Admin() {
         }
     };
 
-    const handleBuildCommunities = async () => {
-        setBuildingCommunities(true);
-        try {
-            const res = await authFetch('/api/admin/communities/build', { method: 'POST' });
-            if (res.ok) {
-                const data = await res.json();
-                showToast(`Build communities xong: ${data.communities_created || 0} communities tạo mới`);
-            } else {
-                const err = await res.json().catch(() => ({}));
-                showToast(err.detail || 'Build communities thất bại', 'error');
-            }
-        } catch { showToast('Có lỗi xảy ra', 'error'); }
-        finally { setBuildingCommunities(false); }
+    // Backend chưa có endpoint POST /api/admin/communities/build (trả 404).
+    // Nút bị vô hiệu hoá; nếu vẫn kích hoạt được thì báo lỗi rõ ràng thay vì im lặng.
+    const handleBuildCommunities = () => {
+        showToast('Tính năng "Build Communities" chưa được backend hỗ trợ (endpoint chưa tồn tại)', 'error');
     };
 
     // Close menu on outside click
@@ -182,11 +217,7 @@ export default function Admin() {
         return () => document.removeEventListener('click', h);
     }, []);
 
-    // Derived user status (based on recency of creation as approximation)
-    const isActive = (u) => {
-        if (!u.created_at) return false;
-        return (Date.now() - new Date(u.created_at)) < 30 * 24 * 3600 * 1000;
-    };
+    const isActive = (u) => u.is_active !== false;
 
     const statCards = stats ? [
         { icon: Users, label: 'Tổng người dùng', value: stats.totalUsers?.toLocaleString(), change: stats.totalUsersChange, positive: true },
@@ -307,8 +338,17 @@ export default function Admin() {
                     onEdit={(u) => { setEditUser(u); setAddModal(true); }}
                     onDelete={setDeleteUser}
                     isActive={isActive}
+                    loadError={usersError}
+                    onRetry={() => fetchUsers(page)}
                 />
             ) : activeTab === 'logs' ? (
+                <>
+                <form className="mb-4 flex flex-wrap gap-2" onSubmit={(event) => { event.preventDefault(); fetchLogs(logPage, true, logAccessReason); }}>
+                    <label className="flex-1">Lý do hỗ trợ cần xem nội dung hội thoại
+                        <input required value={logAccessReason} onChange={(event) => setLogAccessReason(event.target.value)} className="w-full border rounded-lg px-3 py-2" maxLength={500} />
+                    </label>
+                    <button type="submit" disabled={!logAccessReason.trim()} className="px-4 py-2 rounded-lg bg-primary-600 text-white disabled:opacity-50">Xem nội dung và ghi nhật ký truy cập</button>
+                </form>
                 <LogsTable
                     logs={logs}
                     total={logTotal}
@@ -319,7 +359,10 @@ export default function Admin() {
                     onPageChange={setLogPage}
                     onExport={handleExport}
                     onViewDetail={setSelectedLog}
+                    loadError={logsError}
+                    onRetry={() => fetchLogs(logPage)}
                 />
+                </>
             ) : activeTab === 'departments' ? (
                 <Departments embedded={true} />
             ) : null}
@@ -336,17 +379,16 @@ export default function Admin() {
                     <div className="flex flex-col gap-1">
                         <button
                             onClick={handleBuildCommunities}
-                            disabled={buildingCommunities}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium transition-colors disabled:opacity-60"
+                            disabled
+                            title="Backend chưa hỗ trợ tính năng này"
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            {buildingCommunities
-                                ? <RefreshCw className="w-4 h-4 animate-spin" />
-                                : <Zap className="w-4 h-4" />
-                            }
-                            {buildingCommunities ? 'Đang xây dựng...' : 'Build Communities'}
+                            <Zap className="w-4 h-4" />
+                            Build Communities
                         </button>
                         <p className="text-xs text-slate-400 max-w-xs">
-                            Phân tích cộng đồng trong knowledge graph (Leiden algorithm + LLM summary)
+                            Phân tích cộng đồng trong knowledge graph (Leiden algorithm + LLM summary) —
+                            <span className="text-amber-500"> chưa khả dụng, backend chưa có endpoint</span>
                         </p>
                     </div>
                 </div>
@@ -361,12 +403,12 @@ export default function Admin() {
             />
             {deleteUser && (
                 <ConfirmDeleteModal
-                    title="Xóa người dùng"
+                    title="Vô hiệu hóa tài khoản"
                     description={
                         <>
-                            Bạn có chắc chắn muốn xóa{' '}
+                            Bạn có chắc chắn muốn vô hiệu hóa{' '}
                             <span className="font-semibold text-slate-700 dark:text-slate-200">"{deleteUser.name}"</span>?
-                            {' '}Hành động này không thể hoàn tác.
+                            {' '}Tài khoản sẽ không thể đăng nhập cho đến khi được kích hoạt lại.
                         </>
                     }
                     onClose={() => setDeleteUser(null)}

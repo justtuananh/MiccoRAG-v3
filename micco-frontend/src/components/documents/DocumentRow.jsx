@@ -5,14 +5,14 @@ import { fileTypeIconMap, fileTypeColors, fileTypeBgColors } from './fileTypes';
 import { getExt, formatBytes, formatDate, getInitials, avatarColor, categoryColors, getCategoryLabel } from '../../utils/formatters';
 import ProcessingProgressBar from '../shared/ProcessingProgressBar';
 
-function DropdownMenu({ anchorEl, onClose, children }) {
+function DropdownMenu({ anchorRef, onClose, children }) {
     const menuRef = useRef(null);
     const [style, setStyle] = useState({ opacity: 0 });
 
     useEffect(() => {
-        if (!anchorEl) return;
+        if (!anchorRef.current) return;
 
-        const rect = anchorEl.getBoundingClientRect();
+        const rect = anchorRef.current.getBoundingClientRect();
         const MENU_WIDTH = 176; // w-44 = 11rem = 176px
         const MENU_HEIGHT = 180; // approximate
 
@@ -28,20 +28,21 @@ function DropdownMenu({ anchorEl, onClose, children }) {
         let top = rect.bottom + 4;
         if (top + MENU_HEIGHT > viewportH - 8) top = rect.top - MENU_HEIGHT - 4;
 
-        setStyle({ top, left, opacity: 1 });
-    }, [anchorEl]);
+        const frame = requestAnimationFrame(() => setStyle({ top, left, opacity: 1 }));
+        return () => cancelAnimationFrame(frame);
+    }, [anchorRef]);
 
     // Close on outside click
     useEffect(() => {
         const handler = (e) => {
             if (menuRef.current && !menuRef.current.contains(e.target) &&
-                anchorEl && !anchorEl.contains(e.target)) {
+                anchorRef.current && !anchorRef.current.contains(e.target)) {
                 onClose();
             }
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
-    }, [anchorEl, onClose]);
+    }, [anchorRef, onClose]);
 
     return createPortal(
         <div
@@ -178,7 +179,7 @@ export default function DocumentRow({ doc, openMenu, onToggleMenu, onView, onDow
                 </button>
 
                 {isOpen && (
-                    <DropdownMenu anchorEl={btnRef.current} onClose={() => onToggleMenu(null)}>
+                    <DropdownMenu anchorRef={btnRef} onClose={() => onToggleMenu(null)}>
                         <button onClick={() => { onView(doc); onToggleMenu(null); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                             <Eye className="w-4 h-4 text-gray-400" /> Xem
                         </button>

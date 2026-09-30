@@ -30,6 +30,7 @@ from app.services.reranker import get_reranker_service
 from app.services.rag_service import RAGQueryResult, RetrievedChunk
 from app.services.models.parsed_document import DeepRetrievalResult
 from app.services.chunk_dedup import deduplicate_chunks
+from app.services.text_duplicate import claim_extracted_text
 
 logger = logging.getLogger(__name__)
 
@@ -115,12 +116,18 @@ class NexusRAGService:
                 original_filename=document.original_filename,
             )
 
-            # Save markdown + images to DB
+            if not parsed.chunks:
+                raise ValueError("Không trích xuất được nội dung để lập chỉ mục")
+
+            # Claim the extracted text before any image/vector/KG side effect.
+            # This also compares historical stored markdown with no fingerprint.
             document.markdown_content = parsed.markdown
             document.page_count = parsed.page_count
             document.table_count = parsed.tables_count
+            document.image_count = len(parsed.images)
             document.parser_version = self.parser.parser_name
-            await self.db.commit()
+            extracted_text = parsed.markdown or '\n'.join(chunk.content for chunk in parsed.chunks)
+            await claim_extracted_text(self.db, document, extracted_text)
 
             # Clean up old image records before saving new ones (handles re-processing)
             await self.db.execute(
@@ -178,6 +185,9 @@ class NexusRAGService:
                         f"near={dedup_stats['near_removed']})"
                     )
 
+            if not parsed.chunks:
+                raise ValueError("Không còn nội dung hợp lệ sau khi lọc để lập chỉ mục")
+
             # Phase 2: INDEXING
             document.status = DocumentStatus.INDEXING
             await self.db.commit()
@@ -202,7 +212,7 @@ class NexusRAGService:
                     ]
                     # Build image_id→URL lookup for metadata
                     _img_url_map = {
-                        img.image_id: f"/static/doc-images/kb_{_workspace_id}/images/{img.image_id}.png"
+                        img.image_id: f"/api/v1/documents/{document_id}/images/{img.image_id}/file"
                         for img in parsed.images
                     }
 
@@ -274,97 +284,59 @@ class NexusRAGService:
             raise
 
     async def process_knowledge_entry(self, entry_id: int) -> int:
-        """
-        Process a knowledge entry (text-based) through the indexing pipeline.
-        
-        This mimics the INDEXING and KG phases of process_document but
-        skips PARSING since we already have the raw text.
-        """
-        result = await self.db.execute(
-            select(KnowledgeEntry).where(KnowledgeEntry.id == entry_id)
-        )
-        entry = result.scalar_one_or_none()
-        if entry is None:
-            raise ValueError(f"Knowledge entry {entry_id} not found")
+        """Project knowledge into a permissioned Document identity before indexing.
 
-        start_time = time.time()
+        This closes the old gap where knowledge vectors had no document_id and
+        therefore could not be validated by the shared RAG permission scope.
+        """
+        from pathlib import Path
+        import hashlib
+        entry = (await self.db.execute(select(KnowledgeEntry).where(
+            KnowledgeEntry.id == entry_id))).scalar_one_or_none()
+        if not entry or entry.deleted_at is not None or entry.approval_status != "approved":
+            raise ValueError("Knowledge entry is not approved for indexing")
+        if entry.effective_from is None:
+            raise ValueError("Knowledge effective date is required")
+        doc = (await self.db.execute(select(Document).where(
+            Document.knowledge_entry_id == entry.id,
+            Document.workspace_id == self.workspace_id))).scalar_one_or_none()
+        previous = None
+        if entry.supersedes_entry_id:
+            previous = (await self.db.execute(select(Document).where(
+                Document.knowledge_entry_id == entry.supersedes_entry_id,
+                Document.workspace_id == self.workspace_id))).scalar_one_or_none()
+        text = f"# {entry.title}\n\n{entry.content_text}"
+        stored_name = f"knowledge_{entry.id}_{self.workspace_id}.md"
+        if doc is None:
+            doc = Document(workspace_id=self.workspace_id, filename=stored_name,
+                original_filename=f"{entry.title}.md", file_type="md", file_size=len(text.encode()),
+                knowledge_entry_id=entry.id, uploader_id=entry.owner_id,
+                department_id=entry.department_id, visibility=entry.visibility,
+                approval_status="approved", status=DocumentStatus.PENDING)
+            self.db.add(doc)
+        doc.visibility, doc.department_id = entry.visibility, entry.department_id
+        doc.approval_status = entry.approval_status
+        doc.original_filename, doc.file_size = f"{entry.title}.md", len(text.encode())
+        doc.effective_from, doc.effective_until = entry.effective_from, entry.effective_until
+        from app.core.time_utils import utc_naive
+        doc.approved_by, doc.approved_at = entry.approved_by, utc_naive(entry.approved_at)
+        doc.supersedes_document_id = previous.id if previous else None
+        doc.content_hash = hashlib.sha256(text.encode()).hexdigest()
+        doc.deleted_at = None
+        entry.ingest_status = "processing"
+        await self.db.commit()
+        path = Path(settings.BASE_DIR) / "uploads" / stored_name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
         try:
-            entry.ingest_status = "processing"
-            await self.db.commit()
-
-            # Phase 1: Chunking (mimic DocumentChunker)
-            from app.services.chunker import DocumentChunker
-            chunker = DocumentChunker(chunk_size=500, chunk_overlap=50)
-            
-            # Simple chunking of text
-            chunks = chunker.split_text(
-                text=entry.content_text,
-                source=f"knowledge_{entry_id}",
-                extra_metadata={
-                    "knowledge_id": entry_id,
-                    "title": entry.title,
-                    "category": entry.category,
-                }
-            )
-
-            if not chunks:
-                entry.ingest_status = "indexed"
-                await self.db.commit()
-                return 0
-
-            # Phase 2: Indexing (Vector)
-            import asyncio
-            # --- FIX: MissingGreenlet ---
-            # Pre-extract ORM values before entering the thread
-            _entry_title = entry.title
-            _entry_category = entry.category
-
-            def _index_sync():
-                chunk_texts = [c.content for c in chunks]
-                embeddings = self.embedder.embed_texts(chunk_texts)
-
-                ids = [f"kn_{entry_id}_chunk_{i}" for i in range(len(chunks))]
-
-                metadatas = [
-                    {
-                        "knowledge_id": entry_id,
-                        "chunk_index": c.chunk_index,
-                        "source": _entry_title,      # ← pre-extracted
-                        "category": _entry_category, # ← pre-extracted
-                        "type": "knowledge",
-                    }
-                    for c in chunks
-                ]
-
-                self.vector_store.add_documents(
-                    ids=ids,
-                    embeddings=embeddings,
-                    documents=chunk_texts,
-                    metadatas=metadatas,
-                )
-            await asyncio.to_thread(_index_sync)
-
-            # Phase 3: KG ingest
-            if self.kg_service:
-                try:
-                    # Ingest the content as markdown (can just be the text)
-                    # We use a special ID format to avoid collision with documents
-                    kg_doc_id = f"kn_{entry_id}"
-                    await self.kg_service.ingest(entry.content_text, document_id=kg_doc_id)
-                except Exception as e:
-                    logger.error(f"KG ingest failed for knowledge {entry_id}: {e}")
-
-            elapsed_ms = int((time.time() - start_time) * 1000)
+            count = await self.process_document(doc.id, str(path))
             entry.ingest_status = "indexed"
+            entry.ingest_error = None
             await self.db.commit()
-            
-            logger.info(f"NexusRAG processed knowledge {entry_id}: {len(chunks)} chunks in {elapsed_ms}ms")
-            return len(chunks)
-
-        except Exception as e:
-            logger.error(f"NexusRAG failed for knowledge {entry_id}: {e}")
+            return count
+        except Exception as exc:
             entry.ingest_status = "failed"
-            entry.ingest_error = str(e)[:500]
+            entry.ingest_error = str(exc)[:500]
             await self.db.commit()
             raise
 
@@ -382,10 +354,12 @@ class NexusRAGService:
         Backward-compatible sync query (vector-only).
         Returns same RAGQueryResult as legacy RAGService.
         """
+        if document_ids == []:
+            return RAGQueryResult(chunks=[], context="", query=question)
         query_embedding = self.embedder.embed_query(question)
 
         where = None
-        if document_ids:
+        if document_ids is not None:
             where = {"document_id": {"$in": document_ids}}
 
         results = self.vector_store.query(
@@ -397,6 +371,8 @@ class NexusRAGService:
         chunks = []
         for i, doc in enumerate(results.get("documents", [])):
             meta = results["metadatas"][i] if results.get("metadatas") else {}
+            if document_ids is not None and meta.get("document_id") not in document_ids:
+                continue
             chunks.append(RetrievedChunk(
                 content=doc,
                 metadata=meta,

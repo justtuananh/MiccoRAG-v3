@@ -3,6 +3,10 @@ from __future__ import annotations
 import os
 import uuid
 import aiofiles
+from io import BytesIO
+import warnings
+from PIL import Image, UnidentifiedImageError
+from starlette.concurrency import run_in_threadpool
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from fastapi.responses import FileResponse
@@ -35,13 +39,44 @@ AVATAR_MAX_SIZE = 5 * 1024 * 1024  # 5MB
 AVATAR_ALLOWED = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 
 
+def _avatar_png(content: bytes) -> bytes:
+    """Decode a bounded raster image and discard active data/metadata."""
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            with Image.open(BytesIO(content)) as source:
+                if source.format not in {"JPEG", "PNG", "GIF", "WEBP"}:
+                    raise ValueError("Unsupported image format")
+                if source.width * source.height > 16_000_000:
+                    raise ValueError("Image dimensions exceed limit")
+                source.load()
+                clean = source.convert("RGBA")
+                clean.thumbnail((1024, 1024))
+                # Construct a fresh image so EXIF/ICC/text chunks cannot survive.
+                output_image = Image.new("RGBA", clean.size)
+                output_image.paste(clean)
+                output = BytesIO()
+                output_image.save(output, format="PNG")
+                return output.getvalue()
+    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError,
+            Image.DecompressionBombWarning):
+        raise HTTPException(status_code=400, detail="Avatar không phải ảnh hợp lệ hoặc vượt giới hạn kích thước")
+
+
+def _avatar_path(name: str):
+    path = (AVATAR_DIR / name).resolve()
+    if path.parent != AVATAR_DIR.resolve():
+        raise HTTPException(status_code=404, detail="Avatar not found")
+    return path
+
+
 @router.get("/departments", response_model=list[DepartmentResponse])
 async def public_departments(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Department).order_by(Department.name))
     return result.scalars().all()
 
 
-@router.post("/register", response_model=TokenResponse)
+@router.post("/register", status_code=202)
 async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
     existing = await db.execute(select(User).where(User.email == req.email))
     if existing.scalar_one_or_none() is not None:
@@ -78,20 +113,20 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
         hashed_password=hash_password(req.password),
         role="Nhân viên",
         department_id=req.department_id,
+        is_active=False,
     )
     db.add(user)
     await db.commit()
     await db.refresh(user)
 
-    token = create_access_token(data={"sub": user.id})
-    return TokenResponse(access_token=token)
+    return {"message": "Đăng ký đã được ghi nhận; chờ Admin kích hoạt", "id": user.id}
 
 
 @router.post("/login", response_model=TokenResponse)
 async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == req.email))
     user = result.scalar_one_or_none()
-    if not user or not verify_password(req.password, user.hashed_password):
+    if not user or not user.is_active or not verify_password(req.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
@@ -162,7 +197,7 @@ async def upload_avatar(
     db: AsyncSession = Depends(get_db),
 ):
     """Upload a new avatar image for the current user."""
-    content = await file.read()
+    content = await file.read(AVATAR_MAX_SIZE + 1)
     if len(content) > AVATAR_MAX_SIZE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -176,21 +211,24 @@ async def upload_avatar(
             detail=f"Định dạng avatar không được hỗ trợ. Chỉ chấp nhận: {', '.join(AVATAR_ALLOWED)}",
         )
 
-    # Delete old avatar if exists
+    content = await run_in_threadpool(_avatar_png, content)
     old_avatar = current_user.avatar
-    if old_avatar:
-        old_path = AVATAR_DIR / old_avatar
-        if old_path.exists():
-            os.remove(old_path)
-
-    # Save new avatar
-    stored_name = f"avatar_{current_user.id}_{uuid.uuid4().hex}.{ext}"
+    stored_name = f"avatar_{current_user.id}_{uuid.uuid4().hex}.png"
     file_path = AVATAR_DIR / stored_name
-    async with aiofiles.open(file_path, "wb") as out:
-        await out.write(content)
-
-    current_user.avatar = stored_name
-    await db.commit()
+    try:
+        async with aiofiles.open(file_path, "wb") as out:
+            await out.write(content)
+        current_user.avatar = stored_name
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        current_user.avatar = old_avatar
+        file_path.unlink(missing_ok=True)
+        raise
+    if old_avatar:
+        old_path = (AVATAR_DIR / old_avatar).resolve()
+        if old_path.parent == AVATAR_DIR.resolve():
+            old_path.unlink(missing_ok=True)
 
     return {"avatar": stored_name}
 
@@ -203,7 +241,7 @@ async def get_my_avatar(
     if not current_user.avatar:
         raise HTTPException(status_code=404, detail="Avatar not found")
 
-    file_path = AVATAR_DIR / current_user.avatar
+    file_path = _avatar_path(current_user.avatar)
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Avatar file not found")
 
@@ -217,7 +255,7 @@ async def get_my_avatar(
     }
     media_type = media_types.get(ext, "image/jpeg")
 
-    return FileResponse(path=str(file_path), media_type=media_type)
+    return FileResponse(path=str(file_path), media_type=media_type, headers={"X-Content-Type-Options": "nosniff"})
 
 
 @router.delete("/me/avatar")
@@ -228,11 +266,10 @@ async def delete_avatar(
     """Delete the current user's avatar."""
     old_avatar = current_user.avatar
     if old_avatar:
-        old_path = AVATAR_DIR / old_avatar
-        if old_path.exists():
-            os.remove(old_path)
+        old_path = _avatar_path(old_avatar)
         current_user.avatar = None
         await db.commit()
+        old_path.unlink(missing_ok=True)
 
     return {"message": "Đã xóa avatar"}
 
@@ -247,7 +284,7 @@ async def get_user_avatar(
     if not user or not user.avatar:
         raise HTTPException(status_code=404, detail="Avatar not found")
 
-    file_path = AVATAR_DIR / user.avatar
+    file_path = _avatar_path(user.avatar)
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Avatar file not found")
 
@@ -261,4 +298,4 @@ async def get_user_avatar(
     }
     media_type = media_types.get(ext, "image/jpeg")
 
-    return FileResponse(path=str(file_path), media_type=media_type)
+    return FileResponse(path=str(file_path), media_type=media_type, headers={"X-Content-Type-Options": "nosniff"})

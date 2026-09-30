@@ -1,13 +1,17 @@
-import { 
-    Search, Download, ChevronLeft, ChevronRight, 
-    History, Info, Monitor, Clock, Cpu
+import ModalFocus from '../shared/ModalFocus';
+import {
+    Search, Download, ChevronLeft, ChevronRight,
+    History, Info, Monitor, Clock, Cpu, AlertCircle
 } from 'lucide-react';
+import { parseServerDate } from '../../utils/formatters';
 
 export const LOG_PAGE_SIZE = 10;
 
 function timeAgo(dateStr) {
     if (!dateStr) return '—';
-    const date = new Date(dateStr);
+    // Backend UTC timestamps aren't always suffixed with "Z" — parseServerDate
+    // guards against that being misread as local time (was off by +7h in VN).
+    const date = parseServerDate(dateStr);
     const diff = Math.floor((Date.now() - date) / 1000);
     
     if (diff < 60) return 'vừa xong';
@@ -29,7 +33,8 @@ const METHOD_COLORS = {
 export default function LogsTable({
     logs, total, page, totalPages,
     search, onSearchChange, onPageChange, onExport,
-    onViewDetail
+    onViewDetail,
+    loadError, onRetry,
 }) {
     const startRow = (page - 1) * LOG_PAGE_SIZE + 1;
     const endRow = Math.min(page * LOG_PAGE_SIZE, total);
@@ -81,9 +86,21 @@ export default function LogsTable({
                         {logs.length === 0 && (
                             <tr>
                                 <td colSpan={5} className="px-6 py-20 text-center">
-                                    <Monitor className="w-12 h-12 text-slate-100 dark:text-slate-800 mx-auto mb-4" />
-                                    <p className="text-slate-500 dark:text-slate-400 font-medium">Không tìm thấy dữ liệu lịch sử</p>
-                                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Hệ thống chưa ghi nhận hoạt động nào khớp với tìm kiếm</p>
+                                    {loadError ? (
+                                        <>
+                                            <AlertCircle className="w-12 h-12 text-red-300 dark:text-red-500/40 mx-auto mb-4" />
+                                            <p className="text-red-500 dark:text-red-400 font-medium">{loadError}</p>
+                                            <button onClick={onRetry} className="mt-2 text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+                                                Thử lại
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Monitor className="w-12 h-12 text-slate-100 dark:text-slate-800 mx-auto mb-4" />
+                                            <p className="text-slate-500 dark:text-slate-400 font-medium">Không tìm thấy dữ liệu lịch sử</p>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Hệ thống chưa ghi nhận hoạt động nào khớp với tìm kiếm</p>
+                                        </>
+                                    )}
                                 </td>
                             </tr>
                         )}
@@ -189,7 +206,7 @@ export function LogDetailModal({ log, onClose }) {
     if (!log) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <ModalFocus label="Chi tiết nhật ký" onClose={onClose} className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                 
                 <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -199,7 +216,7 @@ export function LogDetailModal({ log, onClose }) {
                         </h3>
                         <p className="text-xs text-slate-500 mt-1 flex items-center gap-3">
                             <span className="flex items-center gap-1"><Monitor className="w-3 h-3"/> {log.ip_address}</span>
-                            <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {new Date(log.timestamp).toLocaleString()}</span>
+                            <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {parseServerDate(log.timestamp)?.toLocaleString()}</span>
                             <span className="flex items-center gap-1"><Cpu className="w-3 h-3"/> {log.method}</span>
                         </p>
                     </div>
@@ -239,6 +256,6 @@ export function LogDetailModal({ log, onClose }) {
                     <button onClick={onClose} className="px-6 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl transition-transform active:scale-95"> Đóng </button>
                 </div>
             </div>
-        </div>
+        </ModalFocus>
     );
 }
