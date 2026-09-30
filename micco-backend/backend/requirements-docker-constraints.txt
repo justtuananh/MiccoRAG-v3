@@ -1,0 +1,8 @@
+# Versions observed in the validated production Python 3.12 runtime.
+torch==2.14.0+cpu
+torchvision==0.29.0+cpu
+docling==2.126.0
+sentence-transformers==6.0.1
+lightrag-hku==1.5.7
+chromadb==1.5.9
+python-docx==1.2.0

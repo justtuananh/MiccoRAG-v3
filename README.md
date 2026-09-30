@@ -306,14 +306,18 @@ python seed_users.py  # Seed admin + 3 users
 
 ### 🐳 Docker (Production)
 
-```bash
-# Start all services with Nginx
-cd micco-backend
-docker compose -f docker-compose.nginx.yml up -d
+Dùng `compose.yaml` tại gốc repository để chạy backend mới, frontend tĩnh, PostgreSQL và ChromaDB:
 
-# Full production stack
-docker compose up -d
+```bash
+cp .env.docker.example .env.docker
+chmod 600 .env.docker
+# Điền POSTGRES_PASSWORD, DATABASE_URL (dùng cùng mật khẩu), JWT_SECRET_KEY và khóa provider trước khi chạy.
+docker compose --env-file .env.docker config --quiet
+docker compose --env-file .env.docker up -d --build --wait --wait-timeout 300
+curl --fail http://127.0.0.1:18890/ready
 ```
+
+Xem [hướng dẫn Docker](DOCKER.md) để tạo Admin, lưu dữ liệu, nâng cấp schema và kiểm thử. Stack mới mặc định chỉ nghe localhost18890 và không tự chuyển dữ liệu từ hệ thống đang phục vụ.
 
 ---
 
@@ -807,14 +811,18 @@ python seed_users.py  # Seed admin + 3 users
 
 ### 🐳 Docker (Production)
 
-```bash
-# Start all services with Nginx
-cd micco-backend
-docker compose -f docker-compose.nginx.yml up -d
+Run the new backend, static frontend, PostgreSQL and ChromaDB with the root `compose.yaml`:
 
-# Full production stack
-docker compose up -d
+```bash
+cp .env.docker.example .env.docker
+chmod 600 .env.docker
+# Set POSTGRES_PASSWORD, DATABASE_URL (with the same password), JWT_SECRET_KEY and provider credentials first.
+docker compose --env-file .env.docker config --quiet
+docker compose --env-file .env.docker up -d --build --wait --wait-timeout 300
+curl --fail http://127.0.0.1:18890/ready
 ```
+
+See the [Docker runbook](DOCKER.md) for admin bootstrap, persistent data, schema upgrades and verification. The new stack binds localhost18890 by default and does not migrate the serving deployment automatically.
 
 ---
 

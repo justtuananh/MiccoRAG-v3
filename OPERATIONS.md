@@ -7,6 +7,10 @@
 ---
 
 
+## Đóng gói Docker mới
+
+Bộ `compose.yaml` ở gốc repository đóng gói cả backend và frontend tĩnh. Xem [DOCKER.md](DOCKER.md) để build, cấu hình secrets, bootstrap Admin, kiểm dữ liệu và schema. Mặc định localhost18890, volume/network riêng; không tự thay hệ thống8001/5174/8888 bên dưới. Chroma image đã pin lưu ở `/data`, không phải `/chroma/chroma`; xuất/kiểm dữ liệu Chroma cũ trước bất kỳ lần recreate/chuyển stack nào.
+
 ## Cấu hình triển khai 30/09/2026
 
 Đợt cập nhật này dùng thư mục `/home/micco/MiccoRAG-v3`, tài khoản dịch vụ `micco` (UID1001). Các ví dụ `kms` trong phần cũ bên dưới là thông tin lịch sử; đối chiếu môi trường trước khi chạy. Chỉ quản lý backend8001, frontend5174 và gateway8888; không thao tác tiến trình8000 hoặc dịch vụ của dự án khác.

@@ -39,6 +39,7 @@ pydantic-settings>=2.1.0
 httpx>=0.25.0
 aiofiles>=23.2.1
 Pillow>=11.0.0
+python-docx>=1.2.0
 # Auth / Security
 python-jose[cryptography]>=3.3.0
 bcrypt>=4.0.0
