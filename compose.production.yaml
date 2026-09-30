@@ -1,0 +1,50 @@
+name: miccorag-production
+
+services:
+  backend:
+    image: miccorag-backend:${MICCO_IMAGE_TAG:?Set the reviewed release tag}
+    restart: unless-stopped
+    init: true
+    user: '1001:1001'
+    env_file:
+      - /home/micco/.config/miccorag/docker-production.env
+    environment:
+      CHROMA_HOST: host.docker.internal
+      CHROMA_PORT: '8003'
+      DEBUG: 'false'
+      COMPAT_ENABLE_OPEN_REGISTRATION: 'false'
+      COMPAT_ENABLE_LEGACY_ROUTES: 'true'
+      AUTO_CREATE_TABLES: 'false'
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - '127.0.0.1:${MICCO_BACKEND_PORT:-18001}:8080'
+    volumes:
+      - /home/micco/MiccoRAG-v3/micco-backend/backend/uploads:/app/backend/uploads
+      - /home/micco/MiccoRAG-v3/micco-backend/backend/data:/app/backend/data
+      - /home/micco/.cache:/home/micco/.cache
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/ready", timeout=5)']
+      interval: 15s
+      timeout: 10s
+      start_period: 90s
+      retries: 12
+    stop_grace_period: 60s
+    security_opt:
+      - no-new-privileges:true
+
+  frontend:
+    image: miccorag-frontend:${MICCO_IMAGE_TAG:?Set the reviewed release tag}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - '127.0.0.1:${MICCO_FRONTEND_PORT:-15174}:8080'
+    healthcheck:
+      test: [CMD, wget, -q, --spider, 'http://127.0.0.1:8080/nginx-health']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
