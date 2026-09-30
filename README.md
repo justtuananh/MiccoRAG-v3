@@ -306,7 +306,7 @@ python seed_users.py  # Seed admin + 3 users
 
 ### 🐳 Docker (Production)
 
-Dùng `compose.yaml` tại gốc repository để chạy backend mới, frontend tĩnh, PostgreSQL và ChromaDB:
+`compose.yaml` ở gốc dùng để tạo stack mới, gồm backend, frontend tĩnh, PostgreSQL và ChromaDB. Trên VPS KMS production đã có dữ liệu, dùng overlay [compose.production.yaml](compose.production.yaml) để chạy app containers mới nhưng tái sử dụng PostgreSQL, Chroma, uploads và graph hiện tại. Đọc [DOCKER.md](DOCKER.md) trước khi chuyển hoặc khôi phục:
 
 ```bash
 cp .env.docker.example .env.docker
@@ -317,7 +317,7 @@ docker compose --env-file .env.docker up -d --build --wait --wait-timeout 300
 curl --fail http://127.0.0.1:18890/ready
 ```
 
-Xem [hướng dẫn Docker](DOCKER.md) để tạo Admin, lưu dữ liệu, nâng cấp schema và kiểm thử. Stack mới mặc định chỉ nghe localhost18890 và không tự chuyển dữ liệu từ hệ thống đang phục vụ.
+Xem [hướng dẫn Docker](DOCKER.md) để cấu hình stack mới, dùng overlay VPS hiện tại, lưu dữ liệu và rollback. Compose mặc định chỉ nghe localhost18890; overlay production dùng các cổng hiện hữu8001/5174 sau khi cấu hình dữ liệu runtime.
 
 ---
 

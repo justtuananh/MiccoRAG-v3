@@ -7,19 +7,21 @@
 ---
 
 
-## Đóng gói Docker mới
+## Docker production
 
-Bộ `compose.yaml` ở gốc repository đóng gói cả backend và frontend tĩnh. Xem [DOCKER.md](DOCKER.md) để build, cấu hình secrets, bootstrap Admin, kiểm dữ liệu và schema. Mặc định localhost18890, volume/network riêng; không tự thay hệ thống8001/5174/8888 bên dưới. Chroma image đã pin lưu ở `/data`, không phải `/chroma/chroma`; xuất/kiểm dữ liệu Chroma cũ trước bất kỳ lần recreate/chuyển stack nào.
+Production đang chạy backend và frontend bằng Docker tag `20260930-e16c7ae`: Compose project `miccorag-production`, cổng loopback8001/5174; gateway8888 giữ nguyên. PostgreSQL `nexusrag-postgres` và Chroma `nexusrag-chromadb` được tái sử dụng tại15435/8003. Uploads, graph/data và model cache vẫn dùng thư mục hiện tại. Xem [DOCKER.md](DOCKER.md) và `compose.production.yaml` trước thao tác.
+
+Không recreate/upgrade container Chroma cũ: dữ liệu thật nằm ở `/data` trong writable layer; volume cũ `/chroma/chroma` gần như rỗng vì mount lệch đường dẫn. Bản sao trước triển khai đã lưu và kiểm SHA ở `/home/micco/.local/share/miccorag/releases/20260930/docker-cutover-pre/`. Chroma hiện tại phải tiếp tục được giữ nguyên cho đến khi có kế hoạch di chuyển dữ liệu riêng.
 
 ## Cấu hình triển khai 30/09/2026
 
 Đợt cập nhật này dùng thư mục `/home/micco/MiccoRAG-v3`, tài khoản dịch vụ `micco` (UID1001). Các ví dụ `kms` trong phần cũ bên dưới là thông tin lịch sử; đối chiếu môi trường trước khi chạy. Chỉ quản lý backend8001, frontend5174 và gateway8888; không thao tác tiến trình8000 hoặc dịch vụ của dự án khác.
 
-- Backend và frontend giữ nguyên địa chỉ lắng nghe hiện tại. Gateway chuyển tiếp tới frontend Vite trên5174; build được kiểm riêng, không gọi runtime này là phục vụ bundle tĩnh.
-- PostgreSQL `nexusrag-postgres` và ChromaDB `nexusrag-chromadb` dùng `restart: unless-stopped` trong Compose và trên container. Gateway giữ `always`. Docker và cron đã bật khi máy khởi động.
-- Watchdog `harness/ops/runtime_supervisor.py` chạy bằng user `micco` qua crontab `@reboot` và mỗi phút. Nó nhận diện đúng cổng/cwd/executable trước khi nhận quản lý tiến trình, chỉ tạo tiến trình thiếu, không giết tiến trình lạ. Khởi động ứng dụng dùng môi trường riêng trong `/home/micco/.config/miccorag/{backend,frontend}-env.json` (0600), cấu hình watchdog `supervisor.json` (0600). Giữ đường dẫn Python virtualenv, không thay bằng đường dẫn đích của symlink.
-- Cờ `/home/micco/.local/state/miccorag/deploy-maintenance` ngăn watchdog khởi động giữa đợt triển khai/khôi phục. Chỉ bỏ cờ sau khi bản triển khai hoặc bản khôi phục đạt health/readiness. Trạng thái watchdog ở `state.json` cùng thư mục; log được bảo vệ trong `/home/micco/logs/miccorag/`.
-- Kiểm tra sau cập nhật: `/health` và `/ready` trên8001; giao diện5174; gateway8888 và `/health` qua gateway. Chạy `bash harness/run.sh deploy --json --md`; đọc rõ từng WARN, không coi chưa có lịch sử Alembic là đã chạy đầy đủ mọi migration cũ.
+- Frontend Docker Nginx phục vụ bundle tĩnh trên5174; backend Docker FastAPI trên8001. Gateway8888 không đổi.
+- PostgreSQL `nexusrag-postgres` và ChromaDB `nexusrag-chromadb` giữ nguyên container/volume; backend/frontend thuộc Compose project `miccorag-production`, `restart: unless-stopped`. Gateway giữ `always`. Docker và cron đã bật khi máy khởi động.
+- Watchdog `harness/ops/runtime_supervisor.py` vẫn chạy mỗi phút, nhưng cờ `deploy-maintenance` được giữ có chủ đích khi Compose sở hữu cổng8001/5174 để watchdog không khởi động thêm tiến trình cũ. Docker restart policy quản lý ứng dụng qua reboot. Khi rollback, dừng đúng Compose project rồi bỏ cờ để watchdog phục hồi backend/frontend cũ.
+- Runtime config Docker production `/home/micco/.config/miccorag/docker-production.env` được tạo từ cấu hình hiệu lực trước triển khai, mode0600; giữ nguyên PostgreSQL URL, JWT và khóa provider. Container backend chạy UID1001 và mount lại đúng thư mục uploads/data/cache cũ.
+- Kiểm tra sau cập nhật: `/health` và `/ready` trên8001; giao diện5174; gateway8888 và `/health` qua gateway. DB giữ nguyên19 tài liệu/14 người dùng/8 KB; Chroma giữ8 collection/2407 vector tại thời điểm chuyển đổi.
 - DB cũ được tạo qua ORM, chưa có `alembic_version`. Các patch007–010 được áp theo thứ tự trong một transaction, kiểm giữ nguyên số dòng và các cột/FK/index mới. Nhật ký migration và manifest phát hành là căn cứ; không tự stamp toàn bộ lịch sử migration chưa kiểm chứng.
 - Graph được dựng từ markdown thuộc đúng KB, lưu bản sao độc lập và đối chiếu SHA/ID trước khi thay trong cửa sổ bảo trì. Giới hạn mặc định:200nút/500cạnh mỗi lượt xem, độ sâu4;2000tài liệu/20000nút/50000cạnh/256MiB cho mỗiKB; tối đa8 namespace mỗi worker. Cảnh báo từ80%; ngưỡng RSS1,5GiB là kiểm tra tiếp nhận công việc, không phải giới hạn bộ nhớ cứng của hệ điều hành. Nếu graph chạm ngưỡng, truy xuất vector vẫn được dùng; API duyệt graph báo không khả dụng thay vì trả rỗng như thể không có dữ liệu. Cấu hình nằm trong `app/core/config.py`.
 - Backup được người dùng chấp nhận đóng hạng mục ngày30/09/2026. Không diễn giải quyết định này thành bằng chứng lịch backup hằng ngày đã hoạt động. Không reboot VPS dùng chung để thử; kiểm khởi động/phục hồi dùng tiến trình và thư mục cô lập.

@@ -27,6 +27,25 @@ Mặc định chỉ xuất frontend ở `127.0.0.1:18890`, tránh chiếm cổng
 
 Backend chạy một worker không root, giữ namespace/giới hạn graph trong một tiến trình. `/health` là liveness; `/ready` kiểm DB và ChromaDB. `/nginx-health` kiểm riêng frontend. Readiness không xác nhận khóa LLM, model OCR hoặc chất lượng câu trả lời. Model parsing tải khi cần và lưu ở volume cache; lần ingest đầu cần kết nối tải model.
 
+## Docker trên production KMS hiện tại
+
+`compose.production.yaml` chỉ chạy backend/frontend Docker, tái sử dụng PostgreSQL cũ qua `host.docker.internal:15435`, Chroma cũ qua `host.docker.internal:8003`, và bind mount lại thư mục uploads, graph/data, cache của dịch vụ `micco`. Tệp `/home/micco/.config/miccorag/docker-production.env` chứa cấu hình runtime hiện hành, gồm DATABASE_URL, JWT và provider keys; giữ mode0600 và không đưa vào image. Cấu hình này dành riêng VPS KMS đã có dữ liệu, không dùng như bootstrap cho máy mới.
+
+Trên KMS, dùng project và env file đã có:
+
+```bash
+docker compose -p miccorag-production \
+  --env-file /home/micco/.config/miccorag/docker-production.env \
+  -f compose.production.yaml ps
+curl --fail http://127.0.0.1:8001/ready
+curl --fail http://127.0.0.1:5174/health
+curl --fail http://127.0.0.1:8888/health
+```
+
+Cờ `/home/micco/.local/state/miccorag/deploy-maintenance` được giữ khi Docker sở hữu cổng8001/5174 để watchdog không chạy lại tiến trình Python/Vite cũ. Docker restart policy khởi động container khi reboot. Nếu rollback: dừng riêng project `miccorag-production`, bỏ cờ bảo trì, rồi chạy `python3 /home/micco/MiccoRAG-v3/harness/ops/runtime_supervisor.py --config /home/micco/.config/miccorag/supervisor.json`; watchdog sẽ chạy lại đúng backend/frontend cũ.
+
+Chroma cũ không được thay bằng service Chroma trong compose.yaml: kiểm tra xác nhận dữ liệu production nằm tại `/data` trong writable layer, còn volume cũ `/chroma/chroma` gần như rỗng. Giữ container `nexusrag-chromadb` nguyên trạng đến khi có kế hoạch di chuyển riêng. Bản sao đã kiểm tra SHA trước triển khai nằm ở `/home/micco/.local/share/miccorag/releases/20260930/docker-cutover-pre/`.
+
 ## Tài khoản đầu tiên
 
 Với DB mới, tạo Admin bằng lệnh tương tác, mật khẩu không hiện trên màn hình:
