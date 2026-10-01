@@ -130,7 +130,7 @@ chroma/
 # =============================================================================
 # Docker
 # =============================================================================
-.dockerignore
+# Keep Docker build-context exclusions versioned.
 
 # =============================================================================
 # Logs
@@ -175,3 +175,7 @@ harness/reports/
 # Temporary scratch files
 paper_outline.txt
 tech_paper_outline.txt
+# Docker runtime secrets
+.env.docker
+.env.docker.*
+!.env.docker.example
