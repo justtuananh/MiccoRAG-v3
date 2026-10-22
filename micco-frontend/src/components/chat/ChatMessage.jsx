@@ -1,9 +1,32 @@
 // src/components/chat/ChatMessage.jsx
 import { Bot, User, FileText, ExternalLink } from 'lucide-react';
 import KnowledgeGraphPanel from './KnowledgeGraphPanel';
+import { escapeHtml, sanitizeHtml } from '../../utils/sanitizeHtml';
+
+// Nhận diện câu từ chối "không tìm thấy thông tin" của model một cách linh hoạt.
+// Backend hiện có 2 chuỗi từ chối khác nhau (bất nhất, nên thống nhất ở lần sau):
+//   1. Chuỗi dài trong chat_prompt.py:190 (không dùng trong luồng chat agentic thực tế) —
+//      model không lặp lại nguyên văn mỗi lần, nên so khớp bằng vài cụm từ đặc trưng
+//      (chữ thường) và yêu cầu khớp từ 2 cụm trở lên để tránh nhận nhầm câu trả lời bình thường.
+//   2. Chuỗi thực tế đang phát ra trong luồng chat agentic: "Tài liệu không chứa thông tin..."
+//      (chat_agent.py, rag.py) — nhận diện bằng cụm đặc trưng "tài liệu không chứa thông tin".
+// File này là bản dead code (component thực tế đang dùng là src/pages/ChatAssistant.jsx),
+// sửa đồng bộ để tránh lệch logic nếu sau này được dùng lại.
+function isFallbackMessage(content) {
+    if (!content) return false;
+    const normalized = content.toLowerCase();
+    const markers = [
+        'không tìm thấy thông tin',
+        'tài liệu hiện có',
+        'kiểm tra lại từ khóa',
+        'cung cấp thêm hồ sơ',
+    ];
+    const matchCount = markers.reduce((count, marker) => count + (normalized.includes(marker) ? 1 : 0), 0);
+    return matchCount >= 2 || normalized.includes('tài liệu không chứa thông tin');
+}
 
 export default function ChatMessage({ msg }) {
-    const isFallback = msg.content?.includes("Dựa trên các tài liệu hiện có trong hệ thống, tôi không tìm thấy thông tin cụ thể về câu hỏi của bạn");
+    const isFallback = isFallbackMessage(msg.content);
 
     return (
         <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -17,9 +40,9 @@ export default function ChatMessage({ msg }) {
                 <div>
                     <div className={msg.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai'}>
                         <div className="text-sm leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{
-                            __html: msg.content
+                            __html: sanitizeHtml(escapeHtml(msg.content || '')
                                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                .replace(/\n/g, '<br/>')
+                                .replace(/\n/g, '<br/>'))
                         }} />
                     </div>
                     {!isFallback && msg.sources && msg.sources.length > 0 && (

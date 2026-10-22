@@ -1,3 +1,4 @@
+import ModalFocus from '../components/shared/ModalFocus';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     ClipboardCheck, FileText, BookOpen, Check, X,
@@ -5,10 +6,13 @@ import {
     Eye, Tag, User, Building2, AlertCircle, CheckCircle2, FileSearch,
 } from 'lucide-react';
 import { renderAsync } from 'docx-preview';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authContextCore';
 import { approvalsApi } from '../utils/api';
 import Breadcrumb from '../components/shared/Breadcrumb';
-import ProcessingProgressBar, { PROCESSING_STEPS, getStepIndex } from '../components/shared/ProcessingProgressBar';
+import ProcessingProgressBar from '../components/shared/ProcessingProgressBar';
+import { PROCESSING_STEPS } from '../components/shared/processingSteps';
+import { parseServerDate } from '../utils/formatters';
+import { sanitizeHtml } from '../utils/sanitizeHtml';
 
 const PREVIEWABLE = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'docx', 'txt', 'md'];
 const MIME_MAP = {
@@ -31,13 +35,17 @@ function getDocumentApprovalStageLabel(approvalStatus) {
 
 
 export default function Approvals() {
-    const { authFetch, refreshApprovals } = useAuth();
+    const { authFetch, refreshApprovals, user } = useAuth();
     const [tab, setTab] = useState('documents');
     const [data, setData] = useState({ documents: [], knowledge: [] });
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
     const [rejectModal, setRejectModal] = useState(null);
     const [rejectNote, setRejectNote] = useState('');
+    const [approveModal, setApproveModal] = useState(null);
+    const [approvalReason, setApprovalReason] = useState('');
+    const [approvalEffectiveFrom, setApprovalEffectiveFrom] = useState('');
+    const [approvalEffectiveUntil, setApprovalEffectiveUntil] = useState('');
     const [toast, setToast] = useState(null);
     const [preview, setPreview] = useState(null);
     const [previewLoading, setPreviewLoading] = useState(null);
@@ -98,15 +106,13 @@ export default function Approvals() {
         poll();
     }, []);
 
-    const stopPolling = useCallback((docId) => {
-        pollingRef.current[docId] = false;
-    }, []);
 
     useEffect(() => {
+        const polling = pollingRef.current;
         return () => {
             // Cleanup all polling on unmount
-            Object.keys(pollingRef.current).forEach(id => {
-                pollingRef.current[id] = false;
+            Object.keys(polling).forEach(id => {
+                polling[id] = false;
             });
         };
     }, []);
@@ -122,10 +128,12 @@ export default function Approvals() {
         setPreviewLoading(`${type}-${item.id}`);
         try {
             if (type === 'knowledge') {
-                const res = await authFetch(`/api/knowledge/${item.id}`);
+                const res = await authFetch(`/api/approvals/knowledge/${item.id}/preview`);
                 if (res.ok) {
                     const full = await res.json();
                     setPreview({ item, type, html: full.content_html || full.content_text });
+                } else {
+                    showToast('Không thể xem hồ sơ duyệt; hãy tải lại danh sách để kiểm tra quyền hiện tại.', 'error');
                 }
             } else {
                 const extStr = (item.file_type || '').toLowerCase();
@@ -177,17 +185,27 @@ export default function Approvals() {
         setPreview(null);
     };
 
-    const handleApprove = async (type, id) => {
+    const requestApprove = (type, item) => {
+        setApproveModal({ type, id: item.id });
+        setApprovalReason('');
+        setApprovalEffectiveFrom(item.effective_from || '');
+        setApprovalEffectiveUntil(item.effective_until || '');
+    };
+
+    const handleApprove = async () => {
+        if (!approveModal || !approvalEffectiveFrom || (user?.role === 'Admin' && !approvalReason.trim()) || (approvalEffectiveUntil && approvalEffectiveUntil < approvalEffectiveFrom)) return;
+        const { type, id } = approveModal;
         setActionLoading(`${type}-${id}`);
         try {
             const res = await authFetch(`/api/approvals/${type}/${id}/approve`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({}),
+                body: JSON.stringify({ effective_from: approvalEffectiveFrom, effective_until: approvalEffectiveUntil || null, reason: approvalReason.trim() || null }),
             });
             if (res.ok) {
                 const json = await res.json();
                 closePreview();
+                setApproveModal(null);
                 // Instant: update sidebar badge count
                 refreshApprovals();
                 if (type === 'documents') {
@@ -225,8 +243,8 @@ export default function Approvals() {
         if (!rejectModal) return;
         const { type, id } = rejectModal;
 
-        if (type === 'knowledge' && !rejectNote.trim()) {
-            showToast('Vui lòng nhập lý do từ chối tri thức', 'error');
+        if (!rejectNote.trim()) {
+            showToast('Vui lòng nhập lý do từ chối', 'error');
             return;
         }
 
@@ -402,7 +420,7 @@ export default function Approvals() {
                                                 previewLoading={previewLoading}
                                                 processingStatus={null}
                                                 onPreview={() => handlePreview('documents', doc)}
-                                                onApprove={() => handleApprove('documents', doc.id)}
+                                                onApprove={() => requestApprove('documents', doc)}
                                                 onReject={() => { setRejectModal({ type: 'documents', id: doc.id }); setRejectNote(''); }}
                                             />
                                         ))}
@@ -428,7 +446,7 @@ export default function Approvals() {
                                                 actionLoading={actionLoading}
                                                 previewLoading={previewLoading}
                                                 onPreview={() => handlePreview('knowledge', entry)}
-                                                onApprove={() => handleApprove('knowledge', entry.id)}
+                                                onApprove={() => requestApprove('knowledge', entry)}
                                                 onReject={() => { setRejectModal({ type: 'knowledge', id: entry.id }); setRejectNote(''); }}
                                             />
                                         ))}
@@ -448,27 +466,51 @@ export default function Approvals() {
                     preview={preview}
                     actionLoading={actionLoading}
                     onClose={closePreview}
-                    onApprove={() => handleApprove(preview.type, preview.item.id)}
+                    onApprove={() => requestApprove(preview.type, preview.item)}
                     onReject={() => { setRejectModal({ type: preview.type, id: preview.item.id }); setRejectNote(''); }}
                 />
             )}
 
+            {approveModal && (
+                <ModalFocus label="Xác nhận ngày hiệu lực" onClose={() => setApproveModal(null)} className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 p-6 max-w-md w-full mx-4">
+                        <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">Xác nhận ngày hiệu lực</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Kiểm tra ngày do người gửi cung cấp trước khi phê duyệt.</p>
+                        <label className="block text-sm text-gray-700 dark:text-gray-300 mb-3">Ngày hiệu lực *
+                            <input type="date" required value={approvalEffectiveFrom} onChange={e => setApprovalEffectiveFrom(e.target.value)}
+                                className="block w-full mt-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+                        </label>
+                        <label className="block text-sm text-gray-700 dark:text-gray-300 mb-4">Ngày hết hiệu lực (nếu có)
+                            <input type="date" min={approvalEffectiveFrom || undefined} value={approvalEffectiveUntil} onChange={e => setApprovalEffectiveUntil(e.target.value)}
+                                className="block w-full mt-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+                        </label>
+                        {user?.role === 'Admin' && <label className="block text-sm mb-4">Lý do xử lý thay cấp duyệt *
+                            <textarea required value={approvalReason} onChange={e => setApprovalReason(e.target.value)} className="block w-full border rounded-lg p-2 mt-1 dark:bg-gray-800" />
+                        </label>}
+                        {approvalEffectiveUntil && approvalEffectiveUntil < approvalEffectiveFrom && <p className="text-sm text-red-600 mb-3">Ngày hết hiệu lực phải từ ngày hiệu lực trở đi.</p>}
+                        <div className="flex gap-3">
+                            <button onClick={() => setApproveModal(null)} className="flex-1 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm">Hủy</button>
+                            <button onClick={handleApprove} disabled={!approvalEffectiveFrom || (user?.role === 'Admin' && !approvalReason.trim()) || !!(approvalEffectiveUntil && approvalEffectiveUntil < approvalEffectiveFrom) || !!actionLoading}
+                                className="flex-1 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold disabled:opacity-60">Phê duyệt</button>
+                        </div>
+                    </div>
+                </ModalFocus>
+            )}
+
             {/* Reject Modal */}
             {rejectModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                <ModalFocus label="Từ chối nội dung" onClose={() => setRejectModal(null)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                     <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 p-6 max-w-md w-full mx-4">
                         <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Từ chối nội dung</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                            {rejectModal.type === 'knowledge'
-                                ? 'Nhập lý do từ chối (bắt buộc) để thông báo cho người tạo tri thức.'
-                                : 'Nhập lý do từ chối (tuỳ chọn) để thông báo cho người tải lên.'}
+                            Nhập lý do từ chối (bắt buộc) để thông báo cho người gửi.
                         </p>
                         <textarea
                             value={rejectNote}
                             onChange={(e) => setRejectNote(e.target.value)}
-                            placeholder={rejectModal.type === 'knowledge' ? 'Nhập lý do từ chối *' : 'Lý do từ chối...'}
+                            placeholder="Nhập lý do từ chối *"
                             rows={3}
-                            required={rejectModal.type === 'knowledge'}
+                            required
                             className="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 resize-none mb-4"
                         />
                         <div className="flex gap-3">
@@ -480,7 +522,7 @@ export default function Approvals() {
                             </button>
                             <button
                                 onClick={handleReject}
-                                disabled={!!actionLoading || (rejectModal.type === 'knowledge' && !rejectNote.trim())}
+                                disabled={!!actionLoading || !rejectNote.trim()}
                                 className="flex-1 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
                             >
                                 {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
@@ -488,7 +530,7 @@ export default function Approvals() {
                             </button>
                         </div>
                     </div>
-                </div>
+                </ModalFocus>
             )}
         </div>
     );
@@ -513,7 +555,8 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
         if (!isDocx || !docxBuffer || !docxContainerRef.current) return;
         const container = docxContainerRef.current;
         container.innerHTML = '';
-        renderAsync(docxBuffer, container, undefined, {
+        const detached = document.createElement('div');
+        renderAsync(docxBuffer, detached, undefined, {
             className: 'docx-preview',
             inWrapper: true,
             ignoreWidth: false,
@@ -525,13 +568,15 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
             renderHeaders: true,
             renderFooters: true,
             renderFootnotes: true,
+        }).then(() => {
+            if (docxContainerRef.current === container) container.innerHTML = sanitizeHtml(detached.innerHTML);
         }).catch(err => {
-            container.innerHTML = `<div style="padding:2rem;color:#ef4444">Lỗi hiển thị: ${err.message}</div>`;
+            container.textContent = `Lỗi hiển thị: ${err.message}`;
         });
     }, [isDocx, docxBuffer]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <ModalFocus label="Xem trước nội dung duyệt" onClose={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col w-full max-w-4xl max-h-[90vh]">
 
                 {/* Header */}
@@ -587,7 +632,7 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
                     {!isDoc && html && (
                         <div
                             className="prose prose-sm dark:prose-invert max-w-none p-6"
-                            dangerouslySetInnerHTML={{ __html: html }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
                         />
                     )}
                     {!isDoc && !html && (
@@ -625,7 +670,7 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
                             <div
                                 className="prose prose-sm dark:prose-invert max-w-none"
                                 style={{ color: 'inherit' }}
-                                dangerouslySetInnerHTML={{ __html: html }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
                             />
                         </div>
                     )}
@@ -693,7 +738,7 @@ function PreviewModal({ preview, actionLoading, onClose, onApprove, onReject }) 
                     </button>
                 </div>
             </div>
-        </div>
+        </ModalFocus>
     );
 }
 
@@ -742,7 +787,7 @@ function ApprovalCard({ item, type, actionLoading, previewLoading, processingSta
                                 )}
                                 <span className="text-gray-300 dark:text-gray-600">·</span>
                                 <span className="text-xs text-gray-400">
-                                    {item.created_at ? new Date(item.created_at).toLocaleString('vi-VN') : '—'}
+                                    {item.created_at ? parseServerDate(item.created_at).toLocaleString('vi-VN') : '—'}
                                 </span>
                             </div>
 

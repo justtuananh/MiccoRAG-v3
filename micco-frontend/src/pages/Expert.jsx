@@ -48,9 +48,10 @@ function RelevanceBar({ score }) {
 
 // ─── Expert Card ───────────────────────────────────────────────────────────────
 function ExpertCard({ expert, onAsk, onViewDocs, isLoading }) {
+    const confirmed = expert.is_confirmed_expert === true || expert.expertise_verified === true;
     const initials = expert.name
         ? expert.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
-        : 'EX';
+        : 'LH';
 
     return (
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm hover:shadow-lg hover:border-primary-200 dark:hover:border-primary-700 transition-all duration-200 group">
@@ -64,8 +65,11 @@ function ExpertCard({ expert, onAsk, onViewDocs, isLoading }) {
                 {/* Name & Role */}
                 <div className="flex-1 min-w-0">
                     <h3 className="text-base font-bold text-gray-900 dark:text-white truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                        {expert.name || 'Chuyên gia'}
+                        {expert.name || 'Người liên hệ'}
                     </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {confirmed ? 'Chuyên gia đã xác nhận' : 'Người cung cấp tài liệu / người liên hệ'}
+                    </p>
                     {expert.role && (
                         <span className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-500/20">
                             <User className="w-3.5 h-3.5" />
@@ -86,7 +90,7 @@ function ExpertCard({ expert, onAsk, onViewDocs, isLoading }) {
                 <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                     <FileText className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                     <span>
-                        Đã upload{' '}
+                        Đã cung cấp{' '}
                         <strong className="text-gray-700 dark:text-gray-300 font-bold">
                             {expert.document_count ?? 0}
                         </strong>{' '}
@@ -113,7 +117,7 @@ function ExpertCard({ expert, onAsk, onViewDocs, isLoading }) {
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold shadow-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <MessageSquare className="w-4 h-4" />
-                    Hỏi chuyên gia
+                    Hỏi về tài liệu
                 </button>
                 <button
                     onClick={() => onViewDocs?.(expert)}
@@ -165,19 +169,19 @@ function EmptyState({ hasSearched }) {
             {hasSearched ? (
                 <>
                     <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">
-                        Không tìm thấy chuyên gia phù hợp
+                        Chưa có chuyên gia được xác nhận
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm leading-relaxed">
-                        Thử thay đổi từ khóa tìm kiếm hoặc chọn workspace khác để tìm chuyên gia phù hợp hơn.
+                        Bạn có thể tìm người cung cấp tài liệu liên quan hoặc thử câu hỏi khác.
                     </p>
                 </>
             ) : (
                 <>
                     <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">
-                        Tìm chuyên gia phù hợp
+                        Tìm người liên hệ phù hợp
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm leading-relaxed">
-                        Nhập câu hỏi của bạn bên dưới để hệ thống đề xuất những chuyên gia có tài liệu liên quan nhất.
+                        Nhập câu hỏi để tìm người cung cấp tài liệu liên quan. Chỉ hồ sơ được xác nhận mới mang nhãn chuyên gia.
                     </p>
                 </>
             )}
@@ -340,10 +344,10 @@ export default function Expert() {
                     </div>
                     <div>
                         <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">
-                            Chuyên gia
+                            Người liên hệ
                         </h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Tìm và kết nối với chuyên gia phù hợp dựa trên câu hỏi của bạn
+                            Tìm người cung cấp tài liệu liên quan đến câu hỏi của bạn. Chưa có hồ sơ chuyên gia được xác nhận.
                         </p>
                     </div>
                 </div>
@@ -384,7 +388,7 @@ export default function Expert() {
                         ) : (
                             <Search className="w-4 h-4" />
                         )}
-                        Tìm chuyên gia
+                        Tìm người liên hệ
                     </button>
                 </div>
 
@@ -404,7 +408,7 @@ export default function Expert() {
                         <Sparkles className="w-4 h-4 text-primary-500" />
                         <p className="text-sm font-bold text-gray-600 dark:text-gray-400">
                             {experts.length > 0
-                                ? `Tìm thấy ${experts.length} chuyên gia phù hợp`
+                                ? `Tìm thấy ${experts.length} người liên hệ phù hợp`
                                 : 'Đang tìm...'}
                         </p>
                     </div>

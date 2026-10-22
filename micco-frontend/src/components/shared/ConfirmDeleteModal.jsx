@@ -1,3 +1,4 @@
+import ModalFocus from './ModalFocus';
 // src/components/shared/ConfirmDeleteModal.jsx
 import { useState } from 'react';
 import { Trash2 } from 'lucide-react';
@@ -15,7 +16,7 @@ export default function ConfirmDeleteModal({ title, description, onClose, onConf
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <ModalFocus label="Xác nhận xóa" onClose={onClose} className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
             <div className="relative bg-white dark:bg-slate-900 rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl border border-slate-200 dark:border-slate-800">
                 <div className="w-11 h-11 rounded-xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center mx-auto mb-4">
@@ -45,6 +46,6 @@ export default function ConfirmDeleteModal({ title, description, onClose, onConf
                     </button>
                 </div>
             </div>
-        </div>
+        </ModalFocus>
     );
 }

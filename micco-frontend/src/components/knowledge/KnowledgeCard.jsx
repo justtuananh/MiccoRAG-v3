@@ -7,6 +7,7 @@ const statusConfig = {
 };
 
 const ingestConfig = {
+    indexed: { icon: CheckCircle, color: 'text-green-500', label: 'Đã đồng bộ' },
     completed: { icon: CheckCircle, color: 'text-green-500', label: 'Đã đồng bộ' },
     processing: { icon: Loader2, color: 'text-blue-500 animate-spin', label: 'Đang xử lý' },
     pending: { icon: Clock, color: 'text-yellow-500', label: 'Chờ xử lý' },

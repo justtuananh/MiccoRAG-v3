@@ -1,0 +1,13 @@
+import { chromium } from 'playwright';
+import { writeFileSync } from 'node:fs';
+const browser=await chromium.launch({headless:true,ignoreDefaultArgs:['--disable-back-forward-cache'],executablePath:'/root/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome'});
+const ctx=await browser.newContext();const rows=[];
+await ctx.route('**/api/**',route=>{const p=new URL(route.request().url()).pathname;let body=[];if(p==='/api/auth/me')body={id:5,name:'Fixture',role:'Nhân viên'};return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});});
+const page=await ctx.newPage();await page.goto('http://127.0.0.1:15175/login');await page.evaluate(()=>localStorage.setItem('docvault_token','fixture'));await page.goto('http://127.0.0.1:15175/documents');await page.getByRole('textbox',{name:'Tìm kiếm tài liệu'}).waitFor();
+await page.evaluate(()=>window.addEventListener('pageshow',e=>{if(e.persisted)localStorage.setItem('native_restore_observed','true');}));
+await page.goto('about:blank');await page.evaluate(()=>history.back());await page.getByRole('textbox',{name:'Tìm kiếm tài liệu'}).waitFor();
+rows.push({case:'native cache restores authenticated page',persisted:await page.evaluate(()=>localStorage.getItem('native_restore_observed'))==='true',route:new URL(page.url()).pathname,notRestoredReasons:await page.evaluate(()=>performance.getEntriesByType('navigation')[0]?.notRestoredReasons?.toJSON?.())});
+await page.evaluate(()=>{localStorage.removeItem('native_restore_observed');window.addEventListener('pageshow',e=>{if(e.persisted)localStorage.setItem('native_restore_observed','true');});});
+await page.goto('about:blank');const other=await ctx.newPage();await other.goto('http://127.0.0.1:15175/login');await other.evaluate(()=>localStorage.removeItem('docvault_token'));await page.evaluate(()=>history.back());await page.waitForFunction(()=>location.pathname==='/login');
+rows.push({case:'native cache restoration revalidates missing token',persisted:await page.evaluate(()=>localStorage.getItem('native_restore_observed'))==='true',route:new URL(page.url()).pathname,notRestoredReasons:await page.evaluate(()=>performance.getEntriesByType('navigation')[0]?.notRestoredReasons?.toJSON?.())});
+const report={scope:'Built frontend preview, Chromium with native back-forward cache enabled; API fixtures.',rows,pass:rows.every(x=>x.persisted)&&rows[0].route==='/documents'&&rows[1].route==='/login'};writeFileSync('/root/MiccoRAG/evaluation/runs/20260930-remediation/frontend-native-bfcache.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));await browser.close();

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/authContextCore';
+import { useTheme } from '../context/themeContextCore';
 import { resolveApiBase } from '../utils/apiBase';
 import { User, Mail, Lock, ArrowRight, Sun, Moon, ShieldCheck, Building2 } from 'lucide-react';
 
@@ -18,7 +18,9 @@ function useAuthHandlers() {
             navigate('/dashboard');
         } else {
             setLoading(false);
-            setError(result.error || 'Đăng nhập thất bại');
+            // Luôn hiện thông báo tiếng Việt cố định cho đăng nhập — API có thể trả
+            // nguyên văn tiếng Anh (vd "Invalid email or password"), không hiển thị trực tiếp.
+            setError('Đăng nhập thất bại');
         }
     };
 
@@ -37,18 +39,12 @@ function useAuthHandlers() {
 
 export default function AuthPage() {
     const location = useLocation();
-    const [isSignUp, setIsSignUp] = useState(location.pathname === '/register');
+    const isSignUp = location.pathname === '/register';
     const navigate = useNavigate();
     const { isDark, toggleTheme } = useTheme();
     const { handleLogin, handleRegister } = useAuthHandlers();
 
-    // Sync URL → state
-    useEffect(() => {
-        setIsSignUp(location.pathname === '/register');
-    }, [location.pathname]);
-
     const toggle = (toSignUp) => {
-        setIsSignUp(toSignUp);
         navigate(toSignUp ? '/register' : '/login', { replace: true });
     };
 
@@ -213,6 +209,8 @@ function SignInForm({ onLogin, isDark, toggleTheme, onToggle, mobile }) {
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [googleUnavailable, setGoogleUnavailable] = useState(false);
+    const googleStatusId = useId();
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -304,10 +302,17 @@ function SignInForm({ onLogin, isDark, toggleTheme, onToggle, mobile }) {
 
                 {/* Google */}
                 <button type="button"
+                    onClick={() => setGoogleUnavailable(true)}
+                    aria-describedby={googleUnavailable ? googleStatusId : undefined}
                     className="w-full py-3.5 rounded-2xl font-semibold text-sm text-gray-700 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-700 hover:border-primary-600 dark:hover:border-secondary-400 hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-3">
                     <GoogleIcon />
                     Đăng nhập với Google
                 </button>
+                {googleUnavailable && (
+                    <p id={googleStatusId} role="status" className="text-sm text-slate-600 dark:text-slate-300 rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-3">
+                        Đăng nhập bằng Google chưa được cấu hình. Vui lòng sử dụng email và mật khẩu để đăng nhập.
+                    </p>
+                )}
             </form>
 
             {/* Toggle (mobile only) */}

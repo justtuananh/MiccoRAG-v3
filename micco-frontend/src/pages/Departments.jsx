@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import ModalFocus from '../components/shared/ModalFocus';
+import { useState, useEffect, useCallback } from 'react';
 import {
     Building2, Plus, Pencil, Trash2, Users,
     CheckCircle2, AlertCircle, X, Search,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authContextCore';
 import Breadcrumb from '../components/shared/Breadcrumb';
 import ConfirmDeleteModal from '../components/shared/ConfirmDeleteModal';
 
@@ -17,20 +18,20 @@ export default function Departments({ embedded = false }) {
     const [deleteDept, setDeleteDept] = useState(null);
     const [toast, setToast] = useState(null);
 
-    useEffect(() => { fetchDepartments(); }, []);
-
     const showToast = (msg, type = 'success') => {
         setToast({ msg, type, id: Date.now() });
         setTimeout(() => setToast(null), 3500);
     };
 
-    const fetchDepartments = async () => {
+    const fetchDepartments = useCallback(async () => {
         try {
             const res = await authFetch('/api/admin/departments');
             if (res.ok) setDepartments(await res.json());
         } catch { /* silent */ }
         finally { setLoading(false); }
-    };
+    }, [authFetch]);
+
+    useEffect(() => { fetchDepartments(); }, [fetchDepartments]);
 
     const handleSave = async (form) => {
         try {
@@ -203,7 +204,7 @@ export default function Departments({ embedded = false }) {
 
             {/* Department Modal */}
             {modalOpen && (
-                <DepartmentModal
+                <DepartmentModal key={editDept?.id ?? 'new'}
                     editDept={editDept}
                     onClose={() => { setModalOpen(false); setEditDept(null); }}
                     onSave={handleSave}
@@ -235,16 +236,8 @@ export default function Departments({ embedded = false }) {
 
 
 function DepartmentModal({ editDept, onClose, onSave }) {
-    const [form, setForm] = useState({ name: '', description: '' });
+    const [form, setForm] = useState(() => ({ name: editDept?.name || '', description: editDept?.description || '' }));
     const [saving, setSaving] = useState(false);
-
-    useEffect(() => {
-        if (editDept) {
-            setForm({ name: editDept.name, description: editDept.description || '' });
-        } else {
-            setForm({ name: '', description: '' });
-        }
-    }, [editDept]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -254,7 +247,7 @@ function DepartmentModal({ editDept, onClose, onSave }) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <ModalFocus label="Thông tin phòng ban" onClose={onClose} className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
             <div className="relative bg-white dark:bg-slate-900 rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl border border-slate-200 dark:border-slate-800">
                 <div className="flex items-center justify-between mb-6">
@@ -304,6 +297,6 @@ function DepartmentModal({ editDept, onClose, onSave }) {
                     </div>
                 </form>
             </div>
-        </div>
+        </ModalFocus>
     );
 }

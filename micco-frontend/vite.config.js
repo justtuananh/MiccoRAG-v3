@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import process from 'node:process'
 
 export default defineConfig({
   plugins: [react()],
@@ -12,7 +13,7 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/api': {
-        target: 'https://henry-semi-again-dsl.trycloudflare.com',
+        target: process.env.MICCO_BACKEND_TARGET || 'http://127.0.0.1:8001',
         changeOrigin: true,
       },
     },

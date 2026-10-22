@@ -1,8 +1,8 @@
-import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { resolveApiBase } from '../utils/apiBase';
 import { isPrivilegedRole } from '../utils/roles';
 
-const AuthContext = createContext();
+import { AuthContext } from './authContextCore';
 
 const API_BASE = resolveApiBase() + '/api';
 const SKIP_AUTH = import.meta.env.VITE_SKIP_AUTH === 'true';
@@ -30,26 +30,83 @@ export function AuthProvider({ children }) {
 
     const isFirstLoad = useRef(true);
     const pendingCountRef = useRef(0);
+    const approvalSessionRef = useRef(0);
+    const activeTokenRef = useRef(token);
+    const activeIdentityRef = useRef(SKIP_AUTH ? `${MOCK_USER.id}:${MOCK_USER.role}` : null);
     pendingCountRef.current = approvalPendingCount;
+
+    const clearApprovalState = useCallback(() => {
+        approvalSessionRef.current += 1;
+        isFirstLoad.current = true;
+        pendingCountRef.current = 0;
+        setApprovalPendingCount(0);
+        setApprovalLastRequester(null);
+        setShowApprovalToast(false);
+    }, []);
+
+    const logout = useCallback(() => {
+        activeTokenRef.current = null;
+        activeIdentityRef.current = null;
+        clearApprovalState();
+        localStorage.removeItem('docvault_token');
+        setToken(null);
+        setUser(null);
+        setIsAuthenticated(false);
+    }, [clearApprovalState]);
+
+    const fetchUser = useCallback(async (accessToken) => {
+        try {
+            const res = await fetch(`${API_BASE}/auth/me`, {
+                headers: { Authorization: `Bearer ${accessToken}` },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (localStorage.getItem('docvault_token') !== accessToken) return;
+                const identity = `${data.id}:${data.role}`;
+                if (activeTokenRef.current !== accessToken || activeIdentityRef.current !== identity) {
+                    clearApprovalState();
+                    activeTokenRef.current = accessToken;
+                    activeIdentityRef.current = identity;
+                }
+                setUser(data);
+                setToken(accessToken);
+                setIsAuthenticated(true);
+            } else if ((res.status === 401 || res.status === 403) && localStorage.getItem('docvault_token') === accessToken) {
+                // An old request must not revoke a newly established session.
+                logout();
+            }
+        } catch (err) {
+            console.error('Auth check failed:', err);
+        } finally {
+            setLoading(false);
+        }
+    }, [clearApprovalState, logout]);
 
     // Fetch + update approval count (gọi ngay sau upload, hoặc bởi polling)
     const refreshApprovals = useCallback(async () => {
         if (!isPrivilegedRole(user?.role)) return;
+        const requestSession = approvalSessionRef.current;
+        const requestToken = localStorage.getItem('docvault_token');
         try {
             const res = await authFetch('/api/approvals/count');
             if (!res.ok) return;
             const data = await res.json();
             if (typeof data.count !== 'number') return;
+            if (requestSession !== approvalSessionRef.current || requestToken !== localStorage.getItem('docvault_token')) return;
 
             // count tăng → có upload mới → hiện toast
             if (!isFirstLoad.current && data.count > pendingCountRef.current) {
                 setApprovalLastRequester(data.last_requester);
                 setShowApprovalToast(true);
-                setTimeout(() => setShowApprovalToast(false), 5000);
+                setTimeout(() => {
+                    if (requestSession === approvalSessionRef.current && requestToken === localStorage.getItem('docvault_token')) {
+                        setShowApprovalToast(false);
+                    }
+                }, 5000);
             }
             isFirstLoad.current = false;
             setApprovalPendingCount(data.count);
-        } catch (_) { /* silent */ }
+        } catch { /* silent */ }
     }, [user?.role]);  // eslint-disable-line react-hooks/exhaustive-deps
 
     // Polling: mỗi 15s refresh approval count
@@ -68,30 +125,51 @@ export function AuthProvider({ children }) {
         } else {
             setLoading(false);
         }
-    }, []);
+    }, [token, fetchUser]);
 
-    const fetchUser = async (accessToken) => {
-        try {
-            const res = await fetch(`${API_BASE}/auth/me`, {
-                headers: { Authorization: `Bearer ${accessToken}` },
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setUser(data);
-                setIsAuthenticated(true);
-            } else {
-                // Token expired or invalid
-                localStorage.removeItem('docvault_token');
-                setToken(null);
-                setUser(null);
-                setIsAuthenticated(false);
+    // AUTH-11: api.js's ragFetch/ragFetchV2 can't call logout() directly
+    // (they're plain module functions, not hooks) — they broadcast this
+    // event on a 401 instead, and we log out here so ProtectedRoute
+    // redirects to /login. authFetch (above) handles its own 401s inline;
+    // this covers the rest of the app's API calls.
+    useEffect(() => {
+        if (SKIP_AUTH) return;
+        const handleUnauthorized = () => logout();
+        window.addEventListener('auth:unauthorized', handleUnauthorized);
+        return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    }, [logout]);
+
+    // Revalidate a restored tab and observe logout from another tab.
+    useEffect(() => {
+        if (SKIP_AUTH) return;
+        const revalidate = () => {
+            const stored = localStorage.getItem('docvault_token');
+            if (!stored) logout();
+            else {
+                if (activeTokenRef.current !== stored) {
+                    clearApprovalState();
+                    activeTokenRef.current = stored;
+                    activeIdentityRef.current = null;
+                }
+                fetchUser(stored);
             }
-        } catch (err) {
-            console.error('Auth check failed:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
+        const onStorage = (event) => {
+            if (event.key === 'docvault_token' || event.key === null) revalidate();
+        };
+        const onPageShow = (event) => { if (event.persisted) revalidate(); };
+        const onVisibility = () => { if (document.visibilityState === 'visible') revalidate(); };
+        window.addEventListener('storage', onStorage);
+        window.addEventListener('pageshow', onPageShow);
+        document.addEventListener('visibilitychange', onVisibility);
+        return () => {
+            window.removeEventListener('storage', onStorage);
+            window.removeEventListener('pageshow', onPageShow);
+            document.removeEventListener('visibilitychange', onVisibility);
+        };
+    }, [logout, clearApprovalState, fetchUser]);
+
+
 
     const login = async (email, password) => {
         try {
@@ -107,6 +185,9 @@ export function AuthProvider({ children }) {
             }
 
             const data = await res.json();
+            clearApprovalState();
+            activeTokenRef.current = data.access_token;
+            activeIdentityRef.current = null;
             localStorage.setItem('docvault_token', data.access_token);
             setToken(data.access_token);
             await fetchUser(data.access_token);
@@ -138,6 +219,9 @@ export function AuthProvider({ children }) {
             }
 
             const data = await res.json();
+            clearApprovalState();
+            activeTokenRef.current = data.access_token;
+            activeIdentityRef.current = null;
             localStorage.setItem('docvault_token', data.access_token);
             setToken(data.access_token);
             await fetchUser(data.access_token);
@@ -147,15 +231,14 @@ export function AuthProvider({ children }) {
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem('docvault_token');
-        setToken(null);
-        setUser(null);
-        setIsAuthenticated(false);
-    };
 
-    // Helper for authenticated API calls
-    const authFetch = async (url, options = {}) => {
+
+    // Helper for authenticated API calls.
+    // Centralized 401 handling (AUTH-11): if the token has expired/been
+    // revoked server-side, log out immediately so ProtectedRoute redirects
+    // to /login instead of every page having to special-case a 401 itself
+    // (which previously showed a silent empty list instead).
+    const authFetch = useCallback(async (url, options = {}) => {
         const currentToken = SKIP_AUTH ? 'dev-skip' : localStorage.getItem('docvault_token');
         const headers = {
             ...options.headers,
@@ -163,8 +246,12 @@ export function AuthProvider({ children }) {
         };
         const baseUrl = resolveApiBase();
         const fullUrl = baseUrl && url.startsWith('/api') ? baseUrl + url : url;
-        return fetch(fullUrl, { ...options, headers });
-    };
+        const res = await fetch(fullUrl, { ...options, headers });
+        if (res.status === 401 && !SKIP_AUTH && localStorage.getItem('docvault_token') === currentToken) {
+            logout();
+        }
+        return res;
+    }, [logout]);
 
     return (
         <AuthContext.Provider value={{
@@ -181,5 +268,3 @@ export function AuthProvider({ children }) {
         </AuthContext.Provider>
     );
 }
-
-export const useAuth = () => useContext(AuthContext);

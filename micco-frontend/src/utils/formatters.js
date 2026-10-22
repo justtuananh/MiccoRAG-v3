@@ -8,14 +8,27 @@ export function formatBytes(bytes) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+// Backend timestamps are UTC, but are sometimes sent without a trailing
+// timezone designator (e.g. "2026-09-12T09:08:47.696602" instead of
+// "...696602Z"). `new Date(...)` treats a date-time string with no
+// timezone as *local* time, which silently shifts every timestamp by the
+// browser's UTC offset (e.g. -7h in Vietnam). Always parse server dates
+// through this helper so a missing "Z" doesn't corrupt the result.
+export function parseServerDate(dateStr) {
+    if (!dateStr) return null;
+    if (dateStr instanceof Date) return dateStr;
+    const hasTimezone = /Z$|[+-]\d{2}:?\d{2}$/.test(dateStr);
+    return new Date(hasTimezone ? dateStr : `${dateStr}Z`);
+}
+
 export function formatDate(dateStr) {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return parseServerDate(dateStr).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 export function timeAgo(dateStr) {
     if (!dateStr) return '—';
-    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+    const diff = Math.floor((Date.now() - parseServerDate(dateStr)) / 1000);
     if (diff < 60) return 'vừa xong';
     if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
     if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;

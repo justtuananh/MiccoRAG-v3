@@ -7,8 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test:unit": "node --test tests/*.test.mjs",
     "preview": "vite preview",
-    "test:e2e": "node e2e/smoke.mjs"
+    "test:e2e": "node e2e/smoke.mjs",
+    "test:e2e:security": "node e2e/security-fixtures.mjs"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",
@@ -28,6 +30,7 @@
     "@tiptap/starter-kit": "^3.20.4",
     "autoprefixer": "^10.4.24",
     "docx-preview": "^0.3.7",
+    "dompurify": "^3.4.16",
     "lucide-react": "^0.575.0",
     "mammoth": "^1.12.0",
     "playwright": "^1.58.2",
@@ -48,6 +51,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "jsdom": "^27.4.0",
     "vite": "^7.3.1"
   }
 }

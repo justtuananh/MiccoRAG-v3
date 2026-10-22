@@ -1,12 +1,12 @@
+import ModalFocus from '../components/shared/ModalFocus';
 import { useState, useEffect } from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
-import { isPrivilegedRole } from '../utils/roles';
-import { ragChatApi } from '../utils/api';
+import { useTheme } from '../context/themeContextCore';
+import { useAuth } from '../context/authContextCore';
+import { isAdminRole, isPrivilegedRole } from '../utils/roles';
 import {
     LayoutDashboard, FolderOpen, Upload, MessageSquare, BookOpen, Building2,
-    X, Sun, Moon, Bell,
+    X, Sun, Moon, Bell, Menu,
     LogOut, ChevronDown, FileText, User, Key,
     ChevronLeft, ChevronRight, ShieldCheck, ClipboardCheck, GitBranch,
     Activity, Users, FolderKanban
@@ -48,10 +48,7 @@ export default function DashboardLayout() {
         return () => document.removeEventListener('click', handler);
     }, [userMenuOpen]);
 
-    const handleLogout = async () => {
-        try {
-            await ragChatApi.clearAllHistory();
-        } catch (_) { /* best-effort */ }
+    const handleLogout = () => {
         logout();
         navigate('/', { replace: true });
     };
@@ -89,14 +86,14 @@ export default function DashboardLayout() {
                 const err = await res.json();
                 setProfileError(err.detail || 'Cập nhật thất bại');
             }
-        } catch (err) {
+        } catch {
             setProfileError('Đã có lỗi xảy ra');
         } finally {
             setProfileUpdating(false);
         }
     };
 
-    const SidebarContent = ({ showCloseButton = false }) => (
+    const SidebarContent = () => (
         <div className="flex flex-col h-full relative">
             {/* Logo & Brand & Toggle */}
             <div className={`px-4 py-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-800 mb-2`}>
@@ -202,7 +199,7 @@ export default function DashboardLayout() {
             )}
 
             {/* Đồ thị tri thức - chỉ Admin */}
-            {user?.role === 'Admin' && (
+            {isAdminRole(user?.role) && (
                 <div className="px-3 pb-1 border-t border-gray-100 dark:border-gray-800 pt-4 mt-2">
                     <Link
                         to="/graph-knowledge"
@@ -223,7 +220,7 @@ export default function DashboardLayout() {
             )}
 
             {/* Admin Links */}
-            {isPrivilegedRole(user?.role) && (
+            {isAdminRole(user?.role) && (
                 <div className="px-3 pb-4 space-y-0.5 border-t border-gray-100 dark:border-gray-800 pt-4 mt-2">
                     <Link
                         to="/admin"
@@ -261,7 +258,7 @@ export default function DashboardLayout() {
 
             {/* Mobile Sidebar Overlay */}
             {mobileOpen && (
-                <div className="lg:hidden fixed inset-0 z-40">
+                <ModalFocus label="Điều hướng" onClose={() => setMobileOpen(false)} className="lg:hidden fixed inset-0 z-[150]">
                     <div
                         className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
                         onClick={() => setMobileOpen(false)}
@@ -269,16 +266,18 @@ export default function DashboardLayout() {
                     <aside className="relative w-64 h-full bg-white dark:bg-gray-900 shadow-2xl animate-slide-in">
                         <SidebarContent showCloseButton={true} />
                     </aside>
-                </div>
+                </ModalFocus>
             )}
 
             {/* Main Content */}
-            <div className={`flex-1 flex flex-col h-screen transition-all duration-300 ${sidebarOpen ? 'lg:ml-52' : 'lg:ml-16'}`}>
+            <div className={`flex-1 min-w-0 flex flex-col h-screen transition-all duration-300 ${sidebarOpen ? 'lg:ml-52' : 'lg:ml-16'}`}>
                 {/* Top Bar */}
                 <header className="flex-shrink-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 relative z-50">
                     <div className="flex items-center justify-between px-4 lg:px-6 h-12">
                         <div className="flex items-center gap-4 flex-1">
-                            {/* Deleted top search bar per user request */}
+                            <button type="button" onClick={() => setMobileOpen(true)} aria-label="Mở menu điều hướng" aria-expanded={mobileOpen} className="lg:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300">
+                                <Menu className="w-5 h-5" />
+                            </button>
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -303,6 +302,8 @@ export default function DashboardLayout() {
                             {/* User Menu với Dropdown */}
                             <div className="relative" onClick={e => e.stopPropagation()}>
                                 <button
+                                    aria-label="Menu tài khoản"
+                                    aria-expanded={userMenuOpen}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setUserMenuOpen(!userMenuOpen);
@@ -359,7 +360,7 @@ export default function DashboardLayout() {
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-y-auto relative">
+                <main className="flex-1 min-w-0 overflow-y-auto relative">
                     <Outlet />
 
                     {/* Floating Toast for New Approvals */}
@@ -388,7 +389,7 @@ export default function DashboardLayout() {
 
             {/* Profile Modal */}
             {profileModalOpen && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                <ModalFocus label="Cập nhật thông tin cá nhân" onClose={() => !profileUpdating && setProfileModalOpen(false)} className="fixed inset-0 z-[200] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !profileUpdating && setProfileModalOpen(false)} />
                     <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden animate-fade-in">
                         <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
@@ -465,7 +466,7 @@ export default function DashboardLayout() {
                             </button>
                         </form>
                     </div>
-                </div>
+                </ModalFocus>
             )}
         </div>
     );

@@ -80,9 +80,12 @@ export default function GraphKnowledge() {
         if (!selectedWs) return;
 
         let isMounted = true;
-        setLoading(true);
-        setError(null);
-        setGraphData({ nodes: [], links: [] });
+        const resetFrame = requestAnimationFrame(() => {
+            if (!isMounted) return;
+            setLoading(true);
+            setError(null);
+            setGraphData({ nodes: [], links: [] });
+        });
 
         ragGraphApi.getGraph(selectedWs.id)
             .then(res => {
@@ -130,7 +133,7 @@ export default function GraphKnowledge() {
                 if (isMounted) setLoading(false);
             });
 
-        return () => { isMounted = false; };
+        return () => { isMounted = false; cancelAnimationFrame(resetFrame); };
     }, [selectedWs]);
 
     // ─── Calculate Legends & Stats ──────────────────────────────────────────

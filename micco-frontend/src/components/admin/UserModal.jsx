@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import ModalFocus from '../shared/ModalFocus';
+import { useState, useEffect } from 'react';
 import { X, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { resolveApiBase } from '../../utils/apiBase';
 
@@ -10,7 +11,16 @@ const API_BASE = resolveApiBase() + '/api';
 export { ROLES };
 
 export default function UserModal({ open, onClose, onSave, editUser }) {
-    const [form, setForm] = useState({ name: '', email: '', role: 'Nhân viên', password: '', department_id: '' });
+    if (!open) return null;
+    return <UserModalContent key={editUser?.id ?? 'new'} onClose={onClose} onSave={onSave} editUser={editUser} />;
+}
+
+function UserModalContent({ onClose, onSave, editUser }) {
+    const [form, setForm] = useState(() => ({
+        name: editUser?.name || '', email: editUser?.email || '',
+        role: editUser?.role || 'Nhân viên', password: '',
+        department_id: editUser?.department_id || '', is_active: editUser?.is_active !== false,
+    }));
     const [showPass, setShowPass] = useState(false);
     const [saving, setSaving] = useState(false);
     const [departments, setDepartments] = useState([]);
@@ -22,39 +32,12 @@ export default function UserModal({ open, onClose, onSave, editUser }) {
             .catch(() => {});
     }, []);
 
-    useEffect(() => {
-        if (editUser) {
-            setForm({
-                name: editUser.name,
-                email: editUser.email,
-                role: editUser.role,
-                password: '',
-                department_id: editUser.department_id || '',
-            });
-        } else {
-            setForm({ name: '', email: '', role: 'Nhân viên', password: '', department_id: '' });
-        }
-    }, [editUser, open]);
-
     const selectedDepartment = departments.find(d => String(d.id) === String(form.department_id));
     const normalizedDepartmentName = (selectedDepartment?.name || '').trim().toLowerCase();
     const isDirectorDepartment = normalizedDepartmentName.includes('giám đốc') || normalizedDepartmentName.includes('giam doc');
-    const availableRoles = useMemo(() => (
-        isDirectorDepartment ? DIRECTOR_ROLES : BASE_ROLES
-    ), [isDirectorDepartment]);
+    const availableRoles = isDirectorDepartment ? DIRECTOR_ROLES : BASE_ROLES;
     const safeDefaultRole = isDirectorDepartment ? 'Phó giám đốc' : 'Nhân viên';
-
-    useEffect(() => {
-        if (!form.department_id) return;
-        if (availableRoles.includes(form.role)) return;
-
-        setForm((prev) => ({
-            ...prev,
-            role: safeDefaultRole,
-        }));
-    }, [form.department_id, form.role, availableRoles, safeDefaultRole]);
-
-    if (!open) return null;
+    const selectedRole = form.department_id && !availableRoles.includes(form.role) ? safeDefaultRole : form.role;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -77,7 +60,7 @@ export default function UserModal({ open, onClose, onSave, editUser }) {
         }
 
         setSaving(true);
-        const payload = { ...form };
+        const payload = { ...form, role: selectedRole };
         payload.department_id = parseInt(payload.department_id);
         
         await onSave(payload);
@@ -85,7 +68,7 @@ export default function UserModal({ open, onClose, onSave, editUser }) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <ModalFocus label="Thông tin tài khoản" onClose={onClose} className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
             <div className="relative bg-white dark:bg-slate-900 rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl border border-slate-200 dark:border-slate-800">
                 <div className="flex items-center justify-between mb-6">
@@ -128,7 +111,7 @@ export default function UserModal({ open, onClose, onSave, editUser }) {
                         <div>
                             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Vai trò</label>
                             <select
-                                value={form.role}
+                                value={selectedRole}
                                 onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
                                 className="w-full px-3 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-600/30 focus:border-primary-600 transition-all appearance-none cursor-pointer"
                             >
@@ -165,6 +148,13 @@ export default function UserModal({ open, onClose, onSave, editUser }) {
                             </div>
                         </div>
                     )}
+                    {editUser && (
+                        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                            <input type="checkbox" checked={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))}
+                                className="accent-primary-600" />
+                            Tài khoản được phép hoạt động
+                        </label>
+                    )}
 
                     <div className="flex gap-3 pt-2">
                         <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
@@ -177,6 +167,6 @@ export default function UserModal({ open, onClose, onSave, editUser }) {
                     </div>
                 </form>
             </div>
-        </div>
+        </ModalFocus>
     );
 }

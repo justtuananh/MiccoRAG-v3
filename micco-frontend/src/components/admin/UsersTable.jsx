@@ -1,9 +1,9 @@
 import {
     Search, Download, ChevronLeft, ChevronRight,
-    Edit3, Trash2, MoreVertical, Users,
+    Edit3, Trash2, MoreVertical, Users, AlertCircle,
 } from 'lucide-react';
 import { ROLES } from './UserModal';
-import { getInitials } from '../../utils/formatters';
+import { getInitials, parseServerDate } from '../../utils/formatters';
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 const avatarPalette = [
@@ -16,12 +16,14 @@ function avatarBg(name = '') {
 }
 function timeAgo(dateStr) {
     if (!dateStr) return '—';
-    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+    // Parse via parseServerDate — the backend's UTC timestamps are not always
+    // suffixed with "Z", which would otherwise be misread as local time.
+    const diff = Math.floor((Date.now() - parseServerDate(dateStr)) / 1000);
     if (diff < 60) return 'vừa xong';
     if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
     if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
     if (diff < 86400 * 7) return `${Math.floor(diff / 86400)} ngày trước`;
-    return new Date(dateStr).toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric', year: 'numeric' });
+    return parseServerDate(dateStr).toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric', year: 'numeric' });
 }
 
 const ROLE_COLORS = {
@@ -41,6 +43,7 @@ export default function UsersTable({
     onPageChange, onOpenMenu,
     onEdit, onDelete,
     isActive,
+    loadError, onRetry,
 }) {
     const startRow = (page - 1) * PAGE_SIZE + 1;
     const endRow = Math.min(page * PAGE_SIZE, total);
@@ -97,9 +100,21 @@ export default function UsersTable({
                         {users.length === 0 && (
                             <tr>
                                 <td colSpan={6} className="px-6 py-14 text-center">
-                                    <Users className="w-10 h-10 text-slate-200 dark:text-slate-700 mx-auto mb-3" />
-                                    <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Không tìm thấy người dùng</p>
-                                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Hãy điều chỉnh bộ lọc hoặc tìm kiếm</p>
+                                    {loadError ? (
+                                        <>
+                                            <AlertCircle className="w-10 h-10 text-red-300 dark:text-red-500/40 mx-auto mb-3" />
+                                            <p className="text-red-500 dark:text-red-400 font-medium text-sm">{loadError}</p>
+                                            <button onClick={onRetry} className="mt-2 text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+                                                Thử lại
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Users className="w-10 h-10 text-slate-200 dark:text-slate-700 mx-auto mb-3" />
+                                            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Không tìm thấy người dùng</p>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Hãy điều chỉnh bộ lọc hoặc tìm kiếm</p>
+                                        </>
+                                    )}
                                 </td>
                             </tr>
                         )}
@@ -164,14 +179,14 @@ export default function UsersTable({
                                                 >
                                                     <Edit3 className="w-4 h-4 text-slate-400" /> Chỉnh sửa
                                                 </button>
-                                                {!isSelf && (
+                                                {!isSelf && active && (
                                                     <>
                                                         <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
                                                         <button
                                                             onClick={() => { onDelete(u); onOpenMenu(null); }}
                                                             className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                                                         >
-                                                            <Trash2 className="w-4 h-4" /> Xóa
+                                                            <Trash2 className="w-4 h-4" /> Vô hiệu hóa
                                                         </button>
                                                     </>
                                                 )}
