@@ -1,14 +1,7 @@
-"""
-Pre-ingestion Deduplication Pipeline
-=====================================
+"""Remove formatting-only chunks and exact duplicates with identical provenance.
 
-Filters noise and removes duplicate/near-duplicate chunks BEFORE embedding,
-reducing vector space pollution and improving retrieval quality.
-
-Three-stage pipeline:
-  1. Noise filter  — remove boilerplate headers/footers, legal junk, tiny chunks
-  2. Exact dedup   — SHA-256 content hash to drop identical chunks
-  3. Near dedup    — character n-gram shingling + Jaccard similarity for fuzzy matches
+Short rules and non-identical text are retained: approximate similarity cannot
+prove that numbers, exceptions or authority statements mean the same thing.
 """
 from __future__ import annotations
 
@@ -144,14 +137,11 @@ def filter_noise(chunks: list[EnrichedChunk]) -> list[EnrichedChunk]:
     Stage 1: Remove chunks that are predominantly noise.
 
     Removes:
-      - Chunks shorter than DEDUP_MIN_CHUNK_LENGTH meaningful characters
-      - Boilerplate headers/footers/legal disclaimers/copyright notices
       - Whitespace-only or formatting-only chunks
 
     Preserves chunks with image_refs or table_refs regardless of text length,
     since their enriched captions carry semantic value.
     """
-    min_len = settings.NEXUSRAG_DEDUP_MIN_CHUNK_LENGTH
     kept: list[EnrichedChunk] = []
     removed = 0
 
@@ -168,13 +158,9 @@ def filter_noise(chunks: list[EnrichedChunk]) -> list[EnrichedChunk]:
             removed += 1
             continue
 
-        # Too short (after stripping formatting)
-        if _meaningful_char_count(text) < min_len:
-            removed += 1
-            continue
-
-        # Boilerplate match
-        if _is_boilerplate(text):
+        # Short rules, numeric limits and legal notices are still evidence.
+        # Only formatting-only text can be discarded without interpreting it.
+        if _meaningful_char_count(text) == 0:
             removed += 1
             continue
 
@@ -192,14 +178,14 @@ def dedup_exact(chunks: list[EnrichedChunk]) -> list[EnrichedChunk]:
     """
     Stage 2: Remove chunks with identical normalized content.
 
-    Uses SHA-256 of lowercased, whitespace-collapsed text. First occurrence wins.
+    Uses case-preserving whitespace normalization and the same document/page/media provenance.
     """
-    seen_hashes: set[str] = set()
+    seen_hashes: set[tuple] = set()
     kept: list[EnrichedChunk] = []
     removed = 0
 
     for chunk in chunks:
-        h = _content_hash(chunk.content)
+        h = (re.sub(r'\s+', ' ', chunk.content.strip()), chunk.document_id, chunk.page_no, tuple(chunk.heading_path), tuple(chunk.image_refs), tuple(chunk.table_refs))
         if h in seen_hashes:
             removed += 1
             continue
@@ -214,49 +200,13 @@ def dedup_exact(chunks: list[EnrichedChunk]) -> list[EnrichedChunk]:
 
 # ── Stage 3: Near-duplicate Detection ───────────────────────────────────
 
-def dedup_near(
-    chunks: list[EnrichedChunk],
-    threshold: float | None = None,
-) -> list[EnrichedChunk]:
+def dedup_near(chunks: list[EnrichedChunk], threshold: float | None = None) -> list[EnrichedChunk]:
+    """Preserve non-identical evidence: similarity cannot establish equivalence.
+
+    A changed number, negation or exception may be the only difference between
+    two business rules. Exact duplicates are handled separately with provenance.
     """
-    Stage 3: Remove near-duplicate chunks using Jaccard similarity
-    on character n-gram shingles.
-
-    For each pair, the LATER chunk (by chunk_index) is dropped when
-    similarity >= threshold.  O(n²) but n is typically < 200 chunks per
-    document, so this is fast enough.
-    """
-    if threshold is None:
-        threshold = settings.NEXUSRAG_DEDUP_NEAR_THRESHOLD
-
-    if threshold >= 1.0:
-        return chunks  # disabled
-
-    # Pre-compute shingles
-    shingles = [_char_ngrams(c.content) for c in chunks]
-
-    drop_indices: set[int] = set()
-
-    for i in range(len(chunks)):
-        if i in drop_indices:
-            continue
-        for j in range(i + 1, len(chunks)):
-            if j in drop_indices:
-                continue
-            sim = _jaccard_similarity(shingles[i], shingles[j])
-            if sim >= threshold:
-                drop_indices.add(j)
-
-    kept = [c for idx, c in enumerate(chunks) if idx not in drop_indices]
-    removed = len(drop_indices)
-
-    if removed:
-        logger.info(
-            f"Near dedup (threshold={threshold:.2f}): "
-            f"removed {removed}/{len(chunks)} near-duplicate chunks"
-        )
-
-    return kept
+    return chunks
 
 
 # ── Public API ───────────────────────────────────────────────────────────

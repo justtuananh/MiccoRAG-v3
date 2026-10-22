@@ -85,11 +85,14 @@ class DeepRetriever:
         Returns:
             DeepRetrievalResult with chunks, citations, context, and optional images
         """
+        if document_ids == []:
+            return DeepRetrievalResult(chunks=[], citations=[], context="No relevant documents found for this query.", query=question, mode=mode)
+
         # Run KG and vector search in parallel
         kg_task = None
         if self.kg_service and mode != "vector_only":
             kg_task = asyncio.create_task(
-                self._kg_query(question, mode)
+                self._kg_query(question, mode, document_ids)
             )
 
         # Over-fetch from vector DB for reranking
@@ -114,6 +117,10 @@ class DeepRetriever:
         chunks, citations = await asyncio.to_thread(
             self._rerank_chunks, question, raw_chunks, raw_citations, top_k
         )
+        chunks, citations = await asyncio.to_thread(
+            self._include_neighbors, chunks, citations, document_ids
+        )
+        await self._canonicalize_source_labels(chunks, citations, document_ids)
 
         # Find related images and tables
         image_refs = []
@@ -140,7 +147,7 @@ class DeepRetriever:
             table_refs=table_refs,
         )
 
-    async def _kg_query(self, question: str, mode: str) -> str:
+    async def _kg_query(self, question: str, mode: str, document_ids: list[int] | None) -> str:
         """Get raw KG context (entities + relationships) relevant to the question.
 
         Uses factual graph data instead of LLM-generated narrative to avoid
@@ -150,7 +157,7 @@ class DeepRetriever:
             return ""
         try:
             return await asyncio.wait_for(
-                self.kg_service.get_relevant_context(question),
+                self.kg_service.get_relevant_context(question, allowed_doc_ids=document_ids),
                 timeout=settings.NEXUSRAG_KG_QUERY_TIMEOUT,
             )
         except asyncio.TimeoutError:
@@ -170,7 +177,7 @@ class DeepRetriever:
         query_embedding = self.embedder.embed_query(question)
 
         where = None
-        if document_ids:
+        if document_ids is not None:
             where = {"document_id": {"$in": document_ids}}
 
         results = self.vector_store.query(
@@ -184,6 +191,8 @@ class DeepRetriever:
 
         for i, doc_text in enumerate(results.get("documents", [])):
             meta = results["metadatas"][i] if results.get("metadatas") else {}
+            if document_ids is not None and meta.get("document_id") not in document_ids:
+                continue
 
             heading_path = []
             heading_str = meta.get("heading_path", "")
@@ -265,6 +274,93 @@ class DeepRetriever:
         )
 
         return reranked_chunks, reranked_citations
+
+    async def _canonicalize_source_labels(
+        self,
+        chunks: list[EnrichedChunk],
+        citations: list[Citation],
+        document_ids: list[int] | None,
+    ) -> None:
+        """Use the current DB filename instead of stale vector metadata labels."""
+        if not self.db or not chunks:
+            return
+        ids = {chunk.document_id for chunk in chunks if chunk.document_id > 0}
+        if document_ids is not None:
+            ids.intersection_update(document_ids)
+        if not ids:
+            return
+        result = await self.db.execute(
+            select(Document.id, Document.original_filename).where(
+                Document.workspace_id == self.workspace_id,
+                Document.id.in_(ids),
+            )
+        )
+        names = {doc_id: name for doc_id, name in result.all() if name}
+        for chunk, citation in zip(chunks, citations):
+            name = names.get(chunk.document_id)
+            if name:
+                chunk.source_file = name
+                citation.source_file = name
+
+    def _include_neighbors(
+        self,
+        chunks: list[EnrichedChunk],
+        citations: list[Citation],
+        document_ids: list[int] | None,
+    ) -> tuple[list[EnrichedChunk], list[Citation]]:
+        """Include one adjacent section on each side of each selected section.
+
+        Tables are kept whole. The 16k character budget applies to added context;
+        selected sections are never silently truncated.
+        """
+        if not chunks:
+            return chunks, citations
+        present = {(chunk.document_id, chunk.chunk_index) for chunk in chunks}
+        ids = []
+        for chunk in chunks:
+            if document_ids is not None and chunk.document_id not in document_ids:
+                continue
+            for index in (chunk.chunk_index - 1, chunk.chunk_index + 1):
+                if index >= 0 and (chunk.document_id, index) not in present:
+                    ids.append(f"doc_{chunk.document_id}_chunk_{index}")
+                    present.add((chunk.document_id, index))
+        if not ids:
+            return chunks, citations
+        found = self.vector_store.get_by_ids(ids)
+        by_id = dict(zip(found.get("ids", []), zip(found.get("documents", []), found.get("metadatas", []))))
+        budget = max(0, 16000 - sum(len(chunk.content) for chunk in chunks))
+        for chunk_id in ids:
+            item = by_id.get(chunk_id)
+            if item is None:
+                continue
+            content, meta = item
+            if not content or not isinstance(meta, dict):
+                continue
+            try:
+                doc_id = int(meta["document_id"])
+                index = int(meta["chunk_index"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if chunk_id != f"doc_{doc_id}_chunk_{index}":
+                continue
+            if document_ids is not None and doc_id not in document_ids:
+                continue
+            if len(content) > budget:
+                continue
+            budget -= len(content)
+            headings = meta.get("heading_path", "")
+            heading_path = headings.split(" > ") if isinstance(headings, str) and headings else []
+            chunks.append(EnrichedChunk(
+                content=content, chunk_index=index, source_file=meta.get("source", ""),
+                document_id=doc_id, page_no=meta.get("page_no", 0),
+                heading_path=heading_path, has_table=meta.get("has_table", False),
+                has_code=meta.get("has_code", False),
+            ))
+            citations.append(Citation(
+                source_file=meta.get("source", "Unknown"), document_id=doc_id,
+                page_no=meta.get("page_no", 0), heading_path=heading_path,
+            ))
+        return chunks, citations
 
     async def _find_related_images(
         self,

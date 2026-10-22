@@ -1,9 +1,9 @@
 """
 Reranker Service
 ================
-Cohere reranker for improving retrieval precision.
+Reranking via LiteLLM's unified rerank() API.
 
-Default model: rerank-multilingual-v3.0
+Default model: rerank-multilingual-v3.0 (Cohere)
 Configurable via NEXUSRAG_RERANKER_MODEL in settings.
 
 Usage:
@@ -13,8 +13,12 @@ Usage:
 from __future__ import annotations
 
 import logging
+import time
 from dataclasses import dataclass
 from typing import Optional, Sequence
+
+import litellm
+
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -30,26 +34,14 @@ class RerankResult:
 
 class RerankerService:
     """
-    Cohere API-based reranker service.
+    LiteLLM-backed reranker service (Cohere by default).
     Fast and cost-effective reranking through the cloud.
     """
 
     def __init__(self, model_name: Optional[str] = None):
         self.model_name = model_name or settings.NEXUSRAG_RERANKER_MODEL
         self.api_key = settings.COHERE_API_KEY
-        self._client = None
-
-    @property
-    def client(self):
-        """Lazy load the Cohere client."""
-        if self._client is None:
-            import cohere
-            logger.info(f"Init Cohere Client for reranker: {self.model_name}")
-            if not self.api_key:
-                logger.error("COHERE_API_KEY is missing from environment variables/config.")
-                raise ValueError("COHERE_API_KEY is not set.")
-            self._client = cohere.ClientV2(self.api_key)
-        return self._client
+        self._retry_after = 0.0
 
     def rerank(
         self,
@@ -74,19 +66,35 @@ class RerankerService:
         if not documents:
             return []
 
+        if not self.api_key or time.monotonic() < self._retry_after:
+            selected = list(documents)[:top_k] if top_k is not None else list(documents)
+            return [RerankResult(index=i, score=1.0/(i+1), text=doc) for i,doc in enumerate(selected)]
+
         # Ensure we don't exceed typical API limits if documents is too large
         docs_to_rerank = list(documents[:100])
 
         try:
-            response = self.client.rerank(
+            if not self.api_key:
+                raise ValueError("COHERE_API_KEY is not set.")
+
+            response = litellm.rerank(
                 model=self.model_name,
                 query=query,
                 documents=docs_to_rerank,
-                top_n=top_k if top_k is not None else len(docs_to_rerank)
+                top_n=top_k if top_k is not None else len(docs_to_rerank),
+                api_key=self.api_key,
             )
-            # Map Cohere response back to RerankResult
+            # Map response back to RerankResult. LiteLLM's rerank() has returned
+            # both plain dicts and objects across versions, so accept either.
+            def _field(item, name):
+                return item[name] if isinstance(item, dict) else getattr(item, name)
+
             results = [
-                RerankResult(index=r.index, score=r.relevance_score, text=documents[r.index])
+                RerankResult(
+                    index=_field(r, "index"),
+                    score=_field(r, "relevance_score"),
+                    text=documents[_field(r, "index")],
+                )
                 for r in response.results
             ]
 
@@ -96,17 +104,17 @@ class RerankerService:
 
             return results
         except Exception as e:
-            logger.error(f"Cohere rerank failed: {e}")
+            self._retry_after = time.monotonic() + (60 if getattr(e, "status_code", None) == 429 else 10)
+            logger.warning("Reranker unavailable; preserving vector order: %s", type(e).__name__)
             # Fallback to returning original items with dummy/heuristic scores if rerank fails
             fallback_docs = list(documents)
             if top_k is not None:
                 fallback_docs = fallback_docs[:top_k]
-                
+
             return [
                 RerankResult(index=i, score=1.0 / (i + 1), text=doc)
                 for i, doc in enumerate(fallback_docs)
             ]
-
 
 
 # Singleton instance
