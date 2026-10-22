@@ -1,0 +1,66 @@
+[
+  {
+    "case": "passing",
+    "runner": "qa.sh",
+    "pass": true,
+    "exit": 0
+  },
+  {
+    "case": "passing",
+    "runner": "run.sh",
+    "pass": true,
+    "exit": 0
+  },
+  {
+    "case": "crash",
+    "runner": "qa.sh",
+    "pass": true,
+    "exit": 1
+  },
+  {
+    "case": "crash",
+    "runner": "run.sh",
+    "pass": true,
+    "exit": 1
+  },
+  {
+    "case": "lying_summary",
+    "runner": "qa.sh",
+    "pass": true,
+    "exit": 1
+  },
+  {
+    "case": "lying_summary",
+    "runner": "run.sh",
+    "pass": true,
+    "exit": 1
+  },
+  {
+    "case": "missing_summary",
+    "runner": "qa.sh",
+    "pass": true,
+    "exit": 1
+  },
+  {
+    "case": "missing_summary",
+    "runner": "run.sh",
+    "pass": true,
+    "exit": 1
+  },
+  {
+    "case": "optional_absent",
+    "pass": true
+  },
+  {
+    "case": "required_absent",
+    "pass": true
+  },
+  {
+    "case": "optional_stopped",
+    "pass": true
+  },
+  {
+    "case": "running",
+    "pass": true
+  }
+]

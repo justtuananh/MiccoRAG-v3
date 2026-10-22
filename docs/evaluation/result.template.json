@@ -1,0 +1,40 @@
+{
+  "run_id": null,
+  "case_id": null,
+  "criterion_id": null,
+  "status": "NOT_RUN",
+  "priority": null,
+  "started_at": null,
+  "completed_at": null,
+  "environment": null,
+  "code": {
+    "git_sha": null,
+    "working_diff_sha256": null
+  },
+  "config_manifest_hash": null,
+  "dataset_snapshot_hash": null,
+  "golden_case_hash": null,
+  "business_oracle_status": null,
+  "identity": {
+    "fixture_user_id": null,
+    "role": null,
+    "department_id": null
+  },
+  "request_artifact": null,
+  "response_artifact": null,
+  "raw_sse_artifact": null,
+  "db_before_artifact": null,
+  "db_after_artifact": null,
+  "source_evidence_artifacts": [],
+  "expected": null,
+  "actual": null,
+  "metrics": {},
+  "failure_reproduction": null,
+  "issue_id": null,
+  "owner": null,
+  "reviewer": null,
+  "independent_review_status": null,
+  "blocker_or_exception_reason": null,
+  "provider_usage": null,
+  "notes": "Không lưu mật khẩu/token/API key hoặc nội dung nhạy cảm chưa được che trong report chia sẻ."
+}

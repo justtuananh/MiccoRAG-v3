@@ -1,0 +1,702 @@
+[
+  {
+    "role": "Admin",
+    "route": "/dashboard",
+    "http": 200,
+    "finalPath": "/dashboard",
+    "expectedPath": "/dashboard",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Admin",
+    "route": "/documents",
+    "http": 200,
+    "finalPath": "/documents",
+    "expectedPath": "/documents",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Admin",
+    "route": "/workspaces",
+    "http": 200,
+    "finalPath": "/workspaces",
+    "expectedPath": "/workspaces",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Admin",
+    "route": "/processing-status",
+    "http": 200,
+    "finalPath": "/processing-status",
+    "expectedPath": "/processing-status",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Admin",
+    "route": "/chat",
+    "http": 200,
+    "finalPath": "/chat",
+    "expectedPath": "/chat",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Admin",
+    "route": "/expert",
+    "http": 200,
+    "finalPath": "/expert",
+    "expectedPath": "/expert",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Admin",
+    "route": "/knowledge",
+    "http": 200,
+    "finalPath": "/knowledge",
+    "expectedPath": "/knowledge",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Admin",
+    "route": "/admin",
+    "http": 200,
+    "finalPath": "/admin",
+    "expectedPath": "/admin",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Admin",
+    "route": "/departments",
+    "http": 200,
+    "finalPath": "/departments",
+    "expectedPath": "/departments",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Admin",
+    "route": "/approvals",
+    "http": 200,
+    "finalPath": "/approvals",
+    "expectedPath": "/approvals",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Admin",
+    "route": "/graph-knowledge",
+    "http": 200,
+    "finalPath": "/graph-knowledge",
+    "expectedPath": "/graph-knowledge",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Nhân viên",
+    "route": "/dashboard",
+    "http": 200,
+    "finalPath": "/dashboard",
+    "expectedPath": "/dashboard",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Nhân viên",
+    "route": "/documents",
+    "http": 200,
+    "finalPath": "/documents",
+    "expectedPath": "/documents",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Nhân viên",
+    "route": "/workspaces",
+    "http": 200,
+    "finalPath": "/workspaces",
+    "expectedPath": "/workspaces",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Nhân viên",
+    "route": "/processing-status",
+    "http": 200,
+    "finalPath": "/processing-status",
+    "expectedPath": "/processing-status",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Nhân viên",
+    "route": "/chat",
+    "http": 200,
+    "finalPath": "/chat",
+    "expectedPath": "/chat",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Nhân viên",
+    "route": "/expert",
+    "http": 200,
+    "finalPath": "/expert",
+    "expectedPath": "/expert",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Nhân viên",
+    "route": "/knowledge",
+    "http": 200,
+    "finalPath": "/knowledge",
+    "expectedPath": "/knowledge",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Nhân viên",
+    "route": "/admin",
+    "http": 200,
+    "finalPath": "/dashboard",
+    "expectedPath": "/dashboard",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Nhân viên",
+    "route": "/departments",
+    "http": 200,
+    "finalPath": "/dashboard",
+    "expectedPath": "/dashboard",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Nhân viên",
+    "route": "/approvals",
+    "http": 200,
+    "finalPath": "/dashboard",
+    "expectedPath": "/dashboard",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Nhân viên",
+    "route": "/graph-knowledge",
+    "http": 200,
+    "finalPath": "/dashboard",
+    "expectedPath": "/dashboard",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Giám đốc",
+    "route": "/dashboard",
+    "http": 200,
+    "finalPath": "/dashboard",
+    "expectedPath": "/dashboard",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Giám đốc",
+    "route": "/documents",
+    "http": 200,
+    "finalPath": "/documents",
+    "expectedPath": "/documents",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Giám đốc",
+    "route": "/workspaces",
+    "http": 200,
+    "finalPath": "/workspaces",
+    "expectedPath": "/workspaces",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Giám đốc",
+    "route": "/processing-status",
+    "http": 200,
+    "finalPath": "/processing-status",
+    "expectedPath": "/processing-status",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Giám đốc",
+    "route": "/chat",
+    "http": 200,
+    "finalPath": "/chat",
+    "expectedPath": "/chat",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Giám đốc",
+    "route": "/expert",
+    "http": 200,
+    "finalPath": "/expert",
+    "expectedPath": "/expert",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Giám đốc",
+    "route": "/knowledge",
+    "http": 200,
+    "finalPath": "/knowledge",
+    "expectedPath": "/knowledge",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Giám đốc",
+    "route": "/admin",
+    "http": 200,
+    "finalPath": "/admin",
+    "expectedPath": "/admin",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [
+      {
+        "path": "/api/admin/users",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/stats",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/users",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/stats",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/chat-logs",
+        "status": 403
+      }
+    ],
+    "pageErrors": []
+  },
+  {
+    "role": "Giám đốc",
+    "route": "/departments",
+    "http": 200,
+    "finalPath": "/departments",
+    "expectedPath": "/departments",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [
+      {
+        "path": "/api/admin/departments",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/departments",
+        "status": 403
+      }
+    ],
+    "pageErrors": []
+  },
+  {
+    "role": "Giám đốc",
+    "route": "/approvals",
+    "http": 200,
+    "finalPath": "/approvals",
+    "expectedPath": "/approvals",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Giám đốc",
+    "route": "/graph-knowledge",
+    "http": 200,
+    "finalPath": "/dashboard",
+    "expectedPath": "/dashboard",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Phó giám đốc",
+    "route": "/dashboard",
+    "http": 200,
+    "finalPath": "/dashboard",
+    "expectedPath": "/dashboard",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Phó giám đốc",
+    "route": "/documents",
+    "http": 200,
+    "finalPath": "/documents",
+    "expectedPath": "/documents",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Phó giám đốc",
+    "route": "/workspaces",
+    "http": 200,
+    "finalPath": "/workspaces",
+    "expectedPath": "/workspaces",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Phó giám đốc",
+    "route": "/processing-status",
+    "http": 200,
+    "finalPath": "/processing-status",
+    "expectedPath": "/processing-status",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Phó giám đốc",
+    "route": "/chat",
+    "http": 200,
+    "finalPath": "/chat",
+    "expectedPath": "/chat",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Phó giám đốc",
+    "route": "/expert",
+    "http": 200,
+    "finalPath": "/expert",
+    "expectedPath": "/expert",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Phó giám đốc",
+    "route": "/knowledge",
+    "http": 200,
+    "finalPath": "/knowledge",
+    "expectedPath": "/knowledge",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Phó giám đốc",
+    "route": "/admin",
+    "http": 200,
+    "finalPath": "/admin",
+    "expectedPath": "/admin",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [
+      {
+        "path": "/api/admin/users",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/stats",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/users",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/stats",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/chat-logs",
+        "status": 403
+      }
+    ],
+    "pageErrors": []
+  },
+  {
+    "role": "Phó giám đốc",
+    "route": "/departments",
+    "http": 200,
+    "finalPath": "/departments",
+    "expectedPath": "/departments",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [
+      {
+        "path": "/api/admin/departments",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/departments",
+        "status": 403
+      }
+    ],
+    "pageErrors": []
+  },
+  {
+    "role": "Phó giám đốc",
+    "route": "/approvals",
+    "http": 200,
+    "finalPath": "/approvals",
+    "expectedPath": "/approvals",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Phó giám đốc",
+    "route": "/graph-knowledge",
+    "http": 200,
+    "finalPath": "/dashboard",
+    "expectedPath": "/dashboard",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Trưởng phòng",
+    "route": "/dashboard",
+    "http": 200,
+    "finalPath": "/dashboard",
+    "expectedPath": "/dashboard",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Trưởng phòng",
+    "route": "/documents",
+    "http": 200,
+    "finalPath": "/documents",
+    "expectedPath": "/documents",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Trưởng phòng",
+    "route": "/workspaces",
+    "http": 200,
+    "finalPath": "/workspaces",
+    "expectedPath": "/workspaces",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Trưởng phòng",
+    "route": "/processing-status",
+    "http": 200,
+    "finalPath": "/processing-status",
+    "expectedPath": "/processing-status",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Trưởng phòng",
+    "route": "/chat",
+    "http": 200,
+    "finalPath": "/chat",
+    "expectedPath": "/chat",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Trưởng phòng",
+    "route": "/expert",
+    "http": 200,
+    "finalPath": "/expert",
+    "expectedPath": "/expert",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Trưởng phòng",
+    "route": "/knowledge",
+    "http": 200,
+    "finalPath": "/knowledge",
+    "expectedPath": "/knowledge",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Trưởng phòng",
+    "route": "/admin",
+    "http": 200,
+    "finalPath": "/admin",
+    "expectedPath": "/admin",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [
+      {
+        "path": "/api/admin/users",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/stats",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/users",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/stats",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/chat-logs",
+        "status": 403
+      }
+    ],
+    "pageErrors": []
+  },
+  {
+    "role": "Trưởng phòng",
+    "route": "/departments",
+    "http": 200,
+    "finalPath": "/departments",
+    "expectedPath": "/departments",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [
+      {
+        "path": "/api/admin/departments",
+        "status": 403
+      },
+      {
+        "path": "/api/admin/departments",
+        "status": 403
+      }
+    ],
+    "pageErrors": []
+  },
+  {
+    "role": "Trưởng phòng",
+    "route": "/approvals",
+    "http": 200,
+    "finalPath": "/approvals",
+    "expectedPath": "/approvals",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "role": "Trưởng phòng",
+    "route": "/graph-knowledge",
+    "http": 200,
+    "finalPath": "/dashboard",
+    "expectedPath": "/dashboard",
+    "mounted": true,
+    "expectedRoute": true,
+    "apiErrors": [],
+    "pageErrors": []
+  },
+  {
+    "case": "invalid_token",
+    "finalPath": "/login",
+    "tokenCleared": true
+  }
+]

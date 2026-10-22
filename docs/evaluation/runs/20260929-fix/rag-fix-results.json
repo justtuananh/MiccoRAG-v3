@@ -1,0 +1,285 @@
+{
+  "metrics": {
+    "criteria": 30,
+    "pass": 11,
+    "fail": 0,
+    "blocked": 19,
+    "primary_question_fact_pass": "10/10",
+    "answer_variant_fact_pass": "22/22",
+    "g04_answer_fact_pass": "6/6",
+    "unresolved_citation_responses": 0,
+    "formal_business_approval": false
+  },
+  "records": [
+    {
+      "criterion_id": "RAG-01",
+      "status": "BLOCKED",
+      "actual": "TXT lifecycle in isolated stage reached indexed→query→delete, but fresh multipage PDF/DOCX ingestion with table/image oracle remains untested.",
+      "scope": "not fully tested",
+      "evidence": "stage-lifecycle-results.json",
+      "limitations": "Staged TXT fixture only; originals were already indexed.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-02",
+      "status": "PASS",
+      "actual": "Original G04 table row is present in staged query context; all six G04 answer variants give threshold 500 million, tender, Director approval, and 20 working days. G06 original table facts also match.",
+      "scope": "isolated staged retest",
+      "evidence": "g04-query-stage.json; rag-graded-answers.json; source-faithfulness.json",
+      "limitations": "Three original documents; selected-document pilot.",
+      "previous_status": "FAIL"
+    },
+    {
+      "criterion_id": "RAG-03",
+      "status": "BLOCKED",
+      "actual": "No approved scan/OCR fixture or region-level oracle.",
+      "scope": "not fully tested",
+      "evidence": "original-sources.json",
+      "limitations": "Original pilot sources are text PDF/DOCX.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-04",
+      "status": "BLOCKED",
+      "actual": "No image whose content independently answers a golden question.",
+      "scope": "not fully tested",
+      "evidence": "original-sources.json",
+      "limitations": "Authenticated image route tests do not establish visual RAG accuracy.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-05",
+      "status": "PASS",
+      "actual": "Requested/authorized document IDs stay scoped in vector and KG service fixtures; 22 staged answers cite only their selected readable document.",
+      "scope": "isolated staged retest",
+      "evidence": "/root/MiccoRAG/worktree/micco-backend/backend/tests/unit/test_retrieval_scope.py; rag-graded-answers.json",
+      "limitations": "Mixed-permission KG case is isolated fixture, not a live corpus test.",
+      "previous_status": "FAIL"
+    },
+    {
+      "criterion_id": "RAG-06",
+      "status": "PASS",
+      "actual": "DeepRetriever passes allowed IDs to KG; empty scope yields no graph/vector result; mixed or unknown KG provenance is excluded.",
+      "scope": "isolated staged retest",
+      "evidence": "/root/MiccoRAG/worktree/micco-backend/backend/tests/unit/test_retrieval_scope.py",
+      "limitations": "Isolated KG storage fixture; no real mixed-permission graph corpus.",
+      "previous_status": "FAIL"
+    },
+    {
+      "criterion_id": "RAG-07",
+      "status": "BLOCKED",
+      "actual": "Lifecycle verifies pending→indexed for one approved TXT and query after deletion returns zero, but full pending/rejected/stale vector+KG state matrix remains incomplete.",
+      "scope": "not fully tested",
+      "evidence": "stage-lifecycle-results.json",
+      "limitations": "Single TXT fixture.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-08",
+      "status": "PASS",
+      "actual": "Isolated private fixture: anonymous 401; Admin, Director and Deputy Director read 200; Manager/Staff 403; Director/Deputy Director write 403. Backend scope tests pass.",
+      "scope": "isolated staged retest",
+      "evidence": "stage-lifecycle-results.json; /root/MiccoRAG/worktree/micco-backend/backend/tests/unit/test_retrieval_scope.py",
+      "limitations": "Staged one private workspace; no blanket production authorization claim.",
+      "previous_status": "FAIL"
+    },
+    {
+      "criterion_id": "RAG-09",
+      "status": "BLOCKED",
+      "actual": "Selected document IDs remained correct across KB 9 and 11, but no two-KB contradictory-answer fixture covering vector, KG, images exists.",
+      "scope": "not fully tested",
+      "evidence": "rag-graded-answers.json",
+      "limitations": "Pilot pins one document per question.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-10",
+      "status": "BLOCKED",
+      "actual": "No approved V1/V2 effective-date policy or version oracle.",
+      "scope": "not fully tested",
+      "evidence": "original-sources.json",
+      "limitations": "Q-05 decision outstanding.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-11",
+      "status": "BLOCKED",
+      "actual": "Transition/retroactivity rule not approved.",
+      "scope": "not fully tested",
+      "evidence": "original-sources.json",
+      "limitations": "Q-05 decision outstanding.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-12",
+      "status": "BLOCKED",
+      "actual": "Authority precedence and contradictory documents not approved.",
+      "scope": "not fully tested",
+      "evidence": "original-sources.json",
+      "limitations": "Q-05 decision outstanding.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-13",
+      "status": "BLOCKED",
+      "actual": "No approved equal-rank conflict oracle or required wording.",
+      "scope": "not fully tested",
+      "evidence": "original-sources.json",
+      "limitations": "Q-05/Q-10 decisions outstanding.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-14",
+      "status": "PASS",
+      "actual": "G04 gives all three requested conditions across six answers; G02, G05 and G07 give all requested parts.",
+      "scope": "isolated staged retest",
+      "evidence": "rag-graded-answers.json; source-faithfulness.json",
+      "limitations": "Small fixed source set.",
+      "previous_status": "FAIL"
+    },
+    {
+      "criterion_id": "RAG-15",
+      "status": "PASS",
+      "actual": "G10 gives the sourced 1.250.000 VND monthly amount and explicitly says the personal phone is absent.",
+      "scope": "isolated staged retest",
+      "evidence": "rag-graded-answers.json; original-sources.json",
+      "limitations": "One partial-answer question.",
+      "previous_status": "PASS"
+    },
+    {
+      "criterion_id": "RAG-16",
+      "status": "PASS",
+      "actual": "G08 chat and two streams say no personal phone is in source, consistent with extracted original DOCX 26.",
+      "scope": "isolated staged retest",
+      "evidence": "rag-graded-answers.json; original-sources.json",
+      "limitations": "One no-answer question.",
+      "previous_status": "PASS"
+    },
+    {
+      "criterion_id": "RAG-17",
+      "status": "PASS",
+      "actual": "Manual review and recorded rubrics: 10/10 primary questions and 22/22 answer variants match key numbers and conditions in originals 22, 26 and 27.",
+      "scope": "isolated staged retest",
+      "evidence": "rag-graded-answers.json; source-faithfulness.json",
+      "limitations": "Sample result; no business-owner approval or full golden set.",
+      "previous_status": "FAIL"
+    },
+    {
+      "criterion_id": "RAG-18",
+      "status": "BLOCKED",
+      "actual": "No approved multi-document synthesis golden; each pilot request selects one document.",
+      "scope": "not fully tested",
+      "evidence": "rag-pilot-results.json",
+      "limitations": "Cannot infer synthesis accuracy.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "SRC-01",
+      "status": "PASS",
+      "actual": "All 22 answers have zero unresolved four-character citation IDs against response source maps; validator fixture rejects invented and old-turn IDs.",
+      "scope": "isolated staged retest",
+      "evidence": "rag-graded-answers.json; /root/MiccoRAG/worktree/micco-backend/backend/tests/unit/test_citation_scope.py",
+      "limitations": "Mapping checks for this sample; not cross-turn live history.",
+      "previous_status": "FAIL"
+    },
+    {
+      "criterion_id": "SRC-02",
+      "status": "PASS",
+      "actual": "Staged G04 query, chat and stream all display canonical Document.original_filename for document 22 despite stale vector metadata; citations resolve to document 22 with preserved page/heading. Frontend source labels use source_file.",
+      "scope": "isolated staged query/chat/stream proof",
+      "evidence": "src02-proof.json; g04-query-stage.json; src02-probe-results.json; /root/MiccoRAG/worktree/micco-backend/backend/tests/unit/test_retrieval_scope.py",
+      "limitations": "Focused document 22 proof; no corpus-wide stale-label scan.",
+      "previous_status": "FAIL"
+    },
+    {
+      "criterion_id": "SRC-03",
+      "status": "PASS",
+      "actual": "Unknown and mixed-source KG facts, nodes and edges fail closed in regression fixture; scoped graph context excludes private sentinel.",
+      "scope": "isolated staged retest",
+      "evidence": "/root/MiccoRAG/worktree/micco-backend/backend/tests/unit/test_retrieval_scope.py",
+      "limitations": "Isolated fixture, not a populated mixed-permission live KG.",
+      "previous_status": "FAIL"
+    },
+    {
+      "criterion_id": "SRC-04",
+      "status": "BLOCKED",
+      "actual": "No prompt-injection corpus with approved expected behavior was run.",
+      "scope": "not fully tested",
+      "evidence": "rag-pilot-results.json",
+      "limitations": "HTML/XSS checks are a separate issue.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "SRC-05",
+      "status": "BLOCKED",
+      "actual": "Unit validator rejects a previous-turn ID, but no two-turn HTTP history and source-change pilot was run.",
+      "scope": "not fully tested",
+      "evidence": "/root/MiccoRAG/worktree/micco-backend/backend/tests/unit/test_citation_scope.py",
+      "limitations": "Cross-turn user flow unverified.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "SRC-06",
+      "status": "BLOCKED",
+      "actual": "No text/image/table cross-page fixture with gold source mapping was run.",
+      "scope": "not fully tested",
+      "evidence": "original-sources.json",
+      "limitations": "Pilot contains no answer-bearing image.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-19",
+      "status": "BLOCKED",
+      "actual": "Six streams emitted complete with mapped citations and correct sample facts; reconnect, rollback and broad role matrix remain untested.",
+      "scope": "not fully tested",
+      "evidence": "rag-graded-answers.json; rag-stream-results.json",
+      "limitations": "Stream completion sample only.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-20",
+      "status": "BLOCKED",
+      "actual": "Isolated TXT lifecycle works, but version replacement with effective-date policy and follow-up answer was not tested.",
+      "scope": "not fully tested",
+      "evidence": "stage-lifecycle-results.json",
+      "limitations": "Q-05 decision outstanding.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-21",
+      "status": "BLOCKED",
+      "actual": "Director hybrid and Admin vector-only G01/G04 agree on facts after fix; no graph-specific recall oracle measures relative quality.",
+      "scope": "not fully tested",
+      "evidence": "rag-graded-answers.json",
+      "limitations": "Two comparison questions only.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-22",
+      "status": "BLOCKED",
+      "actual": "No approved accentless/bilingual/near-entity robustness set was run.",
+      "scope": "not fully tested",
+      "evidence": "rag-pilot-results.json",
+      "limitations": "Pilot questions are fixed Vietnamese.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-23",
+      "status": "BLOCKED",
+      "actual": "TXT fixture upload→index→query→delete→GET404/query0 succeeded, but full replacement/version/graph/image lifecycle remains untested.",
+      "scope": "not fully tested",
+      "evidence": "stage-lifecycle-results.json",
+      "limitations": "Single TXT fixture.",
+      "previous_status": "BLOCKED"
+    },
+    {
+      "criterion_id": "RAG-24",
+      "status": "BLOCKED",
+      "actual": "Pilot forces search; greeting versus business-query routing was not tested.",
+      "scope": "not fully tested",
+      "evidence": "rag-pilot-results.json",
+      "limitations": "No automatic-routing oracle.",
+      "previous_status": "BLOCKED"
+    }
+  ]
+}

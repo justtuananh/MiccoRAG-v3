@@ -1,0 +1,38 @@
+[
+  {
+    "scenario": "complete",
+    "intercepted": 1,
+    "markerShown": true,
+    "errorShown": false,
+    "inputDisabled": false,
+    "tail": "TKV\nnền tảng tri thức\nTổng quan\nTài liệu\nTiến trình\nTrợ lý AI\nChuyên gia\nTri thức\nWorkspace\nPhê duyệt\nQuản trị\nHVG\nMicco AI Chat\nKB Kỹ thuật\n\nCâu hỏi kiểm tra giao diện complete\n\nEVAL_COMPLETE_ANSWER\n\n17:26\n\nLÀM MỚI\nENTER ĐỂ GỬI · SHIFT+ENTER XUỐNG DÒNG",
+    "serverMutation": false
+  },
+  {
+    "scenario": "truncated",
+    "intercepted": 1,
+    "markerShown": true,
+    "errorShown": false,
+    "inputDisabled": false,
+    "tail": "TKV\nnền tảng tri thức\nTổng quan\nTài liệu\nTiến trình\nTrợ lý AI\nChuyên gia\nTri thức\nWorkspace\nPhê duyệt\nQuản trị\nHVG\nMicco AI Chat\nKB Kỹ thuật\n\nCâu hỏi kiểm tra giao diện truncated\n\nEVAL_TRUNCATED_ANSWER\n\n17:26\n\nLÀM MỚI\nENTER ĐỂ GỬI · SHIFT+ENTER XUỐNG DÒNG",
+    "serverMutation": false
+  },
+  {
+    "scenario": "explicit_error",
+    "intercepted": 1,
+    "markerShown": false,
+    "errorShown": true,
+    "inputDisabled": false,
+    "tail": "TKV\nnền tảng tri thức\nTổng quan\nTài liệu\nTiến trình\nTrợ lý AI\nChuyên gia\nTri thức\nWorkspace\nPhê duyệt\nQuản trị\nHVG\nMicco AI Chat\nKB Kỹ thuật\n\nCâu hỏi kiểm tra giao diện explicit_error\n\n⚠️ EVAL_CONTROLLED_ERROR\n\n17:26\n\nLÀM MỚI\nENTER ĐỂ GỬI · SHIFT+ENTER XUỐNG DÒNG",
+    "serverMutation": false
+  },
+  {
+    "scenario": "http_503",
+    "intercepted": 1,
+    "markerShown": false,
+    "errorShown": true,
+    "inputDisabled": false,
+    "tail": "TKV\nnền tảng tri thức\nTổng quan\nTài liệu\nTiến trình\nTrợ lý AI\nChuyên gia\nTri thức\nWorkspace\nPhê duyệt\nQuản trị\nHVG\nMicco AI Chat\nKB Kỹ thuật\n\nCâu hỏi kiểm tra giao diện http_503\n\n⚠️ Có lỗi xảy ra. Vui lòng thử lại.\n\nLÀM MỚI\nENTER ĐỂ GỬI · SHIFT+ENTER XUỐNG DÒNG",
+    "serverMutation": false
+  }
+]

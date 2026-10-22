@@ -1,0 +1,54 @@
+{
+  "status": 200,
+  "question": "Theo quy trình mua sắm vật tư được chọn, gói đúng 500 triệu đồng có phải đấu thầu không, ai phê duyệt và thời gian xử lý tối đa bao nhiêu ngày làm việc?",
+  "chunk_ids": [
+    "doc_22_chunk_1",
+    "doc_22_chunk_0",
+    "doc_22_chunk_2"
+  ],
+  "chunk_document_ids": [
+    22,
+    22,
+    22
+  ],
+  "chunk_source_labels": [
+    "Quy trình mua sắm vật tư an toàn.docx",
+    "Quy trình mua sắm vật tư an toàn.docx",
+    "Quy trình mua sắm vật tư an toàn.docx"
+  ],
+  "canonical_source_label": true,
+  "context_has_table_row": true,
+  "context": "## Retrieved Document Sections\n### [1] Quy trình mua sắm vật tư an toàn.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Năm bước thực hiện\nBước 1 — Đề xuất nhu cầu: đơn vị sử dụng lập phiếu đề xuất, có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật.\nBước 2 — Thẩm định: Phòng Kinh doanh đối chiếu định mức và ngân sách được duyệt.\nBước 3 — Lựa chọn nhà cung cấp: chỉ mua từ danh sách nhà cung cấp đã được phê duyệt. Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu.\nBước 4 — Ký hợp đồng và nhận hàng: kiểm tra chứng nhận hợp quy, hạn sử dụng và tem kiểm định.\nBước 5 — Nghiệm thu và thanh toán: Ban An toàn nghiệm thu chất lượng trước khi Phòng Kế toán thanh toán.\n\n### [2] Quy trình mua sắm vật tư an toàn.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN\nSố hiệu: QT-MS-2026/MICCO. Phòng Kinh doanh chủ trì, áp dụng từ 01/03/2026.\n\n### [3] Quy trình mua sắm vật tư an toàn.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Thời gian xử lý tối đa\nDưới 50 triệu đồng, Thời gian xử lý = 05 ngày làm việc. Dưới 50 triệu đồng, Cấp phê duyệt = Trưởng phòng Kinh doanh. Từ 50 đến dưới 500 triệu, Thời gian xử lý = 10 ngày làm việc. Từ 50 đến dưới 500 triệu, Cấp phê duyệt = Phó giám đốc phụ trách. Từ 500 triệu trở lên, Thời gian xử lý = 20 ngày làm việc. Từ 500 triệu trở lên, Cấp phê duyệt = Giám đốc, qua đấu thầu\n",
+  "citations": [
+    {
+      "source_file": "Quy trình mua sắm vật tư an toàn.docx",
+      "document_id": 22,
+      "page_no": 0,
+      "heading_path": [
+        "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN",
+        "Năm bước thực hiện"
+      ],
+      "formatted": "Quy trình mua sắm vật tư an toàn.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Năm bước thực hiện"
+    },
+    {
+      "source_file": "Quy trình mua sắm vật tư an toàn.docx",
+      "document_id": 22,
+      "page_no": 0,
+      "heading_path": [
+        "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN"
+      ],
+      "formatted": "Quy trình mua sắm vật tư an toàn.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN"
+    },
+    {
+      "source_file": "Quy trình mua sắm vật tư an toàn.docx",
+      "document_id": 22,
+      "page_no": 0,
+      "heading_path": [
+        "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN",
+        "Thời gian xử lý tối đa"
+      ],
+      "formatted": "Quy trình mua sắm vật tư an toàn.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Thời gian xử lý tối đa"
+    }
+  ],
+  "error": null
+}

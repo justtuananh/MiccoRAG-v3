@@ -1,0 +1,80 @@
+{
+  "checked_at": "2026-09-29T12:32:35.789Z",
+  "base": "http://127.0.0.1:5174",
+  "results": [
+    {
+      "name": "chat history payload does not execute",
+      "pass": true
+    },
+    {
+      "name": "chat history creates no injected image or SVG",
+      "pass": true
+    },
+    {
+      "name": "citation title stays inside attribute",
+      "pass": true
+    },
+    {
+      "name": "renamed source uses current filename and citation ID",
+      "pass": true
+    },
+    {
+      "name": "citation opens document by ID after rename",
+      "pass": true
+    },
+    {
+      "name": "truncated stream shows partial warning and does not resend",
+      "pass": true
+    },
+    {
+      "name": "chat has no page error",
+      "pass": true
+    },
+    {
+      "name": "approval preview payload does not execute",
+      "pass": true
+    },
+    {
+      "name": "approval preview strips event handlers and javascript links",
+      "pass": true
+    },
+    {
+      "name": "Vietnamese filename search ignores accents",
+      "pass": true
+    },
+    {
+      "name": "type filter removes rows from previous request",
+      "pass": true
+    },
+    {
+      "name": "late response from old filter cannot overwrite newer rows",
+      "pass": true
+    },
+    {
+      "name": "category filter scopes rows",
+      "pass": true
+    },
+    {
+      "name": "tag filter matches Vietnamese accents",
+      "pass": true
+    },
+    {
+      "name": "status filter shows failed document only",
+      "pass": true
+    },
+    {
+      "name": "department filter scopes visible rows",
+      "pass": true
+    },
+    {
+      "name": "empty result state is explicit",
+      "pass": true
+    },
+    {
+      "name": "executive cannot open admin route or menu",
+      "pass": true
+    }
+  ],
+  "passed": 18,
+  "total": 18
+}

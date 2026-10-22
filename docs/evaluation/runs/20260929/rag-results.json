@@ -1,0 +1,255 @@
+{
+  "metrics": {
+    "unique_primary_questions": 10,
+    "primary_fact_pass": 9,
+    "answer_variants": 22,
+    "fact_pass_variants": 16,
+    "unresolved_citation_responses": 1,
+    "http_failures": 0,
+    "stream_instrumented": 3,
+    "source_documents": 3,
+    "formal_business_approval": false
+  },
+  "records": [
+    {
+      "criterion_id": "RAG-01",
+      "status": "BLOCKED",
+      "actual": "Đã đối chiếu original PDF/DOCX với markdown và truy xuất; live upload TXT→indexed→query thành công. Chưa chạy upload mới PDF/DOCX 2 trang trong fixture.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-02",
+      "status": "FAIL",
+      "actual": "G04 bỏ mất hàng bảng 500 triệu/20 ngày/Giám đốc; lặp qua 3 chat director +2 stream +1 admin vector. G06 bảng134 người/16giờ đúng.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-03",
+      "status": "BLOCKED",
+      "actual": "Không có bộ scan/OCR và vùng ảnh được chủ tài liệu duyệt để chấm; nguồn pilot là PDF text và DOCX.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-04",
+      "status": "BLOCKED",
+      "actual": "Nguồn pilot không có hình nghiệp vụ chứa đáp án độc lập; thiếu golden ảnh được duyệt.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-05",
+      "status": "FAIL",
+      "actual": "Bộ lọc IDs đúng trong pilot vector; fixture SEC-10 chứng minh nhánh KG có thể trả sentinel ngoài allowed IDs.",
+      "scope": "live-pilot + isolated-KG",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Live dữ liệu chưa có KG mixed-permission để tái hiện toàn luồng."
+    },
+    {
+      "criterion_id": "RAG-06",
+      "status": "FAIL",
+      "actual": "SEC-10 chạy DeepRetriever thật với vector/KG giả: KG private sentinel xuất hiện khi document_ids chỉ cho phép tài liệu public.",
+      "scope": "isolated-KG",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không đọc nội dung trái quyền từ tài liệu nghiệp vụ thật."
+    },
+    {
+      "criterion_id": "RAG-07",
+      "status": "BLOCKED",
+      "actual": "44 unit tests gồm bộ lọc approved+INDEXED đạt; chưa có đầy đủ trạng thái + pipeline vector/KG stale để chấm mọi nhánh.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-08",
+      "status": "FAIL",
+      "actual": "SEC-07/08/09 và RBAC fixture trả dữ liệu private KB cho foreign user; owners private docs department=None có lỗi thiếu quyền ngược chiều.",
+      "scope": "isolated-ASGI + SQLite",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-09",
+      "status": "BLOCKED",
+      "actual": "Pilot 3 docs trong2 KB đúng document IDs; chưa dựng đồng thời2KB có đáp án mâu thuẫn và đầy đủ vector/KG/image để kiểm tất cả đường.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-10",
+      "status": "BLOCKED",
+      "actual": "Thiếu nguồn V1/V2 có ngày hiệu lực và quy tắc phục vụ bản cũ được duyệt (Q-05).",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-11",
+      "status": "BLOCKED",
+      "actual": "Thiếu timeline chuyển tiếp/hồi tố được chủ tài liệu xác nhận (Q-05).",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-12",
+      "status": "BLOCKED",
+      "actual": "Chưa có thứ bậc thẩm quyền và cặp tài liệu mâu thuẫn được chốt (Q-05).",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-13",
+      "status": "BLOCKED",
+      "actual": "Chưa có golden xung đột ngang cấp được duyệt và quy tắc diễn đạt kết luận (Q-05/Q-10).",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-14",
+      "status": "FAIL",
+      "actual": "G04 chỉ lấy quy tắc đấu thầu, bỏ cấp duyệt và thời hạn; các câu G02/G05/G07 đầy đủ trên nguồn thử.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-15",
+      "status": "PASS",
+      "actual": "G10 nêu đúng1.250.000 đồng/tháng và nói nguồn không có số điện thoại; không tự điền số.",
+      "scope": "live pilot: G10 only",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Kết quả đúng trong mẫu1câu; không suy rộng mọi câu nhiều phần."
+    },
+    {
+      "criterion_id": "RAG-16",
+      "status": "PASS",
+      "actual": "G08 qua chat và2 stream đều nói nguồn không có số điện thoại; đối chiếu toàn bộ DOCX26 xác nhận không có.",
+      "scope": "live pilot: G08 3variants",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Đúng trên câu no-answer đã thử; chưa phải độ chính xác no-answer của toàn bộ KB."
+    },
+    {
+      "criterion_id": "RAG-17",
+      "status": "FAIL",
+      "actual": "G04 thiếu20ngày và khẳng định nguồn không có thời hạn dù bản gốc có; phụ cấp, ngày25, ngưỡng14, sát hạch40/45/80/30 đều đúng.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-18",
+      "status": "BLOCKED",
+      "actual": "Chưa có golden tổng hợp2+nguồn độc lập đã duyệt; pilot cố định1doc/câu để truy nguyên lỗi.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "SRC-01",
+      "status": "FAIL",
+      "actual": "G01 director repeat2 dẫn[hbc1] nhưng sources trả[index=hbcl]; một citation không có bằng chứng ánh xạ trong response.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "SRC-02",
+      "status": "FAIL",
+      "actual": "Một citation ID không ánh xạ nguồn: hbc1≠hbcl; metadata tên nguồn còn dùng prefix cũ khác original_filename, cần chuẩn hóa.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "SRC-03",
+      "status": "FAIL",
+      "actual": "SEC-10 xác nhận KG context có sentinel ngoài danh sách nguồn được phép; không thể coi mọi fact KG là bằng chứng đã duyệt.",
+      "scope": "isolated-KG",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "SRC-04",
+      "status": "BLOCKED",
+      "actual": "XSS đã kiểm bằng HTML fixture, nhưng đó không thay thế prompt injection vào retrieval; chưa có bộ payload chỉ dẫn độc hại cùng golden được duyệt.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "SRC-05",
+      "status": "BLOCKED",
+      "actual": "Pilot không dùng history chứa citation cũ; chưa đo ánh xạ citation xuyên2lượt sau đổi nguồn.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "SRC-06",
+      "status": "BLOCKED",
+      "actual": "Thiếu fixture text/image/table khác trang có mapping vàng; pilot không truy xuất ảnh.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-19",
+      "status": "BLOCKED",
+      "actual": "3stream có complete, token cuối khớpanswer3/3; G01/G08 nhất quán chat, G04 đều bỏ bảng. Chưa đủ ma trận quyền và biến thể rollback/reconnect.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-20",
+      "status": "BLOCKED",
+      "actual": "Chưa có nguồn thay đổi hiệu lực và câu nối tiếp đã duyệt; lifecycle thử1version, không thay tài liệu thật.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-21",
+      "status": "BLOCKED",
+      "actual": "2câu so hybrid director và vector Admin: G01đúng/G04sai cả2; chưa có golden quan hệ/thực thể để so recall.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-22",
+      "status": "BLOCKED",
+      "actual": "Chưa có golden biến thể không dấu/song ngữ/thực thể gần giống được duyệt; không dùng paraphrase tùy ý để chấm PASS.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-23",
+      "status": "BLOCKED",
+      "actual": "Fixture TXT xóa rồi GET404/query0chunks đạt; chưa đủ vòngđời thayversion + graph/images để nghiệm thu tiêu chí đầy đủ.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    },
+    {
+      "criterion_id": "RAG-24",
+      "status": "BLOCKED",
+      "actual": "Pilot cố định force_search để đo nguồn; chưa đo chính sách phân biệt chào hỏi và truy vấn nghiệp vụ tự động.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt"
+    }
+  ]
+}

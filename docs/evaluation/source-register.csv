@@ -1,0 +1,2 @@
+source_id,title,document_id,version_id,file_sha256,issuing_authority,business_owner,authority_rank,scope,effective_from,effective_to,supersedes_source_id,approved_by,approval_date,conflict_resolution_rule,review_status,notes
+TEMPLATE-NOT-A-REAL-SOURCE,,,,,,,,,,,,,,,NOT_REVIEWED,Thay bằng văn bản thật được chủ nghiệp vụ xác nhận; không dùng hàng mẫu để chấm.

@@ -1,0 +1,72 @@
+{
+  "id": "TEMPLATE-NOT-AN-APPROVED-CASE",
+  "criterion_ids": [
+    "RAG-17",
+    "SRC-01"
+  ],
+  "question": "Điền câu hỏi dựa trên nguồn thực đã duyệt",
+  "workspace_id": null,
+  "identity": {
+    "user_fixture_id": null,
+    "role": null,
+    "department_id": null
+  },
+  "as_of_date": null,
+  "mode": "vector_only",
+  "endpoint_variants": [
+    "query",
+    "chat",
+    "stream"
+  ],
+  "document_ids": [],
+  "document_filter_semantics": "UNSET: chốt explicit list hay toàn bộ nguồn được phép trước chạy",
+  "source_snapshot_hash": null,
+  "visibility_snapshot_hash": null,
+  "source_records": [
+    {
+      "source_id": null,
+      "document_id": null,
+      "version_id": null,
+      "version_label": null,
+      "file_sha256": null,
+      "authority_level": null,
+      "effective_from": null,
+      "effective_to": null,
+      "page": null,
+      "heading": null,
+      "span": null,
+      "image_id": null,
+      "table_id": null,
+      "approved_by": null,
+      "approved_at": null
+    }
+  ],
+  "approved_answer": null,
+  "required_facts": [
+    {
+      "fact_id": "FACT-01",
+      "claim": null,
+      "source_ids": [],
+      "conditions": [],
+      "unit": null,
+      "value": null,
+      "tolerance": {
+        "type": "exact",
+        "absolute": null,
+        "relative": null
+      },
+      "critical": true
+    }
+  ],
+  "forbidden_facts": [],
+  "acceptable_abstention": null,
+  "expected_conflict": null,
+  "expected_citation_mapping": {},
+  "tags": [],
+  "primary_stratum": null,
+  "split": null,
+  "priority": "P0",
+  "reviewer": null,
+  "review_status": "DRAFT_NOT_APPROVED",
+  "notes": "Mẫu cấu trúc, không phải ground truth; không tự điền đáp án bằng mô hình đang được chấm."
+}

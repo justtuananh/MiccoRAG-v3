@@ -1,0 +1,226 @@
+[
+  {
+    "path": "/api/v1/rag/chunks/22",
+    "request": null,
+    "status": 200,
+    "seconds": 0.05203862802591175,
+    "response": {
+      "document_id": 22,
+      "status": "indexed",
+      "chunk_count": 3,
+      "chunks": [
+        {
+          "chunk_id": "doc_22_chunk_0",
+          "content": "Số hiệu: QT-MS-2026/MICCO. Phòng Kinh doanh chủ trì, áp dụng từ 01/03/2026.",
+          "metadata": {
+            "source": "KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx",
+            "table_ids": "",
+            "page_no": 0,
+            "file_type": "docx",
+            "image_ids": "",
+            "document_id": 22,
+            "image_urls": "",
+            "heading_path": "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN",
+            "has_table": false,
+            "chunk_index": 0,
+            "has_code": false
+          }
+        },
+        {
+          "chunk_id": "doc_22_chunk_1",
+          "content": "Bước 1 — Đề xuất nhu cầu: đơn vị sử dụng lập phiếu đề xuất, có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật.\nBước 2 — Thẩm định: Phòng Kinh doanh đối chiếu định mức và ngân sách được duyệt.\nBước 3 — Lựa chọn nhà cung cấp: chỉ mua từ danh sách nhà cung cấp đã được phê duyệt. Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu.\nBước 4 — Ký hợp đồng và nhận hàng: kiểm tra chứng nhận hợp quy, hạn sử dụng và tem kiểm định.\nBước 5 — Nghiệm thu và thanh toán: Ban An toàn nghiệm thu chất lượng trước khi Phòng Kế toán thanh toán.",
+          "metadata": {
+            "page_no": 0,
+            "image_ids": "",
+            "source": "KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx",
+            "image_urls": "",
+            "chunk_index": 1,
+            "file_type": "docx",
+            "has_code": false,
+            "document_id": 22,
+            "table_ids": "",
+            "heading_path": "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Năm bước thực hiện",
+            "has_table": false
+          }
+        },
+        {
+          "chunk_id": "doc_22_chunk_2",
+          "content": "Dưới 50 triệu đồng, Thời gian xử lý = 05 ngày làm việc. Dưới 50 triệu đồng, Cấp phê duyệt = Trưởng phòng Kinh doanh. Từ 50 đến dưới 500 triệu, Thời gian xử lý = 10 ngày làm việc. Từ 50 đến dưới 500 triệu, Cấp phê duyệt = Phó giám đốc phụ trách. Từ 500 triệu trở lên, Thời gian xử lý = 20 ngày làm việc. Từ 500 triệu trở lên, Cấp phê duyệt = Giám đốc, qua đấu thầu",
+          "metadata": {
+            "chunk_index": 2,
+            "table_ids": "",
+            "source": "KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx",
+            "has_table": true,
+            "document_id": 22,
+            "page_no": 0,
+            "file_type": "docx",
+            "heading_path": "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Thời gian xử lý tối đa",
+            "has_code": false,
+            "image_ids": "",
+            "image_urls": ""
+          }
+        }
+      ]
+    }
+  },
+  {
+    "path": "/api/v1/rag/query/9",
+    "request": {
+      "question": "Trong bảng Thời gian xử lý tối đa, gói từ 500 triệu trở lên là bao nhiêu ngày làm việc và cấp phê duyệt nào?",
+      "document_ids": [
+        22
+      ],
+      "top_k": 8,
+      "mode": "vector_only"
+    },
+    "status": 200,
+    "seconds": 0.6632096599787474,
+    "response": {
+      "query": "Trong bảng Thời gian xử lý tối đa, gói từ 500 triệu trở lên là bao nhiêu ngày làm việc và cấp phê duyệt nào?",
+      "chunks": [
+        {
+          "content": "Dưới 50 triệu đồng, Thời gian xử lý = 05 ngày làm việc. Dưới 50 triệu đồng, Cấp phê duyệt = Trưởng phòng Kinh doanh. Từ 50 đến dưới 500 triệu, Thời gian xử lý = 10 ngày làm việc. Từ 50 đến dưới 500 triệu, Cấp phê duyệt = Phó giám đốc phụ trách. Từ 500 triệu trở lên, Thời gian xử lý = 20 ngày làm việc. Từ 500 triệu trở lên, Cấp phê duyệt = Giám đốc, qua đấu thầu",
+          "chunk_id": "doc_22_chunk_2",
+          "score": 0.29393032,
+          "metadata": {
+            "image_ids": "",
+            "page_no": 0,
+            "chunk_index": 2,
+            "has_code": false,
+            "source": "KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx",
+            "image_urls": "",
+            "table_ids": "",
+            "document_id": 22,
+            "heading_path": "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Thời gian xử lý tối đa",
+            "file_type": "docx",
+            "has_table": true
+          },
+          "citation": null
+        },
+        {
+          "content": "Bước 1 — Đề xuất nhu cầu: đơn vị sử dụng lập phiếu đề xuất, có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật.\nBước 2 — Thẩm định: Phòng Kinh doanh đối chiếu định mức và ngân sách được duyệt.\nBước 3 — Lựa chọn nhà cung cấp: chỉ mua từ danh sách nhà cung cấp đã được phê duyệt. Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu.\nBước 4 — Ký hợp đồng và nhận hàng: kiểm tra chứng nhận hợp quy, hạn sử dụng và tem kiểm định.\nBước 5 — Nghiệm thu và thanh toán: Ban An toàn nghiệm thu chất lượng trước khi Phòng Kế toán thanh toán.",
+          "chunk_id": "doc_22_chunk_1",
+          "score": 0.58722854,
+          "metadata": {
+            "image_urls": "",
+            "has_code": false,
+            "chunk_index": 1,
+            "source": "KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx",
+            "image_ids": "",
+            "heading_path": "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Năm bước thực hiện",
+            "page_no": 0,
+            "table_ids": "",
+            "document_id": 22,
+            "file_type": "docx",
+            "has_table": false
+          },
+          "citation": null
+        },
+        {
+          "content": "Số hiệu: QT-MS-2026/MICCO. Phòng Kinh doanh chủ trì, áp dụng từ 01/03/2026.",
+          "chunk_id": "doc_22_chunk_0",
+          "score": 0.7157959,
+          "metadata": {
+            "page_no": 0,
+            "has_code": false,
+            "table_ids": "",
+            "image_ids": "",
+            "document_id": 22,
+            "source": "KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx",
+            "heading_path": "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN",
+            "file_type": "docx",
+            "image_urls": "",
+            "has_table": false,
+            "chunk_index": 0
+          },
+          "citation": null
+        }
+      ],
+      "context": "[1] KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Thời gian xử lý tối đa\nDưới 50 triệu đồng, Thời gian xử lý = 05 ngày làm việc. Dưới 50 triệu đồng, Cấp phê duyệt = Trưởng phòng Kinh doanh. Từ 50 đến dưới 500 triệu, Thời gian xử lý = 10 ngày làm việc. Từ 50 đến dưới 500 triệu, Cấp phê duyệt = Phó giám đốc phụ trách. Từ 500 triệu trở lên, Thời gian xử lý = 20 ngày làm việc. Từ 500 triệu trở lên, Cấp phê duyệt = Giám đốc, qua đấu thầu\n\n---\n\n[2] KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Năm bước thực hiện\nBước 1 — Đề xuất nhu cầu: đơn vị sử dụng lập phiếu đề xuất, có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật.\nBước 2 — Thẩm định: Phòng Kinh doanh đối chiếu định mức và ngân sách được duyệt.\nBước 3 — Lựa chọn nhà cung cấp: chỉ mua từ danh sách nhà cung cấp đã được phê duyệt. Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu.\nBước 4 — Ký hợp đồng và nhận hàng: kiểm tra chứng nhận hợp quy, hạn sử dụng và tem kiểm định.\nBước 5 — Nghiệm thu và thanh toán: Ban An toàn nghiệm thu chất lượng trước khi Phòng Kế toán thanh toán.\n\n---\n\n[3] KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN\nSố hiệu: QT-MS-2026/MICCO. Phòng Kinh doanh chủ trì, áp dụng từ 01/03/2026.",
+      "total_chunks": 3,
+      "knowledge_graph_summary": "",
+      "citations": [],
+      "image_refs": []
+    }
+  },
+  {
+    "path": "/api/v1/rag/query/9",
+    "request": {
+      "question": "20 ngày làm việc Giám đốc qua đấu thầu",
+      "document_ids": [
+        22
+      ],
+      "top_k": 8,
+      "mode": "vector_only"
+    },
+    "status": 200,
+    "seconds": 0.2490670630359091,
+    "response": {
+      "query": "20 ngày làm việc Giám đốc qua đấu thầu",
+      "chunks": [
+        {
+          "content": "Dưới 50 triệu đồng, Thời gian xử lý = 05 ngày làm việc. Dưới 50 triệu đồng, Cấp phê duyệt = Trưởng phòng Kinh doanh. Từ 50 đến dưới 500 triệu, Thời gian xử lý = 10 ngày làm việc. Từ 50 đến dưới 500 triệu, Cấp phê duyệt = Phó giám đốc phụ trách. Từ 500 triệu trở lên, Thời gian xử lý = 20 ngày làm việc. Từ 500 triệu trở lên, Cấp phê duyệt = Giám đốc, qua đấu thầu",
+          "chunk_id": "doc_22_chunk_2",
+          "score": 0.4836357,
+          "metadata": {
+            "heading_path": "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Thời gian xử lý tối đa",
+            "source": "KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx",
+            "image_ids": "",
+            "document_id": 22,
+            "table_ids": "",
+            "has_table": true,
+            "has_code": false,
+            "file_type": "docx",
+            "image_urls": "",
+            "page_no": 0,
+            "chunk_index": 2
+          },
+          "citation": null
+        },
+        {
+          "content": "Bước 1 — Đề xuất nhu cầu: đơn vị sử dụng lập phiếu đề xuất, có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật.\nBước 2 — Thẩm định: Phòng Kinh doanh đối chiếu định mức và ngân sách được duyệt.\nBước 3 — Lựa chọn nhà cung cấp: chỉ mua từ danh sách nhà cung cấp đã được phê duyệt. Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu.\nBước 4 — Ký hợp đồng và nhận hàng: kiểm tra chứng nhận hợp quy, hạn sử dụng và tem kiểm định.\nBước 5 — Nghiệm thu và thanh toán: Ban An toàn nghiệm thu chất lượng trước khi Phòng Kế toán thanh toán.",
+          "chunk_id": "doc_22_chunk_1",
+          "score": 0.6145163,
+          "metadata": {
+            "has_table": false,
+            "heading_path": "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Năm bước thực hiện",
+            "document_id": 22,
+            "image_urls": "",
+            "table_ids": "",
+            "image_ids": "",
+            "source": "KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx",
+            "file_type": "docx",
+            "page_no": 0,
+            "chunk_index": 1,
+            "has_code": false
+          },
+          "citation": null
+        },
+        {
+          "content": "Số hiệu: QT-MS-2026/MICCO. Phòng Kinh doanh chủ trì, áp dụng từ 01/03/2026.",
+          "chunk_id": "doc_22_chunk_0",
+          "score": 0.6816984,
+          "metadata": {
+            "table_ids": "",
+            "document_id": 22,
+            "source": "KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx",
+            "has_code": false,
+            "has_table": false,
+            "heading_path": "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN",
+            "image_ids": "",
+            "image_urls": "",
+            "chunk_index": 0,
+            "page_no": 0,
+            "file_type": "docx"
+          },
+          "citation": null
+        }
+      ],
+      "context": "[1] KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Thời gian xử lý tối đa\nDưới 50 triệu đồng, Thời gian xử lý = 05 ngày làm việc. Dưới 50 triệu đồng, Cấp phê duyệt = Trưởng phòng Kinh doanh. Từ 50 đến dưới 500 triệu, Thời gian xử lý = 10 ngày làm việc. Từ 50 đến dưới 500 triệu, Cấp phê duyệt = Phó giám đốc phụ trách. Từ 500 triệu trở lên, Thời gian xử lý = 20 ngày làm việc. Từ 500 triệu trở lên, Cấp phê duyệt = Giám đốc, qua đấu thầu\n\n---\n\n[2] KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Năm bước thực hiện\nBước 1 — Đề xuất nhu cầu: đơn vị sử dụng lập phiếu đề xuất, có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật.\nBước 2 — Thẩm định: Phòng Kinh doanh đối chiếu định mức và ngân sách được duyệt.\nBước 3 — Lựa chọn nhà cung cấp: chỉ mua từ danh sách nhà cung cấp đã được phê duyệt. Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu.\nBước 4 — Ký hợp đồng và nhận hàng: kiểm tra chứng nhận hợp quy, hạn sử dụng và tem kiểm định.\nBước 5 — Nghiệm thu và thanh toán: Ban An toàn nghiệm thu chất lượng trước khi Phòng Kế toán thanh toán.\n\n---\n\n[3] KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN\nSố hiệu: QT-MS-2026/MICCO. Phòng Kinh doanh chủ trì, áp dụng từ 01/03/2026.",
+      "total_chunks": 3,
+      "knowledge_graph_summary": "",
+      "citations": [],
+      "image_refs": []
+    }
+  }
+]

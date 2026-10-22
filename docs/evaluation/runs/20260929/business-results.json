@@ -1,0 +1,180 @@
+{
+  "date": "2026-09-29",
+  "environment": "live read-only API + isolated in-memory handlers + isolated async SQLite",
+  "summary": {
+    "PASS": 12,
+    "FAIL": 4,
+    "BLOCKED": 12
+  },
+  "unit_regression": {
+    "passed": 21,
+    "suite": "tests/unit/test_director_knowledge_access.py"
+  },
+  "isolated_probes": {
+    "passed": 68,
+    "total": 68
+  },
+  "sqlite_probes": {
+    "passed": 159,
+    "total": 161
+  },
+  "live_fixtures": {
+    "roles": {
+      "Admin": 1,
+      "Nhân viên": 6,
+      "Giám đốc": 2,
+      "Phó giám đốc": 2,
+      "Trưởng phòng": 3
+    },
+    "kb_visibility_counts": {
+      "department": 6,
+      "public": 1
+    },
+    "doc_visibility_counts": {
+      "public": 7,
+      "internal": 10
+    }
+  },
+  "criteria": [
+    {
+      "id": "RBAC-01",
+      "status": "PASS",
+      "evidence": "Live lãnh đạo 7/7 KB, chi tiết 7/7 HTTP 200; SQLite private KB 14/15: hai vai trò lãnh đạo thấy trong list/summary và GET 200."
+    },
+    {
+      "id": "RBAC-02",
+      "status": "BLOCKED",
+      "evidence": "Chưa hỏi RAG KB private; live không có private KB/tài liệu."
+    },
+    {
+      "id": "RBAC-03",
+      "status": "PASS",
+      "evidence": "12/12 PUT/DELETE KB của người khác với Giám đốc/Phó giám đốc: 403, 0 commit (handler cô lập)."
+    },
+    {
+      "id": "RBAC-04",
+      "status": "PASS",
+      "evidence": "Live nhân viên/trưởng phòng 2 KB và GET khác phòng 403; SQLite 6 vai trò × 5 KB xác nhận public, phòng mình, private của mình; private người khác 403."
+    },
+    {
+      "id": "RBAC-05",
+      "status": "FAIL",
+      "evidence": "SEC-07/08: người ngoài GET/query/chat KB private theo ID và nhận sentinel từ tài liệu trong fixture; fail phân quyền truy xuất, chi tiết security-results.json."
+    },
+    {
+      "id": "RBAC-06",
+      "status": "FAIL",
+      "evidence": "SEC-02: user khác owner lấy sentinel tài liệu private qua API chunk; ngoài ra private filter theo department thiếu owner check. Chi tiết security-results.json."
+    },
+    {
+      "id": "RBAC-07",
+      "status": "BLOCKED",
+      "evidence": "Test hồi quy sẵn có xác nhận query loại ID cấm trong mock, nhưng chưa có kiểm live đủ query/chat/citation."
+    },
+    {
+      "id": "RBAC-08",
+      "status": "PASS",
+      "evidence": "Live lãnh đạo 17/17 docs; SQLite 6 vai trò kiểm list/GET private doc 104/105: lãnh đạo/Admin và owner 200, người khác 403."
+    },
+    {
+      "id": "RBAC-09",
+      "status": "PASS",
+      "evidence": "SQLite 6 vai trò × private KnowledgeEntry 201/202: lãnh đạo/Admin và owner nhìn thấy; vai trò khác bị 403/không liệt kê."
+    },
+    {
+      "id": "RBAC-10",
+      "status": "PASS",
+      "evidence": "SQLite pending 205/206 và rejected 207: lãnh đạo chỉ liệt kê approved, owner/Admin thấy bản của mình; GET tuân cùng phạm vi. Quy tắc xem bản nháp vẫn cần chủ nghiệp vụ xác nhận nếu muốn mở rộng."
+    },
+    {
+      "id": "RBAC-11",
+      "status": "PASS",
+      "evidence": "SQLite PUT/DELETE private KnowledgeEntry khác owner: Staff/Director 403, không đổi; owner sửa/xóa thành công, Admin sửa thành công."
+    },
+    {
+      "id": "RBAC-12",
+      "status": "PASS",
+      "evidence": "SQLite: Staff tạo private gắn owner; Admin tạo public; Head C tạo department gắn phòng C; Staff/Director tạo public 403, Staff tạo department 403."
+    },
+    {
+      "id": "RBAC-13",
+      "status": "PASS",
+      "evidence": "SQLite Admin chuyển Staff→Director→Staff; cùng JWT cũ truy vấn user từ DB nhận role mới, quyền private B được cấp rồi thu hồi."
+    },
+    {
+      "id": "RBAC-14",
+      "status": "PASS",
+      "evidence": "SQLite Admin update role Director ở phòng A và Staff ở Ban Giám đốc đều HTTP 400; chuyển role cùng phòng hợp lệ thành công. Quy tắc tên phòng vẫn cần chốt riêng."
+    },
+    {
+      "id": "BIZ-01",
+      "status": "BLOCKED",
+      "evidence": "Chưa upload/duyệt tài liệu nội bộ; chỉ kiểm nhánh quyền duyệt âm bằng DB giả."
+    },
+    {
+      "id": "BIZ-02",
+      "status": "BLOCKED",
+      "evidence": "SQLite public Document pending→pending_org→approved/processing; trước INDEXED không vào allowed IDs; task index chỉ được xếp hàng, không chạy."
+    },
+    {
+      "id": "BIZ-03",
+      "status": "PASS",
+      "evidence": "Handler cô lập 12/12 approve/reject trái phòng hoặc trái cấp duyệt: 403, 0 commit."
+    },
+    {
+      "id": "BIZ-04",
+      "status": "PASS",
+      "evidence": "Handler cô lập approve/reject lặp trên approved/rejected và pending_org không public: 400, 0 commit."
+    },
+    {
+      "id": "BIZ-05",
+      "status": "FAIL",
+      "evidence": "SQLite private docs 104/105 do owner A/B sở hữu, department_id=NULL: `get_allowed_document_ids` trả [] thay vì [104]/[105]; owner không thể hỏi tài liệu private của mình. Live lifecycle Admin private có thể query, không phủ định lỗi Staff."
+    },
+    {
+      "id": "BIZ-06",
+      "status": "BLOCKED",
+      "evidence": "SQLite public KnowledgeEntry pending_dept→pending_org→approved/Active/ingest_status=processing; chỉ xếp task, chưa ingest/hỏi."
+    },
+    {
+      "id": "BIZ-07",
+      "status": "BLOCKED",
+      "evidence": "Handler cô lập: reject KnowledgeEntry thiếu lý do 400, Document thiếu lý do 200/rejected/note null. Cần chủ nghiệp vụ chốt thống nhất."
+    },
+    {
+      "id": "BIZ-08",
+      "status": "BLOCKED",
+      "evidence": "Chưa thử sửa tri thức và xóa chỉ mục cũ; thiếu dữ liệu và oracle vòng đời."
+    },
+    {
+      "id": "BIZ-09",
+      "status": "BLOCKED",
+      "evidence": "Chưa upload phiên bản mới, chưa đối chiếu index cũ/mới; thiếu oracle thời điểm ngừng phục vụ bản cũ."
+    },
+    {
+      "id": "BIZ-10",
+      "status": "BLOCKED",
+      "evidence": "SQLite allowed IDs bỏ pending_org và FAILED kể cả doc còn INDEXED; chưa seed vector cũ hay chạy graph/chat."
+    },
+    {
+      "id": "BIZ-11",
+      "status": "BLOCKED",
+      "evidence": "SQLite count/list đúng từng role/cấp; handler status của Trưởng phòng A với pending Document phòng B trả 200 (ngoài queue), cần xác nhận phạm vi detail."
+    },
+    {
+      "id": "BIZ-12",
+      "status": "FAIL",
+      "evidence": "SEC-12: upload mạo department_id phòng khác HTTP 200, lưu phòng mạo và autoapproved. Xem security-results.json."
+    },
+    {
+      "id": "BIZ-13",
+      "status": "BLOCKED",
+      "evidence": "Không đổi tên phòng live; quy tắc dựa tên phòng cần oracle chính thức."
+    },
+    {
+      "id": "BIZ-14",
+      "status": "BLOCKED",
+      "evidence": "SQLite PUT visibility=public lên private KB giữ private như mã hiện hành; cần hợp đồng API chốt việc im lặng bỏ qua."
+    }
+  ]
+}

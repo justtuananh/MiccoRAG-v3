@@ -1,0 +1,662 @@
+{
+  "metrics": {
+    "unique_primary_questions": 10,
+    "primary_fact_pass": 10,
+    "answer_variants": 22,
+    "fact_pass_variants": 22,
+    "unresolved_citation_responses": 0,
+    "http_failures": 0,
+    "stream_complete": 6,
+    "g04_answer_variants": 6,
+    "g04_fact_pass": 6,
+    "formal_business_approval": false
+  },
+  "answers": [
+    {
+      "case_id": "G01",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "amount": true,
+        "not_bhxh_basis": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "rtja"
+      ],
+      "source_ids": [
+        "dvxh",
+        "qldt",
+        "rtja"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo quy chế phụ cấp độc hại trong tài liệu, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, được chi trả cùng kỳ lương hằng tháng. Phụ cấp này không được dùng làm căn cứ tính đóng bảo hiểm xã hội[rtja].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G02",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "14_day_exclusion": true,
+        "in_kind_not_cash": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "ny8n",
+        "ny8n"
+      ],
+      "source_ids": [
+        "2idp",
+        "n3ef",
+        "ny8n"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo tài liệu được chọn:\n\n- Người lao động nghỉ từ 14 ngày trở lên trong tháng **không được hưởng phụ cấp độc hại tháng đó**[ny8n].\n\n- Bồi dưỡng hiện vật được tổ chức ăn uống tại chỗ, **không quy đổi thành tiền**[ny8n].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G03",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "review_day_25": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "v8y8"
+      ],
+      "source_ids": [
+        "3mhf",
+        "tq02",
+        "v8y8"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Phòng Nhân sự rà soát danh sách đối tượng hưởng phụ cấp vào ngày 25 hằng tháng[v8y8].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G04",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "threshold_500": true,
+        "requires_tender": true,
+        "director_approves": true,
+        "processing_20_days": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "rn2o",
+        "lm6y",
+        "lm6y"
+      ],
+      "source_ids": [
+        "4rhw",
+        "lm6y",
+        "rn2o"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Theo quy trình mua sắm vật tư an toàn, với gói mua sắm có giá trị đúng 500 triệu đồng thì:\n\n- **Có phải đấu thầu không?**  \n  Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu, do đó gói đúng 500 triệu đồng phải tổ chức đấu thầu[ rn2o].\n\n- **Ai phê duyệt?**  \n  Với gói từ 500 triệu đồng trở lên, cấp phê duyệt là Giám đốc, qua đấu thầu[ lm6y].\n\n- **Thời gian xử lý tối đa bao nhiêu ngày làm việc?**  \n  Thời gian xử lý tối đa cho gói từ 500 triệu đồng trở lên là 20 ngày làm việc[ lm6y].\n\nTóm lại, gói mua sắm đúng 500 triệu đồng phải đấu thầu, được Giám đốc phê duyệt và thời gian xử lý tối đa là 20 ngày làm việc.",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G05",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "all_five_steps": true,
+        "safety_acceptance": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "tmun"
+      ],
+      "source_ids": [
+        "evjv",
+        "tmun",
+        "xg82"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Năm bước mua sắm vật tư an toàn theo tài liệu được chọn như sau:\n\n1. **Đề xuất nhu cầu:** Đơn vị sử dụng lập phiếu đề xuất, có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật.\n\n2. **Thẩm định:** Phòng Kinh doanh đối chiếu định mức và ngân sách được duyệt.\n\n3. **Lựa chọn nhà cung cấp:** Chỉ mua từ danh sách nhà cung cấp đã được phê duyệt. Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu.\n\n4. **Ký hợp đồng và nhận hàng:** Kiểm tra chứng nhận hợp quy, hạn sử dụng và tem kiểm định.\n\n5. **Nghiệm thu và thanh toán:** Ban An toàn nghiệm thu chất lượng trước khi Phòng Kế toán thanh toán.\n\nĐơn vị nghiệm thu chất lượng trước khi thanh toán là **Ban An toàn**[tmun].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G06",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "training_period": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "jt57"
+      ],
+      "source_ids": [
+        "737e",
+        "jt57"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        27
+      ],
+      "answer": "Theo kế hoạch huấn luyện năm 2026, đợt III diễn ra vào tháng 9, có 134 người tham gia, thời lượng huấn luyện là 16 giờ, và đơn vị huấn luyện là Trường Cao đẳng Công nghiệp[jt57].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G07",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "exam_rules": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "fc8h"
+      ],
+      "source_ids": [
+        "7lom",
+        "fc8h"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        27
+      ],
+      "answer": "Theo kế hoạch huấn luyện và sát hạch an toàn năm 2026, bài sát hạch gồm 40 câu hỏi trắc nghiệm, thời gian làm bài là 45 phút, mức điểm đạt từ 80 điểm trở lên. Người không đạt phải học lại và sát hạch bổ sung trong vòng 30 ngày; nếu quá 2 lần không đạt sẽ chuyển công việc khác[fc8h].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G08",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "no_phone_in_source": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "ey96",
+        "ym4u",
+        "hctz",
+        "nxp8",
+        "sl96"
+      ],
+      "source_ids": [
+        "ey96",
+        "hctz",
+        "nxp8",
+        "sl96",
+        "ym4u"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Tài liệu được chọn không cung cấp thông tin về số điện thoại cá nhân của người phụ trách quy chế phụ cấp độc hại và bồi dưỡng bằng hiện vật. Người phụ trách được nêu là bà Lê Thị Thu Vân — Trưởng phòng Nhân sự, nhưng không có số điện thoại cá nhân nào được ghi nhận trong các tài liệu này[ey96][ym4u][hctz][nxp8][sl96].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G09",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "rejects_false_amount": true,
+        "correct_amount": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "br9a"
+      ],
+      "source_ids": [
+        "87a2",
+        "br9a",
+        "u07j"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo tài liệu được chọn, mức phụ cấp độc hại không phải là 9.999.999 đồng/tháng mà là **1.250.000 đồng mỗi tháng**, được chi trả cùng kỳ lương hằng tháng. Phụ cấp này không dùng làm căn cứ tính đóng bảo hiểm xã hội[br9a].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G10",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "known_amount": true,
+        "unknown_phone": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "sf9t"
+      ],
+      "source_ids": [
+        "brqr",
+        "sf9t",
+        "w1jh"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo tài liệu được chọn, mức phụ cấp độc hại hằng tháng là 1.250.000 đồng, được chi trả cùng kỳ lương hằng tháng. Phụ cấp này không dùng làm căn cứ tính đóng bảo hiểm xã hội[ sf9t].\n\nTuy nhiên, trong các tài liệu được cung cấp không có thông tin về số điện thoại cá nhân của người phụ trách.",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G01",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": true,
+      "fact_checks": {
+        "amount": true,
+        "not_bhxh_basis": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "ni7v"
+      ],
+      "source_ids": [
+        "h9sd",
+        "innb",
+        "ni7v"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, được chi trả cùng kỳ lương hằng tháng. Phụ cấp này không được dùng làm căn cứ tính đóng bảo hiểm xã hội[ni7v].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G04",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": true,
+      "fact_checks": {
+        "threshold_500": true,
+        "requires_tender": true,
+        "director_approves": true,
+        "processing_20_days": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "r4gd",
+        "xmqs",
+        "xmqs"
+      ],
+      "source_ids": [
+        "mm0u",
+        "r4gd",
+        "xmqs"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Theo quy trình mua sắm vật tư an toàn:\n\n- Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc phải tổ chức đấu thầu[ r4gd].\n\n- Cấp phê duyệt đối với gói mua sắm từ 500 triệu đồng trở lên là Giám đốc, và phải qua đấu thầu[ xmqs].\n\n- Thời gian xử lý tối đa cho gói mua sắm từ 500 triệu đồng trở lên là 20 ngày làm việc[ xmqs].\n\nTóm lại, gói mua sắm đúng 500 triệu đồng phải đấu thầu, được Giám đốc phê duyệt và thời gian xử lý tối đa là 20 ngày làm việc.",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G08",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": true,
+      "fact_checks": {
+        "no_phone_in_source": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [],
+      "source_ids": [
+        "02ev",
+        "e5rv",
+        "gv8w",
+        "qaxd",
+        "xrfy"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo tài liệu được chọn, người phụ trách quy chế phụ cấp là bà Lê Thị Thu Vân — Trưởng phòng Nhân sự, nhưng không có thông tin về số điện thoại cá nhân của bà Lê Thị Thu Vân hoặc bất kỳ người phụ trách nào khác liên quan đến quy chế phụ cấp trong các tài liệu này. Do đó, số điện thoại cá nhân của người phụ trách quy chế phụ cấp không được cung cấp trong tài liệu hiện có.",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G01",
+      "variant": "chat",
+      "role": "Admin",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "amount": true,
+        "not_bhxh_basis": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "4u7n"
+      ],
+      "source_ids": [
+        "4u7n",
+        "rjwu",
+        "ue8c"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo quy chế phụ cấp độc hại trong tài liệu, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, được chi trả cùng kỳ lương hằng tháng. Phụ cấp này không được dùng làm căn cứ tính đóng bảo hiểm xã hội[4u7n].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G04",
+      "variant": "chat",
+      "role": "Admin",
+      "repeat": 1,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "threshold_500": true,
+        "requires_tender": true,
+        "director_approves": true,
+        "processing_20_days": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "ox3a",
+        "4j2j",
+        "4j2j"
+      ],
+      "source_ids": [
+        "4j2j",
+        "7nxs",
+        "ox3a"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Theo quy trình mua sắm vật tư an toàn, với gói mua sắm có giá trị đúng 500 triệu đồng thì:\n\n- Về việc đấu thầu: Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu, do đó gói đúng 500 triệu đồng phải đấu thầu[ox3a].\n\n- Về cấp phê duyệt: Với gói từ 500 triệu đồng trở lên, cấp phê duyệt là Giám đốc, qua đấu thầu[4j2j].\n\n- Về thời gian xử lý tối đa: Gói từ 500 triệu đồng trở lên có thời gian xử lý tối đa là 20 ngày làm việc[4j2j].\n\nTóm lại, gói mua sắm đúng 500 triệu đồng phải tổ chức đấu thầu, được Giám đốc phê duyệt và thời gian xử lý tối đa là 20 ngày làm việc.",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G01",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 2,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "amount": true,
+        "not_bhxh_basis": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "j6gl"
+      ],
+      "source_ids": [
+        "io8q",
+        "j6gl",
+        "paq8"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo quy chế phụ cấp độc hại trong tài liệu, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, được chi trả cùng kỳ lương hằng tháng. Phụ cấp này không được dùng làm căn cứ tính đóng bảo hiểm xã hội[j6gl].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G04",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 2,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "threshold_500": true,
+        "requires_tender": true,
+        "director_approves": true,
+        "processing_20_days": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "avmn",
+        "m66o",
+        "m66o"
+      ],
+      "source_ids": [
+        "avmn",
+        "m66o",
+        "oclp"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Theo quy trình mua sắm vật tư an toàn, với gói mua sắm có giá trị đúng 500 triệu đồng thì:\n\n- Có phải tổ chức đấu thầu không: Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu, do đó với gói đúng 500 triệu đồng thì phải tổ chức đấu thầu[avmn].\n\n- Ai phê duyệt: Với gói từ 500 triệu đồng trở lên, cấp phê duyệt là Giám đốc, qua đấu thầu[m66o].\n\n- Thời gian xử lý tối đa: Với gói từ 500 triệu đồng trở lên, thời gian xử lý tối đa là 20 ngày làm việc[m66o].\n\nTóm lại, gói mua sắm đúng 500 triệu đồng phải tổ chức đấu thầu, được Giám đốc phê duyệt và thời gian xử lý tối đa là 20 ngày làm việc.",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G01",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 3,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "amount": true,
+        "not_bhxh_basis": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "wuwd"
+      ],
+      "source_ids": [
+        "66b0",
+        "l5u4",
+        "wuwd"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, chi trả cùng kỳ lương hằng tháng. Phụ cấp này không dùng làm căn cứ tính đóng bảo hiểm xã hội[wuwd].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G04",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 3,
+      "run_id": "EVAL-FIX-20260929-49accb11",
+      "status_code": 200,
+      "has_complete_event": null,
+      "fact_checks": {
+        "threshold_500": true,
+        "requires_tender": true,
+        "director_approves": true,
+        "processing_20_days": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "lqhz",
+        "lqhz",
+        "6mmh",
+        "6mmh"
+      ],
+      "source_ids": [
+        "6mmh",
+        "le37",
+        "lqhz"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Theo quy trình mua sắm vật tư an toàn được chọn:\n\n- Với gói mua sắm có giá trị **từ 500 triệu đồng trở lên**, bắt buộc phải tổ chức **đấu thầu**[lqhz].\n\n- Về cấp phê duyệt:\n  - Với gói từ 500 triệu đồng trở lên, cấp phê duyệt là **Giám đốc**, đồng thời phải qua đấu thầu[lqhz][6mmh].\n\n- Thời gian xử lý tối đa:\n  - Với gói từ 500 triệu đồng trở lên, thời gian xử lý tối đa là **20 ngày làm việc**[6mmh].\n\nTóm lại, gói mua sắm đúng 500 triệu đồng phải đấu thầu, do Giám đốc phê duyệt và thời gian xử lý tối đa là 20 ngày làm việc.",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G01",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-STREAM-FIX-20260929-f2e9b096",
+      "status_code": 200,
+      "has_complete_event": true,
+      "fact_checks": {
+        "amount": true,
+        "not_bhxh_basis": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "j1zi"
+      ],
+      "source_ids": [
+        "10dm",
+        "j1zi",
+        "v825"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, chi trả cùng kỳ lương hằng tháng. Phụ cấp này không được dùng làm căn cứ tính đóng bảo hiểm xã hội[j1zi].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G04",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-STREAM-FIX-20260929-f2e9b096",
+      "status_code": 200,
+      "has_complete_event": true,
+      "fact_checks": {
+        "threshold_500": true,
+        "requires_tender": true,
+        "director_approves": true,
+        "processing_20_days": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "lbzo",
+        "v8lf",
+        "v8lf"
+      ],
+      "source_ids": [
+        "lbzo",
+        "v8lf",
+        "x4tz"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Theo quy trình mua sắm vật tư an toàn, với gói mua sắm có giá trị đúng 500 triệu đồng thì:\n\n- Gói mua sắm này **bắt buộc tổ chức đấu thầu** vì quy định là các gói từ 500 triệu đồng trở lên phải đấu thầu[lbzo].\n\n- Cấp phê duyệt cho gói mua sắm từ 500 triệu đồng trở lên là **Giám đốc**, đồng thời phải thực hiện qua đấu thầu[v8lf].\n\n- Thời gian xử lý tối đa cho gói mua sắm từ 500 triệu đồng trở lên là **20 ngày làm việc**[v8lf].\n\nTóm lại, gói mua sắm đúng 500 triệu đồng phải đấu thầu, được Giám đốc phê duyệt và thời gian xử lý tối đa là 20 ngày làm việc.",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    },
+    {
+      "case_id": "G08",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-STREAM-FIX-20260929-f2e9b096",
+      "status_code": 200,
+      "has_complete_event": true,
+      "fact_checks": {
+        "no_phone_in_source": true
+      },
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "a7tx",
+        "j3j1",
+        "5fj2",
+        "3t7o",
+        "lyix"
+      ],
+      "source_ids": [
+        "3t7o",
+        "5fj2",
+        "a7tx",
+        "j3j1",
+        "lyix"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Tài liệu được chọn không chứa thông tin về số điện thoại cá nhân của người phụ trách quy chế phụ cấp. Người phụ trách quy chế phụ cấp là bà Lê Thị Thu Vân — Trưởng phòng Nhân sự, nhưng số điện thoại cá nhân không được đề cập trong các tài liệu này[a7tx][j3j1][5fj2][3t7o][lyix].",
+      "judgement_basis": "Reviewed actual answer against the extracted original PDF/DOCX and explicit case rubric; automated fact checks recorded above. Not business-owner approval."
+    }
+  ]
+}

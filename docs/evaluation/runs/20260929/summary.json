@@ -1,0 +1,51 @@
+{
+  "criteria": 116,
+  "status": {
+    "PASS": 19,
+    "BLOCKED": 49,
+    "FAIL": 46,
+    "NOT_RUN": 2
+  },
+  "by_group": {
+    "functional": {
+      "PASS": 4,
+      "BLOCKED": 16,
+      "FAIL": 11,
+      "NOT_RUN": 2
+    },
+    "business": {
+      "PASS": 12,
+      "BLOCKED": 12,
+      "FAIL": 4
+    },
+    "rag": {
+      "BLOCKED": 19,
+      "FAIL": 9,
+      "PASS": 2
+    },
+    "security": {
+      "FAIL": 22,
+      "BLOCKED": 2,
+      "PASS": 1
+    }
+  },
+  "by_priority": {
+    "P0": {
+      "PASS": 12,
+      "BLOCKED": 26,
+      "FAIL": 33
+    },
+    "P1": {
+      "FAIL": 13,
+      "PASS": 7,
+      "BLOCKED": 20,
+      "NOT_RUN": 1
+    },
+    "P2": {
+      "NOT_RUN": 1,
+      "BLOCKED": 3
+    }
+  },
+  "verdict": "NO-GO",
+  "acceptance_note": "PASS applies only to documented execution scope; broad business acceptance and release gates remain unmet."
+}

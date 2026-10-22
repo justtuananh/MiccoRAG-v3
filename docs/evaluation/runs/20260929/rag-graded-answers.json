@@ -1,0 +1,535 @@
+{
+  "metrics": {
+    "unique_primary_questions": 10,
+    "primary_fact_pass": 9,
+    "answer_variants": 22,
+    "fact_pass_variants": 16,
+    "unresolved_citation_responses": 1,
+    "http_failures": 0,
+    "stream_instrumented": 3,
+    "source_documents": 3,
+    "formal_business_approval": false
+  },
+  "answers": [
+    {
+      "case_id": "G01",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "tjmo"
+      ],
+      "source_ids": [
+        "tjmo"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, chi trả cùng kỳ lương hằng tháng. Phụ cấp này không dùng làm căn cứ tính đóng bảo hiểm xã hội[tjmo].",
+      "seconds": 12.016,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G02",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "9dqi",
+        "9dqi"
+      ],
+      "source_ids": [
+        "9dqi"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo tài liệu được chọn:\n\n- Người lao động nghỉ từ 14 ngày trở lên trong tháng **không được hưởng phụ cấp độc hại tháng đó**. Như vậy, nghỉ đúng 14 ngày trong tháng thì người lao động sẽ không được hưởng phụ cấp độc hại tháng đó[9dqi].\n\n- Bồi dưỡng hiện vật được tổ chức ăn uống tại chỗ, **không quy đổi thành tiền**[9dqi].",
+      "seconds": 4.481,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G03",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "p8ga"
+      ],
+      "source_ids": [
+        "p8ga"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Phòng Nhân sự rà soát danh sách đối tượng hưởng phụ cấp vào ngày 25 hằng tháng[p8ga].",
+      "seconds": 4.391,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G04",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": false,
+      "citation_ids": [
+        "21sv",
+        "21sv"
+      ],
+      "source_ids": [
+        "21sv"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Theo quy trình mua sắm vật tư an toàn, gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc phải tổ chức đấu thầu. Như vậy, gói đúng 500 triệu đồng cũng phải đấu thầu[21sv].\n\nVề việc phê duyệt, chỉ được mua từ danh sách nhà cung cấp đã được phê duyệt, tức là nhà cung cấp phải nằm trong danh sách do đơn vị có thẩm quyền phê duyệt[21sv].\n\nTài liệu không chứa thông tin về thời gian xử lý tối đa bao nhiêu ngày làm việc cho quy trình này.",
+      "seconds": 3.257,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": "Thiếu cấp phê duyệt Giám đốc và thời hạn 20 ngày dù bảng nguồn có; nói sai rằng tài liệu không nêu"
+    },
+    {
+      "case_id": "G05",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "6wsx"
+      ],
+      "source_ids": [
+        "6wsx"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Theo tài liệu được chọn, năm bước mua sắm vật tư an toàn gồm:\n\n1. **Đề xuất nhu cầu:** Đơn vị sử dụng lập phiếu đề xuất, có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật.\n\n2. **Thẩm định:** Phòng Kinh doanh đối chiếu định mức và ngân sách được duyệt.\n\n3. **Lựa chọn nhà cung cấp:** Chỉ mua từ danh sách nhà cung cấp đã được phê duyệt. Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu.\n\n4. **Ký hợp đồng và nhận hàng:** Kiểm tra chứng nhận hợp quy, hạn sử dụng và tem kiểm định.\n\n5. **Nghiệm thu và thanh toán:** Ban An toàn nghiệm thu chất lượng trước khi Phòng Kế toán thanh toán.\n\nĐơn vị nghiệm thu chất lượng trước khi thanh toán là **Ban An toàn**[6wsx].",
+      "seconds": 3.781,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G06",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "j06o"
+      ],
+      "source_ids": [
+        "j06o"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        27
+      ],
+      "answer": "Đợt III trong kế hoạch huấn luyện năm 2026 diễn ra vào tháng 9, với số người tham gia là 134 người, thời lượng huấn luyện là 16 giờ, và đơn vị huấn luyện là Trường Cao đẳng Công nghiệp[j06o].",
+      "seconds": 3.746,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G07",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "45a9",
+        "wjt7"
+      ],
+      "source_ids": [
+        "45a9",
+        "wjt7"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        27
+      ],
+      "answer": "Theo kế hoạch huấn luyện và sát hạch an toàn năm 2026, bài sát hạch gồm 40 câu hỏi trắc nghiệm, thời gian làm bài là 45 phút, mức điểm đạt yêu cầu là từ 80 điểm trở lên. Người không đạt phải học lại và sát hạch bổ sung trong vòng 30 ngày; nếu quá 2 lần không đạt sẽ phải chuyển sang công việc khác. Đây là hình thức sát hạch được quy định rõ trong kế hoạch[45a9][wjt7].",
+      "seconds": 4.061,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G08",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "vlrk",
+        "oqed",
+        "0fmz"
+      ],
+      "source_ids": [
+        "0fmz",
+        "oqed",
+        "vlrk"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Tài liệu không có thông tin về số điện thoại cá nhân của người phụ trách quy chế phụ cấp độc hại và bồi dưỡng bằng hiện vật. Người phụ trách được nêu là bà Lê Thị Thu Vân — Trưởng phòng Nhân sự, nhưng không có số điện thoại cá nhân kèm theo trong các tài liệu được cung cấp[vlrk][oqed][0fmz].",
+      "seconds": 3.905,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G09",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "bpiq"
+      ],
+      "source_ids": [
+        "bpiq"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo tài liệu được chọn, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, chi trả cùng kỳ lương hằng tháng. Phụ cấp này không dùng làm căn cứ tính đóng bảo hiểm xã hội[bpiq]. Do đó, mức phụ cấp độc hại không phải là 9.999.999 đồng/tháng mà là 1.250.000 đồng/tháng.",
+      "seconds": 4.628,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G10",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "7m67"
+      ],
+      "source_ids": [
+        "7m67"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Mức phụ cấp độc hại hằng tháng là 1.250.000 đồng, được chi trả cùng kỳ lương hàng tháng. Phụ cấp này không dùng làm căn cứ tính đóng bảo hiểm xã hội[7m67].\n\nTài liệu không chứa thông tin về số điện thoại cá nhân người phụ trách.",
+      "seconds": 3.165,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G01",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "i1w7"
+      ],
+      "source_ids": [
+        "i1w7"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, chi trả cùng kỳ lương hằng tháng. Phụ cấp này không dùng làm căn cứ tính đóng bảo hiểm xã hội[i1w7].",
+      "seconds": 3.263,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G04",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": false,
+      "citation_ids": [
+        "evlj"
+      ],
+      "source_ids": [
+        "evlj"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Theo quy trình mua sắm vật tư an toàn, với gói mua sắm có giá trị đúng 500 triệu đồng thì bắt buộc phải tổ chức đấu thầu (Bước 3 — Lựa chọn nhà cung cấp: gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu)[evlj].\n\nVề việc phê duyệt, quy trình không nêu cụ thể ai là người phê duyệt trực tiếp gói mua sắm này, nhưng trong các bước có đề cập đến việc đơn vị sử dụng lập phiếu đề xuất nhu cầu và có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật (Bước 1 — Đề xuất nhu cầu), đồng thời Phòng Kinh doanh thẩm định đối chiếu định mức và ngân sách được duyệt (Bước 2 — Thẩm định). Như vậy, việc phê duyệt ngân sách và lựa chọn nhà cung cấp được thực hiện qua các phòng ban liên quan, trong đó Ban An toàn và Phòng Kinh doanh có vai trò xác nhận và thẩm định.\n\nVề thời gian xử lý tối đa, tài liệu không cung cấp thông tin cụ thể về số ngày làm việc tối đa cho toàn bộ quy trình hoặc cho từng bước xử lý trong quy trình mua sắm vật tư này.\n\nTóm lại:\n\n- Gói mua sắm đúng 500 triệu đồng phải tổ chức đấu thầu bắt buộc.\n\n- Việc phê duyệt liên quan đến Ban An toàn (xác nhận tiêu chuẩn kỹ thuật) và Phòng Kinh doanh (thẩm định định mức và ngân sách).\n\n- Thời gian xử lý tối đa không được quy định trong tài liệu hiện có.",
+      "seconds": 3.925,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": "Thiếu cấp phê duyệt Giám đốc và thời hạn 20 ngày dù bảng nguồn có; nói sai rằng tài liệu không nêu"
+    },
+    {
+      "case_id": "G08",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [],
+      "source_ids": [
+        "4sat",
+        "7t7x",
+        "unou"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Tài liệu được chọn không có thông tin về số điện thoại cá nhân của người phụ trách quy chế phụ cấp.",
+      "seconds": 3.505,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G01",
+      "variant": "chat",
+      "role": "Admin",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "8cfi"
+      ],
+      "source_ids": [
+        "8cfi"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, chi trả cùng kỳ lương hằng tháng. Phụ cấp này không dùng làm căn cứ tính đóng bảo hiểm xã hội[8cfi].",
+      "seconds": 1.666,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G04",
+      "variant": "chat",
+      "role": "Admin",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": false,
+      "citation_ids": [
+        "2ogl",
+        "2ogl",
+        "2ogl"
+      ],
+      "source_ids": [
+        "2ogl"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Theo quy trình mua sắm vật tư an toàn, gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc phải tổ chức đấu thầu. Như vậy, gói đúng 500 triệu đồng cũng phải đấu thầu[2ogl].\n\nVề việc phê duyệt nhà cung cấp, chỉ được mua từ danh sách nhà cung cấp đã được phê duyệt[2ogl]. Tuy nhiên, tài liệu không nêu rõ ai là người phê duyệt danh sách nhà cung cấp này.\n\nVề thời gian xử lý tối đa bao nhiêu ngày làm việc, tài liệu không cung cấp thông tin cụ thể về thời gian xử lý trong quy trình mua sắm vật tư an toàn[2ogl]. \n\nTóm lại:\n\n| Nội dung                         | Thông tin chi tiết                          |\n|---------------------------------|--------------------------------------------|\n| Gói mua sắm 500 triệu đồng       | Bắt buộc tổ chức đấu thầu                   |\n| Ai phê duyệt nhà cung cấp        | Danh sách nhà cung cấp đã được phê duyệt (không nêu rõ người phê duyệt) |\n| Thời gian xử lý tối đa           | Không có thông tin trong tài liệu           |",
+      "seconds": 2.856,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": "Thiếu cấp phê duyệt Giám đốc và thời hạn 20 ngày dù bảng nguồn có; nói sai rằng tài liệu không nêu"
+    },
+    {
+      "case_id": "G01",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 2,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "hbc1"
+      ],
+      "source_ids": [
+        "hbcl"
+      ],
+      "unresolved_citations": [
+        "hbc1"
+      ],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, chi trả cùng kỳ lương hằng tháng. Phụ cấp này không dùng làm căn cứ tính đóng bảo hiểm xã hội[hbc1].",
+      "seconds": 3.548,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": "Citation không ánh xạ source của response"
+    },
+    {
+      "case_id": "G04",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 2,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": false,
+      "citation_ids": [
+        "ruwn",
+        "ruwn"
+      ],
+      "source_ids": [
+        "ruwn"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Theo quy trình mua sắm vật tư an toàn, gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc phải tổ chức đấu thầu. Như vậy, gói đúng 500 triệu đồng cũng phải đấu thầu[ruwn].\n\nVề việc phê duyệt, chỉ được mua từ danh sách nhà cung cấp đã được phê duyệt. Việc thẩm định do Phòng Kinh doanh thực hiện, đối chiếu định mức và ngân sách được duyệt[ruwn].\n\nTài liệu không chứa thông tin về thời gian xử lý tối đa bao nhiêu ngày làm việc cho quy trình này.",
+      "seconds": 2.184,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": "Thiếu cấp phê duyệt Giám đốc và thời hạn 20 ngày dù bảng nguồn có; nói sai rằng tài liệu không nêu"
+    },
+    {
+      "case_id": "G01",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 3,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "b7at"
+      ],
+      "source_ids": [
+        "b7at"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, chi trả cùng kỳ lương hằng tháng. Phụ cấp này không dùng làm căn cứ tính đóng bảo hiểm xã hội[b7at].",
+      "seconds": 3.169,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G04",
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 3,
+      "run_id": "EVAL-20260929-7773fea8",
+      "status_code": 200,
+      "fact_correct_complete": false,
+      "citation_ids": [
+        "cdc7",
+        "cdc7"
+      ],
+      "source_ids": [
+        "cdc7"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Theo quy trình mua sắm vật tư an toàn, gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc phải tổ chức đấu thầu. Như vậy, gói đúng 500 triệu đồng cũng phải đấu thầu[cdc7].\n\nVề việc phê duyệt, nhà cung cấp phải được chọn từ danh sách nhà cung cấp đã được phê duyệt. Việc thẩm định do Phòng Kinh doanh thực hiện, đối chiếu định mức và ngân sách được duyệt[cdc7].\n\nTài liệu không cung cấp thông tin về thời gian xử lý tối đa bao nhiêu ngày làm việc cho quy trình này.",
+      "seconds": 2.147,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": "Thiếu cấp phê duyệt Giám đốc và thời hạn 20 ngày dù bảng nguồn có; nói sai rằng tài liệu không nêu"
+    },
+    {
+      "case_id": "G01",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-2340d317",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [
+        "ccbo"
+      ],
+      "source_ids": [
+        "ccbo"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, chi trả cùng kỳ lương hằng tháng. Phụ cấp này không dùng làm căn cứ tính đóng bảo hiểm xã hội[ccbo].",
+      "seconds": 5.31,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G04",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-2340d317",
+      "status_code": 200,
+      "fact_correct_complete": false,
+      "citation_ids": [
+        "aj3d"
+      ],
+      "source_ids": [
+        "aj3d"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        22
+      ],
+      "answer": "Theo quy trình mua sắm vật tư an toàn:\n\n- Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu. Như vậy, gói đúng 500 triệu đồng cũng phải đấu thầu[aj3d].\n\n- Việc lựa chọn nhà cung cấp chỉ được thực hiện từ danh sách nhà cung cấp đã được phê duyệt. Tuy nhiên, tài liệu không nêu rõ ai là người phê duyệt danh sách nhà cung cấp hoặc phê duyệt gói mua sắm cụ thể.\n\n- Về thời gian xử lý tối đa bao nhiêu ngày làm việc, tài liệu không cung cấp thông tin cụ thể về thời gian xử lý trong quy trình này.\n\nTóm lại, gói mua sắm đúng 500 triệu đồng phải tổ chức đấu thầu, nhà cung cấp phải nằm trong danh sách được phê duyệt, nhưng thông tin về người phê duyệt và thời gian xử lý tối đa không được nêu trong tài liệu hiện có.",
+      "seconds": 2.878,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": "Thiếu cấp phê duyệt Giám đốc và thời hạn 20 ngày dù bảng nguồn có; nói sai rằng tài liệu không nêu"
+    },
+    {
+      "case_id": "G08",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "run_id": "EVAL-20260929-2340d317",
+      "status_code": 200,
+      "fact_correct_complete": true,
+      "citation_ids": [],
+      "source_ids": [
+        "l7p2",
+        "pvug",
+        "y3xo"
+      ],
+      "unresolved_citations": [],
+      "source_document_ids": [
+        26
+      ],
+      "answer": "Tài liệu được chọn không có thông tin về số điện thoại cá nhân của người phụ trách quy chế phụ cấp.",
+      "seconds": 2.966,
+      "judgement_basis": "Human-readable review by evaluation agent against independently extracted original PDF/DOCX; not business-owner signoff",
+      "failure_reason": null
+    }
+  ]
+}

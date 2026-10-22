@@ -1,0 +1,230 @@
+{
+  "date": "2026-09-29",
+  "records": [
+    {
+      "criterion_id": "SEC-01",
+      "status": "FAIL",
+      "actual": "HTTP 200; private sentinel returned=True; kiểm tra bổ sung LIVE: anonymous GET chunks của tài liệu thử private43 trả200 chứa sentinel ở backend8001 và gateway8888; /documents/43 đối chứng trả401.",
+      "evidence": "rag.get_document_chunks via TestClient; fake Document and vector store; live-security-fixture-results.json",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-ASGI + live own synthetic document",
+      "limitations": "Chỉ dùng tài liệu thử vô hại; chưa kiểm kết nối từ Internet."
+    },
+    {
+      "criterion_id": "SEC-02",
+      "status": "FAIL",
+      "actual": "HTTP 200; foreign user sentinel returned=True",
+      "evidence": "same fixture, foreign user id=22, owner=11",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "SEC-03",
+      "status": "FAIL",
+      "actual": "HTTP 200; fake retriever invoked=True; private sentinel returned=True",
+      "evidence": "fake KB/retriever/LLM; socket network disabled",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "SEC-04",
+      "status": "FAIL",
+      "actual": "HTTP 200; fake retriever invoked=True; private sentinel returned=True",
+      "evidence": "fake KB/retriever/LLM; socket network disabled",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "SEC-05",
+      "status": "FAIL",
+      "actual": "HTTP process=200, batch=200, reindex=404, workspace=200",
+      "evidence": "fake DB; missing local fixture file prevents reindex; no background job launched",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "Reindex action not exercised; authentication absence also verified from route signatures"
+    },
+    {
+      "criterion_id": "SEC-06",
+      "status": "FAIL",
+      "actual": "HTTP 200; foreign reindex reached fake RAG=True",
+      "evidence": "temp file; fake DB/RAG; socket network disabled",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "SEC-07",
+      "status": "FAIL",
+      "actual": "HTTP 200; foreign user private KB sentinel=True",
+      "evidence": "fake private KB/public-marked doc, fake vector RAG",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "SEC-08",
+      "status": "FAIL",
+      "actual": "nonstream HTTP 200; foreign private KB retrieval invoked=True",
+      "evidence": "fake KB/RAG/LLM/DB; socket network disabled",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "Streaming variant not executed; one failing variant suffices to fail criterion"
+    },
+    {
+      "criterion_id": "SEC-09",
+      "status": "FAIL",
+      "actual": "HTTP 200; private KB document markdown sentinel=True",
+      "evidence": "fake DB, foreign user and public-marked doc",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "Covers markdown variant; list/detail/download not all executed"
+    },
+    {
+      "criterion_id": "SEC-10",
+      "status": "FAIL",
+      "actual": "private KG sentinel returned=True with allowed document_ids=[88]",
+      "evidence": "real DeepRetriever.query, fake KG/vector/embedder; socket network disabled",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "SEC-11",
+      "status": "FAIL",
+      "actual": "HTTP 200; fake DB added=True; temp files=1",
+      "evidence": "fake private KB foreign to user; temp dir only",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "SEC-12",
+      "status": "FAIL",
+      "actual": "HTTP 200; foreign KB added=True; forged dept retained=True; autoapproved=True",
+      "evidence": "temp dir only; manager dept=2, forged dept=5",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "SEC-13",
+      "status": "FAIL",
+      "actual": "HTML event handler executed=True",
+      "evidence": "Approvals.jsx:123-129,587-592 direct HTML sink; knowledge.py:142-174 Admin may read pending entry; browser fixture sets same sink semantics",
+      "environment": "isolated Chromium",
+      "scope": "isolated-browser",
+      "limitations": "The full React approvals flow was not automated; pending-entry delivery established from source"
+    },
+    {
+      "criterion_id": "SEC-14",
+      "status": "FAIL",
+      "actual": "untrusted Markdown event handler executed=True",
+      "evidence": "Exact renderMarkdown function extracted from ChatAssistant.jsx:144-264 and evaluated in Chromium; no network",
+      "environment": "isolated Chromium",
+      "scope": "isolated-browser",
+      "limitations": "Full document upload/preview UI path not automated"
+    },
+    {
+      "criterion_id": "SEC-15",
+      "status": "FAIL",
+      "actual": "chat text preserved active HTML=True; executed=True",
+      "evidence": "Exact ChatAssistant renderMarkdown on synthetic chat text, Chromium; no network",
+      "environment": "isolated Chromium",
+      "scope": "isolated-browser",
+      "limitations": "Filename attribute variant not separately run; chat-text variant is sufficient to fail"
+    },
+    {
+      "criterion_id": "SEC-16",
+      "status": "FAIL",
+      "actual": "HTTP 200; anonymous fixture bytes returned=True",
+      "evidence": "isolated identical StaticFiles mount, temp file; not deployed image ID",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "SEC-17",
+      "status": "FAIL",
+      "actual": "HTTP 200; anonymous fake rating changed=True",
+      "evidence": "fake chat row/DB; no production data",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "SEC-18",
+      "status": "FAIL",
+      "actual": "HTTP stats=200, analytics=200; no auth token",
+      "evidence": "fake private KB; no real stats/KG",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "Analytics may fail on incomplete fake DB; stats path is confirmed"
+    },
+    {
+      "criterion_id": "SEC-19",
+      "status": "FAIL",
+      "actual": "HTTP 200; recommendation invoked=True",
+      "evidence": "fake KB/doc IDs/recommendation; foreign user",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "SEC-20",
+      "status": "BLOCKED",
+      "actual": "effective JWT secret uses built-in default=False; DEBUG=False",
+      "evidence": "boolean equality only, secret value not printed",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "remote-process-config",
+      "limitations": "Effective process secret differed from built-in default; behavior under forced-default startup not executed; deployed process setting may differ"
+    },
+    {
+      "criterion_id": "SEC-21",
+      "status": "PASS",
+      "actual": "DEBUG=false rejected=True; DEBUG=true fixture user returned=True",
+      "evidence": "actual get_current_user, fake DB; settings restored",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "SEC-22",
+      "status": "FAIL",
+      "actual": "Với private document fixture43 có thật, anonymous chunks trả200 chứa marker ở cả backend8001 và gateway8888; endpoint metadata đối chứng401.",
+      "evidence": "live-security-fixture-results.json",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "live backend+gateway; own synthetic fixture",
+      "limitations": "Không kết luận đường mạng Internet ngoài gateway; fixture đã xóa."
+    },
+    {
+      "criterion_id": "SEC-23",
+      "status": "FAIL",
+      "actual": "non-image bytes with .png HTTP 200; temp file saved=True",
+      "evidence": "legacy avatar upload, temp dir/fake DB; no real image parser",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "Oversize branch not executed; spoofed image variant fails"
+    },
+    {
+      "criterion_id": "SEC-24",
+      "status": "BLOCKED",
+      "actual": "Both management roles read private fixture KB; neither can modify it",
+      "evidence": "workspaces._can_access_workspace/_can_modify_workspace",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-unit",
+      "limitations": "Role-only helper exercised on one fixture; actual current and newly created KB route matrix not fully run by security suite"
+    },
+    {
+      "criterion_id": "SEC-25",
+      "status": "FAIL",
+      "actual": "HTTP 200; authenticated id=22 wrote 2 fake chat rows as id=11=True",
+      "evidence": "fake DB/RAG/LLM; no production persistence; socket network disabled",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "Requires user_id query parameter; endpoint still authenticates caller"
+    }
+  ]
+}

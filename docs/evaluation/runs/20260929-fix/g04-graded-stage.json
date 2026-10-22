@@ -1,0 +1,158 @@
+{
+  "run_id": "EVAL-FIX-20260929-49accb11",
+  "g04_variants": 6,
+  "g04_all_required_variants": 6,
+  "g04_unresolved_citation_variants": 0,
+  "g04_http_failures": 0,
+  "rows": [
+    {
+      "variant": "query",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "status_code": 200,
+      "has_complete_event": null,
+      "required_found": {
+        "500": true,
+        "20": true,
+        "giám đốc": true,
+        "đấu thầu": true
+      },
+      "all_required_found": true,
+      "source_ids": [],
+      "citation_ids": [],
+      "unresolved_citation_ids": [],
+      "body": "## Retrieved Document Sections\n### [1] KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Năm bước thực hiện\nBước 1 — Đề xuất nhu cầu: đơn vị sử dụng lập phiếu đề xuất, có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật.\nBước 2 — Thẩm định: Phòng Kinh doanh đối chiếu định mức và ngân sách được duyệt.\nBước 3 — Lựa chọn nhà cung cấp: chỉ mua từ danh sách nhà cung cấp đã được phê duyệt. Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu.\nBước 4 — Ký hợp đồng và nhận hàng: kiểm tra chứng nhận hợp quy, hạn sử dụng và tem kiểm định.\nBước 5 — Nghiệm thu và thanh toán: Ban An toàn nghiệm thu chất lượng trước khi Phòng Kế toán thanh toán.\n\n### [2] KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN\nSố hiệu: QT-MS-2026/MICCO. Phòng Kinh doanh chủ trì, áp dụng từ 01/03/2026.\n\n### [3] KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx | QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN > Thời gian xử lý tối đa\nDưới 50 triệu đồng, Thời gian xử lý = 05 ngày làm việc. Dưới 50 triệu đồng, Cấp phê duyệt = Trưởng phòng Kinh doanh. Từ 50 đến dưới 500 triệu, Thời gian xử lý = 10 ngày làm việc. Từ 50 đến dưới 500 triệu, Cấp phê duyệt = Phó giám đốc phụ trách. Từ 500 triệu trở lên, Thời gian xử lý = 20 ngày làm việc. Từ 500 triệu trở lên, Cấp phê duyệt = Giám đốc, qua đấu thầu\n"
+    },
+    {
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "status_code": 200,
+      "has_complete_event": null,
+      "required_found": {
+        "500": true,
+        "20": true,
+        "giám đốc": true,
+        "đấu thầu": true
+      },
+      "all_required_found": true,
+      "source_ids": [
+        "4rhw",
+        "lm6y",
+        "rn2o"
+      ],
+      "citation_ids": [
+        "rn2o",
+        "lm6y",
+        "lm6y"
+      ],
+      "unresolved_citation_ids": [],
+      "body": "Theo quy trình mua sắm vật tư an toàn, với gói mua sắm có giá trị đúng 500 triệu đồng thì:\n\n- **Có phải đấu thầu không?**  \n  Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu, do đó gói đúng 500 triệu đồng phải tổ chức đấu thầu[ rn2o].\n\n- **Ai phê duyệt?**  \n  Với gói từ 500 triệu đồng trở lên, cấp phê duyệt là Giám đốc, qua đấu thầu[ lm6y].\n\n- **Thời gian xử lý tối đa bao nhiêu ngày làm việc?**  \n  Thời gian xử lý tối đa cho gói từ 500 triệu đồng trở lên là 20 ngày làm việc[ lm6y].\n\nTóm lại, gói mua sắm đúng 500 triệu đồng phải đấu thầu, được Giám đốc phê duyệt và thời gian xử lý tối đa là 20 ngày làm việc."
+    },
+    {
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "status_code": 200,
+      "has_complete_event": true,
+      "required_found": {
+        "500": true,
+        "20": true,
+        "giám đốc": true,
+        "đấu thầu": true
+      },
+      "all_required_found": true,
+      "source_ids": [
+        "mm0u",
+        "r4gd",
+        "xmqs"
+      ],
+      "citation_ids": [
+        "r4gd",
+        "xmqs",
+        "xmqs"
+      ],
+      "unresolved_citation_ids": [],
+      "body": "Theo quy trình mua sắm vật tư an toàn:\n\n- Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc phải tổ chức đấu thầu[ r4gd].\n\n- Cấp phê duyệt đối với gói mua sắm từ 500 triệu đồng trở lên là Giám đốc, và phải qua đấu thầu[ xmqs].\n\n- Thời gian xử lý tối đa cho gói mua sắm từ 500 triệu đồng trở lên là 20 ngày làm việc[ xmqs].\n\nTóm lại, gói mua sắm đúng 500 triệu đồng phải đấu thầu, được Giám đốc phê duyệt và thời gian xử lý tối đa là 20 ngày làm việc."
+    },
+    {
+      "variant": "chat",
+      "role": "Admin",
+      "repeat": 1,
+      "status_code": 200,
+      "has_complete_event": null,
+      "required_found": {
+        "500": true,
+        "20": true,
+        "giám đốc": true,
+        "đấu thầu": true
+      },
+      "all_required_found": true,
+      "source_ids": [
+        "4j2j",
+        "7nxs",
+        "ox3a"
+      ],
+      "citation_ids": [
+        "ox3a",
+        "4j2j",
+        "4j2j"
+      ],
+      "unresolved_citation_ids": [],
+      "body": "Theo quy trình mua sắm vật tư an toàn, với gói mua sắm có giá trị đúng 500 triệu đồng thì:\n\n- Về việc đấu thầu: Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu, do đó gói đúng 500 triệu đồng phải đấu thầu[ox3a].\n\n- Về cấp phê duyệt: Với gói từ 500 triệu đồng trở lên, cấp phê duyệt là Giám đốc, qua đấu thầu[4j2j].\n\n- Về thời gian xử lý tối đa: Gói từ 500 triệu đồng trở lên có thời gian xử lý tối đa là 20 ngày làm việc[4j2j].\n\nTóm lại, gói mua sắm đúng 500 triệu đồng phải tổ chức đấu thầu, được Giám đốc phê duyệt và thời gian xử lý tối đa là 20 ngày làm việc."
+    },
+    {
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 2,
+      "status_code": 200,
+      "has_complete_event": null,
+      "required_found": {
+        "500": true,
+        "20": true,
+        "giám đốc": true,
+        "đấu thầu": true
+      },
+      "all_required_found": true,
+      "source_ids": [
+        "avmn",
+        "m66o",
+        "oclp"
+      ],
+      "citation_ids": [
+        "avmn",
+        "m66o",
+        "m66o"
+      ],
+      "unresolved_citation_ids": [],
+      "body": "Theo quy trình mua sắm vật tư an toàn, với gói mua sắm có giá trị đúng 500 triệu đồng thì:\n\n- Có phải tổ chức đấu thầu không: Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu, do đó với gói đúng 500 triệu đồng thì phải tổ chức đấu thầu[avmn].\n\n- Ai phê duyệt: Với gói từ 500 triệu đồng trở lên, cấp phê duyệt là Giám đốc, qua đấu thầu[m66o].\n\n- Thời gian xử lý tối đa: Với gói từ 500 triệu đồng trở lên, thời gian xử lý tối đa là 20 ngày làm việc[m66o].\n\nTóm lại, gói mua sắm đúng 500 triệu đồng phải tổ chức đấu thầu, được Giám đốc phê duyệt và thời gian xử lý tối đa là 20 ngày làm việc."
+    },
+    {
+      "variant": "chat",
+      "role": "Giám đốc",
+      "repeat": 3,
+      "status_code": 200,
+      "has_complete_event": null,
+      "required_found": {
+        "500": true,
+        "20": true,
+        "giám đốc": true,
+        "đấu thầu": true
+      },
+      "all_required_found": true,
+      "source_ids": [
+        "6mmh",
+        "le37",
+        "lqhz"
+      ],
+      "citation_ids": [
+        "lqhz",
+        "lqhz",
+        "6mmh",
+        "6mmh"
+      ],
+      "unresolved_citation_ids": [],
+      "body": "Theo quy trình mua sắm vật tư an toàn được chọn:\n\n- Với gói mua sắm có giá trị **từ 500 triệu đồng trở lên**, bắt buộc phải tổ chức **đấu thầu**[lqhz].\n\n- Về cấp phê duyệt:\n  - Với gói từ 500 triệu đồng trở lên, cấp phê duyệt là **Giám đốc**, đồng thời phải qua đấu thầu[lqhz][6mmh].\n\n- Thời gian xử lý tối đa:\n  - Với gói từ 500 triệu đồng trở lên, thời gian xử lý tối đa là **20 ngày làm việc**[6mmh].\n\nTóm lại, gói mua sắm đúng 500 triệu đồng phải đấu thầu, do Giám đốc phê duyệt và thời gian xử lý tối đa là 20 ngày làm việc."
+    }
+  ]
+}

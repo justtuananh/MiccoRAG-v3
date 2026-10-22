@@ -1,0 +1,52 @@
+[
+  {
+    "role": "Giám đốc",
+    "workspace_id": 9,
+    "rag_allowed": [
+      22,
+      23
+    ],
+    "expert_allowed": []
+  },
+  {
+    "role": "Giám đốc",
+    "workspace_id": 11,
+    "rag_allowed": [
+      40,
+      39,
+      27,
+      41,
+      26
+    ],
+    "expert_allowed": [
+      40,
+      39,
+      41
+    ]
+  },
+  {
+    "role": "Phó giám đốc",
+    "workspace_id": 9,
+    "rag_allowed": [
+      22,
+      23
+    ],
+    "expert_allowed": []
+  },
+  {
+    "role": "Phó giám đốc",
+    "workspace_id": 11,
+    "rag_allowed": [
+      40,
+      39,
+      27,
+      41,
+      26
+    ],
+    "expert_allowed": [
+      40,
+      39,
+      41
+    ]
+  }
+]

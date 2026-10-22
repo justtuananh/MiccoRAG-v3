@@ -1,0 +1,62 @@
+{
+  "document_id": 22,
+  "canonical_original_filename": "Quy trình mua sắm vật tư an toàn.docx",
+  "old_vector_source_label": "KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx",
+  "frontend_uses_source_file": "micco-frontend/src/pages/ChatAssistant.jsx:281,551,878",
+  "checks": [
+    {
+      "variant": "query",
+      "status": 200,
+      "source_labels": [
+        "Quy trình mua sắm vật tư an toàn.docx",
+        "Quy trình mua sắm vật tư an toàn.docx",
+        "Quy trình mua sắm vật tư an toàn.docx"
+      ],
+      "document_ids": [
+        22,
+        22,
+        22
+      ],
+      "canonical_labels": true,
+      "table_facts_present": true
+    },
+    {
+      "variant": "chat",
+      "status": 200,
+      "complete_event": null,
+      "source_labels": [
+        "Quy trình mua sắm vật tư an toàn.docx"
+      ],
+      "document_ids": [
+        22
+      ],
+      "canonical_labels": true,
+      "citations_resolve": true,
+      "g04_facts_complete": true
+    },
+    {
+      "variant": "stream",
+      "status": 200,
+      "complete_event": true,
+      "source_labels": [
+        "Quy trình mua sắm vật tư an toàn.docx"
+      ],
+      "document_ids": [
+        22
+      ],
+      "canonical_labels": true,
+      "citations_resolve": true,
+      "g04_facts_complete": true
+    }
+  ],
+  "cleanup": {
+    "run_id": "EVAL-CIT-20260929-5a6119e1",
+    "removed_history": 4,
+    "removed_logs": 2,
+    "removed_users": 2,
+    "user_ids": [
+      34,
+      35
+    ]
+  }
+}

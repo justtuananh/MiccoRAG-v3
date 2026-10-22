@@ -1,0 +1,37 @@
+{
+  "run_id": "EVAL-AUTH-b6e3879ba2",
+  "records": [
+    {
+      "case": "register_cannot_escalate",
+      "status": 200,
+      "actual_role": "Nhân viên"
+    },
+    {
+      "case": "get_me_before",
+      "status": 200,
+      "department_id": 6
+    },
+    {
+      "case": "update_profile_department_user",
+      "status": 200,
+      "error": null
+    },
+    {
+      "case": "new_password_login",
+      "status": 200
+    },
+    {
+      "case": "old_password_login",
+      "status": 401
+    },
+    {
+      "case": "persisted_profile",
+      "name_changed": true,
+      "role": "Nhân viên"
+    },
+    {
+      "case": "cleanup",
+      "deleted_users": 1
+    }
+  ]
+}

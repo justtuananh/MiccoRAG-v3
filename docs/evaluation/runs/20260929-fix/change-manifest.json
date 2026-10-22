@@ -1,0 +1,229 @@
+{
+  "run_id": "20260929-fix",
+  "files": {
+    "harness/be.sh": {
+      "before": "307f53767580464338dc0cd28747680de219751c01b3a7f1e7a7a12d0b3093e9",
+      "after": "aa1c0bcb320c3ac121345174d2fd6eb856d9c53bd3285a80174ce3ce7e43e740"
+    },
+    "harness/deploy.sh": {
+      "before": "8be00fe7ca451059cbbb2686df0a2399883a776e20c4917077c12325fd0a9a89",
+      "after": "971f80855a9fce18d2d85d710977e1d8b868adc8d95b867190c889712cd9befe"
+    },
+    "harness/fe.sh": {
+      "before": "d69169a598727e8a973e3425eda1a5e4026eba9b8a414c37ff5496b43f35b6bf",
+      "after": "90963a796e8b82b28f1d7682a1fa7480d9959fd8bcb89132bcbec5036e102fc8"
+    },
+    "harness/lib.sh": {
+      "before": "63dfe76d9068d9edd3a25c3f6a65da271d72c9055d5c773f8d3e44268661b2b7",
+      "after": "ced54797316e708ba81a7604155bdab8e49afcde9ce0b6d90dfb03d8804203d9"
+    },
+    "harness/qa.sh": {
+      "before": "73a5233fe9f87f8bcb31be519bf89de70e46706930747557c08a7293ffe98ce9",
+      "after": "0155afa6c9497614cc24f0d7fd8860aca00075fdd3eb839cfaea7281509c6dd1"
+    },
+    "harness/run.sh": {
+      "before": "782877b0fd27cbaca6e8bf451c08be67b68a14a2b3d8e56b966737ca5ae75aaf",
+      "after": "64ae374269d11d2c87a7cafcee3aba8e21c283594acca397b97d02d8d96f4fe7"
+    },
+    "harness/smoke.sh": {
+      "before": "0180106cd9616c6ff946743e4fc47af7da9962fb3886d72c077c4898c94a472c",
+      "after": "fbd953e86de86b3e5ffd8abf602ba9169c1cef7cde99a70446e98c3f6eb66888"
+    },
+    "harness/test.sh": {
+      "before": "f9047907d00838f8e99cc837bd3f946ab920192299be7ff69646ddb1472f8d1d",
+      "after": "417fdf712b537ca271131462ea307e7e4bbeb20c8e000fd6a8b63c7454c08294"
+    },
+    "harness/tests/test_gate.py": {
+      "before": null,
+      "after": "4a30561d586ca7563b831e30c9e5880be63f86b260a5c6cad04899f2e3c8b371"
+    },
+    "micco-backend/backend/app/api/chat_agent.py": {
+      "before": "cd3a3c31b439a0e0a3426e779a1a2b8c6daf82d23a2550f5716c293e9814e6f2",
+      "after": "61f505c243a7101ddb9139f517629c87ef99f7743b04a1a49eb16b29361e25fb"
+    },
+    "micco-backend/backend/app/api/documents.py": {
+      "before": "ef87bb6141ae41a8c27123997d72a95c5fc9452a5fc303f59c2b5ff45b3a830a",
+      "after": "187d0ee4198921d35bec8b6747c18639a52df3f0848e55e587fef788b7f615d0"
+    },
+    "micco-backend/backend/app/api/expert.py": {
+      "before": "a31bd932ea68d061ee3485bc02d171f92924f96e0d3e58da3104d2e022f38ee6",
+      "after": "1136c091111f11fcedcf23b54d68a6efe2d703079f7ed7dcadaaebaf2cb6b013"
+    },
+    "micco-backend/backend/app/api/rag.py": {
+      "before": "6a412b8d1c3a52eb551f212f4c1ab963cb34f19377c5193b7bbb63f3169e657d",
+      "after": "8a3235e7ac89b1084f05385b0844fb20d4921c425c05bb1a896da96855e72c6f"
+    },
+    "micco-backend/backend/app/api/workspaces.py": {
+      "before": "207dc2d08f918e6e2c90d91c101fd1ad0cbbcf56808c6930dd8b3ddc275a33ce",
+      "after": "3b449c895032b4f0915278062b84b4a108052ee1482fa8c95e711b7f67d508f3"
+    },
+    "micco-backend/backend/app/api_compat/auth.py": {
+      "before": "7b4af3bd683855feb7dc05a2ce39f1871c77fa05c54350f74ff6fc5f96cd8ce6",
+      "after": "0b1c2b6ec9179d5b09dc5845368f3c2b75cc9d9ba67566a3a9c985e720971f40"
+    },
+    "micco-backend/backend/app/api_compat/documents.py": {
+      "before": "f12c58f1aac61e94300009e7ea13a5920e53f29b88ae54d62ee479144975456e",
+      "after": "65062a23ba5cde3017c2281868e12ca1c9b0ce7eb07288611d7a0c1439272ac8"
+    },
+    "micco-backend/backend/app/api_compat/utils.py": {
+      "before": "7871d5909d55c3927ec6a4c19396fbe22a1e9cf369611551c5d1f21dec077904",
+      "after": "98b06dce69232877d040c31035f140d06e33fb6ddcc7231da7c0165bb97ebf03"
+    },
+    "micco-backend/backend/app/core/config.py": {
+      "before": "e5f5b8a638b353d0de71a8ff57cf36501ec7eb1fe8af00dedae24b44abb01e92",
+      "after": "f6b8a6b1c8ddf1823290c8a4e253a60e83d1cee7e21c88dff880219d3c5a0d71"
+    },
+    "micco-backend/backend/app/core/database.py": {
+      "before": "d644b712131f03be892162a753eaf36b483a566ea38b0893a1b3427a5cc6edf3",
+      "after": "8b8cb0dded45d9f66e0a13ac2f666b3a989784de3d23c982bb8293271ebf3e9f"
+    },
+    "micco-backend/backend/app/core/deps.py": {
+      "before": "dc8a9f7825d13f2d72888204a161893ce959eeec85f77fd12f6bafdfbaaac863",
+      "after": "70a296858be6df859ba43512f49582224fa1301a185426db0261820dc375cde1"
+    },
+    "micco-backend/backend/app/core/permissions.py": {
+      "before": "dbdea3343c6b2fc8b4c3c2e5617cc981b8e2744a3d535ed9d6ea2426583c5031",
+      "after": "b7893378aa8cff1a689d51cceb9e085dd9b64734a34fa978028935593d180834"
+    },
+    "micco-backend/backend/app/core/security.py": {
+      "before": "f8115f223a58f83c8f061b2c58d0072b8b10d99748443504454da5c5b18c76df",
+      "after": "8da8397c76164fd29e9faf1c93422eb71cd00c5749107762e8f8b34df41ab468"
+    },
+    "micco-backend/backend/app/main.py": {
+      "before": "86a6e95a3ddaddebb27f0a6e627d103b433a0797b1ab7965472d0ed6db59689f",
+      "after": "772805b7d3b54bbe915a2eaabf7899a130d13fd4ee6d67b14eaba0729eac451a"
+    },
+    "micco-backend/backend/app/schemas/rag.py": {
+      "before": "9f9c357ba038eb673e54f78ec836a2345cbebcd5f966824276a5e1dc10d78155",
+      "after": "35478bf7ff2d157ce7b8665359be81424a0c3ed2b23e34a9d501dd7650045a3a"
+    },
+    "micco-backend/backend/app/services/deep_retriever.py": {
+      "before": "b4d70cc477a81bb02f4d7d0a2e76e443a78b18655394e2d336e38b4b1cfb7d16",
+      "after": "3bf0602be4bbb6bb21b1f5a75d596eb37f2f3faa91ed43fcd7d0238e02ceb2c9"
+    },
+    "micco-backend/backend/app/services/document_parser/docling_parser.py": {
+      "before": "866a27cee86102ee18a50be10e5a6f814f4480ec38b0c4f56c43330bf54a4c95",
+      "after": "398a4a4cfe5555c4dda833d072168419bde3fb9390db6b3572d9f5672874f6f8"
+    },
+    "micco-backend/backend/app/services/document_parser/marker_parser.py": {
+      "before": "6718d2c96f436fe7402fd8e59bcd4c8c077efd900e0dd860632ae5cf0299b035",
+      "after": "a6b984d7a31d071d86c5d07a73ce7511c22e5ce2429b997f188e765084dfa0e3"
+    },
+    "micco-backend/backend/app/services/expert_recommendation.py": {
+      "before": "7906381aa90c8e4cbd8c5e0b6ed0efb2e28e4fea182de3778e6bfecdcfb03176",
+      "after": "a964ffd42cafce046ce58b91e472220b8dfb8af736758066038760be19bd7af5"
+    },
+    "micco-backend/backend/app/services/knowledge_graph_service.py": {
+      "before": "61bdf9acfc7461952f9708df26d6110565699a653855fc78126d68e291b441ce",
+      "after": "4c9dcee082594017eb4d20c9553ab261d41bc7e052333ea124d2c9d4f60a0412"
+    },
+    "micco-backend/backend/app/services/nexus_rag_service.py": {
+      "before": "68c1fd17069db380af9a8050245929f04c97554ac7a935ec1640f61d071e0938",
+      "after": "36a93d1b6b8fadce31173e42600797a01a0c2745e7dad7a9e3d81a5429c8cd9d"
+    },
+    "micco-backend/backend/app/services/rag_service.py": {
+      "before": "8aa9bf04a860e842b422ac8faf6ae7cb01b77f4b258d72a529827f30f45554b7",
+      "after": "088ed06de630c197677d154174af7af4955a12d17f8dce991cfe42a6302f65cd"
+    },
+    "micco-backend/backend/requirements-dev.txt": {
+      "before": null,
+      "after": "953f5e80b7d29682d64c2f06df6d012ae91f030ca1128e8afc948cc40a992eed"
+    },
+    "micco-backend/backend/tests/unit/test_api_security_regressions.py": {
+      "before": null,
+      "after": "be5a9b9ac2555330b771ac07c80efb02e00a6f549d7e39f644b80b7e08aaa487"
+    },
+    "micco-backend/backend/tests/unit/test_citation_scope.py": {
+      "before": null,
+      "after": "451668ec7d9a6ea59c49a1a67bad30b3673fef993edb27fba4ee3ccc5347c8eb"
+    },
+    "micco-backend/backend/tests/unit/test_director_knowledge_access.py": {
+      "before": "5b1aac3307dadb4b4cc71ac15e55a4ce7056816a7080376e3cca04f9897aa676",
+      "after": "28c2f53f9b3507af7d092a2585eee8603abe6195792363fb61c0475be024db2c"
+    },
+    "micco-backend/backend/tests/unit/test_fix_crossstack.py": {
+      "before": null,
+      "after": "c587e4ca2645bd23dae0b4857890eba814da27842e2fae8ac931ca10b4ee2bbf"
+    },
+    "micco-backend/backend/tests/unit/test_retrieval_scope.py": {
+      "before": null,
+      "after": "5d3df75797c61c47f2c0e26ee256668238d947265e346a429d003cb3ad6693d1"
+    },
+    "micco-frontend/e2e/security-fixtures.mjs": {
+      "before": null,
+      "after": "2f3364deb4ad84c5dae732476b8d846cf5c0f2bb3f32287dc92386f1f18576c8"
+    },
+    "micco-frontend/package-lock.json": {
+      "before": "c9027d73cd0b247e26d5dbf6e33ffa71d21e9ff8b21763ce68abb1a1fd7fcbf4",
+      "after": "6ddc980ca5babcc27734dd33213184489786ceca601c40c450c8309f3ff5c948"
+    },
+    "micco-frontend/package.json": {
+      "before": "3ed74409907f611795fd96099ec81d99185dfe0c46689b9bcaaa9758f957c298",
+      "after": "41c1d74271854d0eee7a7e045740a75b7f8e5ebff02e6c07d4be65af8a82a587"
+    },
+    "micco-frontend/pnpm-lock.yaml": {
+      "before": "36d5ac4a10170622e1b5f4adddce7370c477db4da2c52d14806bd462d9a4b2c7",
+      "after": "749bc971fbd8ac68c6515a8fd8655d5dc2f5c1f813cdd6817292b555b7f54984"
+    },
+    "micco-frontend/pnpm-workspace.yaml": {
+      "before": null,
+      "after": "683b2ab4e361bdd5f736ad10393f3bdbd414ee44f57702d219f561879d1959fa"
+    },
+    "micco-frontend/src/App.jsx": {
+      "before": "bc1a797ed090b08b8a961b22896d1dde47a11e0d002d145f19bea949eaaef8bf",
+      "after": "0b94730c2401a3fd88b80437c242fe41ed9aa0449ef24722c99e733fd9082185"
+    },
+    "micco-frontend/src/components/chat/ChatMessage.jsx": {
+      "before": "85d35aad90827cd851da4c991572b8a73d9edd0845d43e854960096c7f50f1eb",
+      "after": "b0553c1626a3a4018b8038a9c451eb43e18d831bb47e052c6829ef135f437c0b"
+    },
+    "micco-frontend/src/components/chat/ProtectedImage.jsx": {
+      "before": null,
+      "after": "21a630b39c9f63f4e7bdd22a299e2484c2c8bea94e7819b33cdad8989e33f159"
+    },
+    "micco-frontend/src/components/documents/DocumentsToolbar.jsx": {
+      "before": "2e3a813d5727a77cb16faab0984a6c8695188a4e8f7294edce9c3c733fd1585e",
+      "after": "5d404eb8889a7778c5af2acb6c4d735f805b9b4ff8973bb401b619d0fe10ab8f"
+    },
+    "micco-frontend/src/layouts/DashboardLayout.jsx": {
+      "before": "87eaa75cd6430209212eafc21e794238d57c76807c0541972ba91df88cfeeca9",
+      "after": "90dfb8fb3beba9e25e47672b39463fa9c0565ee6920b583e551e5ba93bfbc6b9"
+    },
+    "micco-frontend/src/pages/Approvals.jsx": {
+      "before": "e59a32f5cdae8b09510dd65a4e582414678e7ec1f16ccabbe3f2918368c43bc8",
+      "after": "aed0275eb18d3f41b99122203fc91d11d9e64856b13c900df661e49da71f05c2"
+    },
+    "micco-frontend/src/pages/ChatAssistant.jsx": {
+      "before": "5489a7b16063d4b5b14d6342ba96fa012ad9c0be479bb58d2b9503132ab7d30f",
+      "after": "fb5ee5ab3bfc8d4ec479b4252e4199b4d75e01de26e2e37e332f4b483c2a0013"
+    },
+    "micco-frontend/src/pages/DocumentView.jsx": {
+      "before": "b13aa674e515d3d734fec1528fc6deba580ebc5a190474d9557e6e305bdef222",
+      "after": "618e912f2db64a4b8a93922122f732d395bd75551026fb78b4928f83a6db317f"
+    },
+    "micco-frontend/src/pages/Documents.jsx": {
+      "before": "c804a7dfa94e49ebe3ad0d4a3ea25dd6212172c9c76b0e263200599ed75133c2",
+      "after": "db1f0722b33cf72ed6f5353b01c682701da9b549e0b2efab9ca189184af0c894"
+    },
+    "micco-frontend/src/utils/api.js": {
+      "before": "f52048450c4288a40bafdfc409ab10e2a40bb3152b854cf5c61eed657f8e7dd7",
+      "after": "c8e59753b9d8c9049701fbab5ef65517517a700059a917fa817e2682b8b53c05"
+    },
+    "micco-frontend/src/utils/roles.js": {
+      "before": "55727129556c210c1d635df033ad4f43f8393a2798145d3e5a046a15a3fd69db",
+      "after": "73e12d3b7e71a37cdf8d0afd03121bdf66a6659520bcf54e0ddf6f3129447c23"
+    },
+    "micco-frontend/src/utils/sanitizeHtml.js": {
+      "before": null,
+      "after": "eeaa3cd9e4ea32b58617f765baa2e3a5a20d292afbb63b2a945a94024ab68b63"
+    },
+    "micco-frontend/tests/security-stream.test.mjs": {
+      "before": null,
+      "after": "1dbb98162bdf99d319bb9bdc59c88ac97b40fdaba42226dea424ee1cc49d5594"
+    },
+    "micco-frontend/vite.config.js": {
+      "before": "93474c0a25892d6f850a50d4a1222771710502d3844c02dacfb60be8ae263af3",
+      "after": "2749cfee706318b4e30c2fa8eab1e823052def67dcce0120214595b6c87570a4"
+    }
+  }
+}

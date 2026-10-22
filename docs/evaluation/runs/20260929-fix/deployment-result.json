@@ -1,0 +1,14 @@
+{
+  "status": "deployed",
+  "files": 56,
+  "health": {
+    "health": 200,
+    "ready": 200,
+    "frontend": 200,
+    "gateway": 200
+  },
+  "backend_port": 8001,
+  "frontend_port": 5174,
+  "gateway_port": 8888,
+  "other_services_touched": false
+}

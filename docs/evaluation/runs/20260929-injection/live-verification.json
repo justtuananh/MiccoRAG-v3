@@ -1,0 +1,20 @@
+{
+  "counts": {
+    "users": 14,
+    "knowledge_bases": 7,
+    "documents": 17
+  },
+  "evaluation_fixtures": {
+    "users": 0,
+    "knowledge_bases": 0,
+    "documents": 0
+  },
+  "deployed_files_checked": 56,
+  "hash_mismatches": [],
+  "http": {
+    "http://127.0.0.1:8001/health": 200,
+    "http://127.0.0.1:8001/ready": 200,
+    "http://127.0.0.1:5174/": 200,
+    "http://127.0.0.1:8888/": 200
+  }
+}

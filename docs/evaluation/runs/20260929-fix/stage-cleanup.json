@@ -1,0 +1,5 @@
+{
+  "backend": "SIGTERM sent to verified staging PID",
+  "vector": "SIGTERM sent to verified staging PID",
+  "temporary_credentials": "removed"
+}

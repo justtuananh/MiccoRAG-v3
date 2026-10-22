@@ -1,0 +1,73 @@
+{
+  "checked_at": "2026-09-29T12:27:40.230Z",
+  "base": "http://127.0.0.1:15174",
+  "routes": [],
+  "faults": [
+    {
+      "scenario": "complete",
+      "streamPosts": 1,
+      "fallbackPosts": 0,
+      "answerShown": true,
+      "partialWarning": false,
+      "errorShown": false,
+      "inputEnabled": true,
+      "tail": "TKV\nnền tảng tri thức\nTổng quan\nTài liệu\nTiến trình\nTrợ lý AI\nChuyên gia\nTri thức\nWorkspace\nPhê duyệt\nHVG\nMicco AI Chat\nKB Kỹ thuật\n\nCâu hỏi kiểm tra complete\n\nSTAGE_COMPLETE_ANSWER\n\n19:27\n\nLÀM MỚI\nENTER ĐỂ GỬI · SHIFT+ENTER XUỐNG DÒNG"
+    },
+    {
+      "scenario": "truncated",
+      "streamPosts": 1,
+      "fallbackPosts": 0,
+      "answerShown": true,
+      "partialWarning": true,
+      "errorShown": false,
+      "inputEnabled": true,
+      "tail": "TKV\nnền tảng tri thức\nTổng quan\nTài liệu\nTiến trình\nTrợ lý AI\nChuyên gia\nTri thức\nWorkspace\nPhê duyệt\nHVG\nMicco AI Chat\nKB Kỹ thuật\n\nCâu hỏi kiểm tra truncated\n\nSTAGE_TRUNCATED_ANSWER\n\nLuồng trả lời kết thúc trước khi có xác nhận hoàn tất. Nội dung phía trên có thể chưa đầy đủ.\n\nĐưa câu hỏi vào ô nhập để thử lại\nLÀM MỚI\nENTER ĐỂ GỬI · SHIFT+ENTER XUỐNG DÒNG"
+    },
+    {
+      "scenario": "explicit_error",
+      "streamPosts": 1,
+      "fallbackPosts": 0,
+      "answerShown": true,
+      "partialWarning": true,
+      "errorShown": true,
+      "inputEnabled": true,
+      "tail": "TKV\nnền tảng tri thức\nTổng quan\nTài liệu\nTiến trình\nTrợ lý AI\nChuyên gia\nTri thức\nWorkspace\nPhê duyệt\nHVG\nMicco AI Chat\nKB Kỹ thuật\n\nCâu hỏi kiểm tra explicit_error\n\nSTAGE_EXPLICIT_ERROR_ANSWER\n\nSTAGE_CONTROLLED_ERROR Nội dung phía trên có thể chưa đầy đủ.\n\nĐưa câu hỏi vào ô nhập để thử lại\nLÀM MỚI\nENTER ĐỂ GỬI · SHIFT+ENTER XUỐNG DÒNG"
+    },
+    {
+      "scenario": "http_503",
+      "streamPosts": 1,
+      "fallbackPosts": 0,
+      "answerShown": false,
+      "partialWarning": false,
+      "errorShown": true,
+      "inputEnabled": true,
+      "tail": "TKV\nnền tảng tri thức\nTổng quan\nTài liệu\nTiến trình\nTrợ lý AI\nChuyên gia\nTri thức\nWorkspace\nPhê duyệt\nHVG\nMicco AI Chat\nKB Kỹ thuật\n\nCâu hỏi kiểm tra http_503\n\nHTTP 503: STAGE_SERVICE_UNAVAILABLE\n\nĐưa câu hỏi vào ô nhập để thử lại\nLÀM MỚI\nENTER ĐỂ GỬI · SHIFT+ENTER XUỐNG DÒNG"
+    }
+  ],
+  "ux": [
+    {
+      "case": "mobile_documents",
+      "viewportWidth": 390,
+      "pageWidth": 390,
+      "searchVisible": true,
+      "rootTextLength": 246
+    },
+    {
+      "case": "desktop_document_search",
+      "searchVisible": true,
+      "focused": true,
+      "emptyVisible": true
+    },
+    {
+      "case": "keyboard_tab",
+      "focusedTag": "BUTTON",
+      "focusedName": "Dạng bảng"
+    },
+    {
+      "case": "theme",
+      "beforeDark": false,
+      "afterDark": true,
+      "toggled": true
+    }
+  ]
+}

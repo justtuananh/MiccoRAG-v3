@@ -1,0 +1,18 @@
+{
+  "users": {
+    "total": 14,
+    "eval_remaining": 0
+  },
+  "knowledge_bases": {
+    "total": 7,
+    "eval_remaining": 0
+  },
+  "documents": {
+    "total": 17,
+    "eval_remaining": 0
+  },
+  "eval_history_remaining": 0,
+  "eval_logs_remaining": 0,
+  "source_files_changed": [],
+  "private_fixture_image_dirs_remaining": []
+}

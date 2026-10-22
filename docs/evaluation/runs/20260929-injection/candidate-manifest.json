@@ -1,0 +1,46 @@
+{
+  "status": "STAGED_NOT_DEPLOYED",
+  "reason": "Prompt injection remains reproducible; no production source changed in this evaluation",
+  "files": {
+    "micco-backend/backend/app/api/chat_prompt.py": {
+      "live_sha256": "c85e12a433d7cad3d1a6bb532bbb6bce2ff09f436978a0250611e02cb2536549",
+      "candidate_sha256": "de1282100d6a9796979b20c0324b8955d0073f68f6d2e5f96853d314c5f73dc3",
+      "deployed": false
+    },
+    "micco-backend/backend/app/api/rag.py": {
+      "live_sha256": "8a3235e7ac89b1084f05385b0844fb20d4921c425c05bb1a896da96855e72c6f",
+      "candidate_sha256": "fb9ba3f4f3fbc6efccf79b7efde85f623f62fea9d6ef901c775d673dead24d29",
+      "deployed": false
+    },
+    "micco-backend/backend/app/api/chat_agent.py": {
+      "live_sha256": "61f505c243a7101ddb9139f517629c87ef99f7743b04a1a49eb16b29361e25fb",
+      "candidate_sha256": "3c2326d41a2bba486a72764e81aeb6ec6f3c86467bbd04d1f7f314409ead0074",
+      "deployed": false
+    },
+    "micco-frontend/src/utils/api.js": {
+      "live_sha256": "c8e59753b9d8c9049701fbab5ef65517517a700059a917fa817e2682b8b53c05",
+      "candidate_sha256": "f12dd9a8f67af7b931151e53b80dab5b2aad2a517fc66ed1c2870c7280076257",
+      "deployed": false
+    },
+    "micco-frontend/src/pages/ChatAssistant.jsx": {
+      "live_sha256": "fb5ee5ab3bfc8d4ec479b4252e4199b4d75e01de26e2e37e332f4b483c2a0013",
+      "candidate_sha256": "1d8b7770a10cc3dd86fe7cd125621754fe8dd07ee7e85f851991513a4a544c26",
+      "deployed": false
+    },
+    "micco-frontend/src/utils/chatHistory.js": {
+      "live_sha256": null,
+      "candidate_sha256": "c6444cf4375bef5eb2d79e3c1e05316ca8833d49e62ec94a9dbff8a48eb8d369",
+      "deployed": false
+    },
+    "micco-frontend/tests/chat-history.test.mjs": {
+      "live_sha256": null,
+      "candidate_sha256": "215b7edfa95bc969dc095b24de6d485d554f2bf44eee2279d43b3d31f88ee721",
+      "deployed": false
+    },
+    "micco-frontend/e2e/chat-memory.mjs": {
+      "live_sha256": null,
+      "candidate_sha256": "823492ce1fa6f0ca160547acd030fdf12b572b20c09a36d8ad19b62d31d4847a",
+      "deployed": false
+    }
+  }
+}

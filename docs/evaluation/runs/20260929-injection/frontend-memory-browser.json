@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "execution": {
+    "command": "node e2e/chat-memory.mjs",
+    "frontend": "VITE_SKIP_AUTH=true npm run dev -- --host 127.0.0.1 --port 15175 --strictPort",
+    "result": "exit code 0",
+    "rerun_for_this_report": false
+  },
+  "browser_assertions": {
+    "count": 5,
+    "passed": 5,
+    "details": [
+      "First chat request targets workspace 1.",
+      "First chat request has empty history.",
+      "Second chat request contains the first completed user/assistant pair.",
+      "First chat request after switching targets workspace 2.",
+      "First chat request after switching has empty history."
+    ]
+  },
+  "mocked_api_scope": {
+    "interception": "All /api/** requests intercepted by Playwright context.route.",
+    "fixtures": [
+      "Two workspaces (IDs 1 and 2).",
+      "Empty persisted history and suggested questions per workspace.",
+      "SSE completion events with synthetic Reply 1, Reply 2, and Reply 3 answers.",
+      "Other API requests returned synthetic empty JSON arrays."
+    ],
+    "credentials": "No live tokens or credentials. Frontend ran with VITE_SKIP_AUTH=true; browser used mocked API responses."
+  },
+  "additional_unit_result": {
+    "command": "npm run test:unit",
+    "passed": 9,
+    "failed": 0,
+    "chat_history_tests": 3,
+    "coverage": "Completed-pair limit and exclusions, limit=0, and history request bodies for streaming and regular chat."
+  },
+  "files_tested": [
+    "worktree/micco-frontend/e2e/chat-memory.mjs",
+    "worktree/micco-frontend/tests/chat-history.test.mjs",
+    "worktree/micco-frontend/src/pages/ChatAssistant.jsx",
+    "worktree/micco-frontend/src/utils/chatHistory.js",
+    "worktree/micco-frontend/src/utils/api.js"
+  ]
+}

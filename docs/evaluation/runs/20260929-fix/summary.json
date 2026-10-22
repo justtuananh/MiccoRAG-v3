@@ -1,0 +1,32 @@
+{
+  "criteria": 116,
+  "status": {
+    "PASS": 70,
+    "BLOCKED": 46
+  },
+  "by_group": {
+    "functional": {
+      "PASS": 16,
+      "BLOCKED": 17
+    },
+    "business": {
+      "PASS": 18,
+      "BLOCKED": 10
+    },
+    "rag": {
+      "BLOCKED": 19,
+      "PASS": 11
+    },
+    "security": {
+      "PASS": 25
+    }
+  },
+  "previous_status": {
+    "PASS": 19,
+    "BLOCKED": 49,
+    "FAIL": 46,
+    "NOT_RUN": 2
+  },
+  "verdict": "FIXES_DEPLOYED; ACCEPTANCE_PARTIAL",
+  "note": "Không có FAIL trong phạm vi đã kiểm lại; các mục BLOCKED chưa được nghiệm thu."
+}

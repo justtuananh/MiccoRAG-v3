@@ -1,0 +1,1300 @@
+{
+  "summary": {
+    "criteria": 116,
+    "status": {
+      "PASS": 19,
+      "BLOCKED": 49,
+      "FAIL": 46,
+      "NOT_RUN": 2
+    },
+    "by_group": {
+      "functional": {
+        "PASS": 4,
+        "BLOCKED": 16,
+        "FAIL": 11,
+        "NOT_RUN": 2
+      },
+      "business": {
+        "PASS": 12,
+        "BLOCKED": 12,
+        "FAIL": 4
+      },
+      "rag": {
+        "BLOCKED": 19,
+        "FAIL": 9,
+        "PASS": 2
+      },
+      "security": {
+        "FAIL": 22,
+        "BLOCKED": 2,
+        "PASS": 1
+      }
+    },
+    "by_priority": {
+      "P0": {
+        "PASS": 12,
+        "BLOCKED": 26,
+        "FAIL": 33
+      },
+      "P1": {
+        "FAIL": 13,
+        "PASS": 7,
+        "BLOCKED": 20,
+        "NOT_RUN": 1
+      },
+      "P2": {
+        "NOT_RUN": 1,
+        "BLOCKED": 3
+      }
+    },
+    "verdict": "NO-GO",
+    "acceptance_note": "PASS applies only to documented execution scope; broad business acceptance and release gates remain unmet."
+  },
+  "records": [
+    {
+      "criterion_id": "FUNC-01",
+      "status": "PASS",
+      "actual": "Đăng nhập bằng tài khoản thử: đúng trả 200, sai trả 401; yêu cầu nâng vai trò khi đăng ký bị bỏ qua. Năm vai trò xác thực được qua /me và token; token không hợp lệ khiến trình duyệt về trang đăng nhập và bị xóa.",
+      "evidence": "live-auth-profile-results.json; live-lifecycle-results.json; browser-results.json; business-sqlite-raw.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Đạt trong phạm vi các biến thể đã ghi; chưa thử mật khẩu thật của người dùng hiện hữu.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "FUNC-02",
+      "status": "BLOCKED",
+      "actual": "Token không hợp lệ được xóa và chuyển về trang đăng nhập; 55 liên kết trực tiếp qua năm vai trò hoạt động đúng. Lượt kiểm Back/reload gặp Playwright networkidle timeout, chưa quy thành lỗi ứng dụng.",
+      "evidence": "browser-results.json; browser-session.log",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa đủ bằng chứng cho bfcache, đăng xuất và mất token giữa phiên.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "FUNC-03",
+      "status": "FAIL",
+      "actual": "Đăng ký, cập nhật hồ sơ và đổi mật khẩu qua API live đạt; không thể tự nâng lên Admin. Tuy nhiên endpoint avatar nhận nội dung không phải ảnh có tên .png (SEC-23). MissingGreenlet ở SQLite không tái hiện trên live nên đã loại.",
+      "evidence": "live-auth-profile-results.json; security-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "FUNC-04",
+      "status": "FAIL",
+      "actual": "Giám đốc, Phó giám đốc và Trưởng phòng vào được giao diện /admin và /departments, nhưng API users, stats, logs và departments đều trả 403; quyền hiển thị thao tác lệch với backend.",
+      "evidence": "browser-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "FUNC-05",
+      "status": "PASS",
+      "actual": "KB private thử nghiệm được tạo (201), đổi tên và mô tả (200), rồi đọc lại đúng. SQLite kiểm danh sách, tóm tắt, chi tiết và tạo KB theo loại với sáu vai trò; trang workspaces mở được với năm vai trò.",
+      "evidence": "live-lifecycle-results.json; business-results.json; browser-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Phạm vi gồm API với dữ liệu thử và đọc UI; chưa bao phủ mọi biến thể lọc và validation.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "FUNC-06",
+      "status": "BLOCKED",
+      "actual": "Xóa hai KB thử sau khi xóa tài liệu TXT trả 204; đã kiểm các thư mục Docling.",
+      "evidence": "live-lifecycle-results.json; cleanup-verification.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa diễn tập cascade với KB có ảnh, graph, phiên bản; chính sách khôi phục Q-06 chưa chốt.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "FUNC-07",
+      "status": "FAIL",
+      "actual": "Upload và lập chỉ mục TXT đạt, tệp .exe bị từ chối 400. Tuy nhiên upload vào KB của người khác và mạo phòng ban vẫn được chấp nhận trong ASGI cô lập (SEC-11/12).",
+      "evidence": "live-lifecycle-results.json; security-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "FUNC-08",
+      "status": "FAIL",
+      "actual": "Lô valid.txt + invalid.exe trả HTTP 400 nhưng tài liệu hợp lệ, phiên bản và tệp đã được lưu; phản hồi không nêu phần đã thành công. Upload lặp cùng nội dung tạo hai tài liệu.",
+      "evidence": "functional-multiupload-results.json",
+      "scope": "Handler thật, SQLite và thư mục tạm; không ghi dữ liệu live.",
+      "limitations": "Chính sách chống trùng cần xác nhận; lỗi phản hồi lô hỗn hợp đã tái hiện. Chưa thử mất mạng.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "FUNC-09",
+      "status": "BLOCKED",
+      "actual": "TXT live đi từ pending qua processing đến indexed trong khoảng 6 giây; approval là approved, metadata và API đồng nhất.",
+      "evidence": "live-lifecycle-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa thử tệp rỗng, lỗi parser và thông báo UI tương ứng.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "FUNC-10",
+      "status": "BLOCKED",
+      "actual": "Gửi yêu cầu process lần hai trả 409.",
+      "evidence": "live-lifecycle-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa thử timeout, restart khi đang ingest và retry tài liệu failed trên VPS dùng chung; cần môi trường cô lập.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "FUNC-11",
+      "status": "NOT_RUN",
+      "actual": "Đã mở trang và danh sách theo vai trò.",
+      "evidence": "browser-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa kiểm đầy đủ tìm kiếm tiếng Việt, loại, tag, phòng ban và trạng thái; mở được trang chưa đủ để PASS.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "FUNC-12",
+      "status": "FAIL",
+      "actual": "Với tài liệu private thử số 43, metadata anonymous trả 401 nhưng chunk anonymous trả 200 ở backend và gateway; ảnh static cũng trả bytes từ fixture trong ASGI (SEC-16).",
+      "evidence": "live-security-fixture-results.json; security-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "FUNC-13",
+      "status": "BLOCKED",
+      "actual": "Chưa tạo bộ phiên bản V1/V2 để đối chiếu.",
+      "evidence": "evaluation/README.md Q-05",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa chốt oracle ngày hiệu lực và phê duyệt bản mới; cần bộ phiên bản có nguồn vàng.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "FUNC-14",
+      "status": "BLOCKED",
+      "actual": "Xóa hai tài liệu TXT thử rồi GET trả 404 và query trả 0 chunk.",
+      "evidence": "live-lifecycle-results.json; live-security-fixture-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa chứng minh đầy đủ phạm vi lịch sử, graph, ảnh và phiên bản; xem Q-06.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "FUNC-15",
+      "status": "BLOCKED",
+      "actual": "SQLite kiểm count và danh sách theo đúng cấp; chuyển pending → pending_org → approved. Yêu cầu duyệt lặp hoặc trái cấp bị chặn.",
+      "evidence": "business-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa kiểm UI nhiều phiên, xử lý đồng thời và oracle duyệt hai cấp Q-01; tác vụ ingest trong test được mock.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "FUNC-16",
+      "status": "FAIL",
+      "actual": "Khi browser nhận một token rồi EOF mà thiếu complete, UI bỏ spinner, mở lại input và hiển thị đáp án một phần không cảnh báo. Lỗi explicit và HTTP 503 được báo đúng.",
+      "evidence": "browser-fault-results.json; browser-faults.mjs",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "FUNC-17",
+      "status": "FAIL",
+      "actual": "Trong fixture ASGI, user 22 gọi chat với user_id=11 và hai dòng lịch sử được lưu dưới user 11 (SEC-25).",
+      "evidence": "security-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Không ghi vào lịch sử người dùng thật; lịch sử được mock trong fixture.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "FUNC-18",
+      "status": "FAIL",
+      "actual": "Ở lượt lặp G01 thứ hai, answer dẫn [hbc1] nhưng source index là hbcl, nên không ánh xạ được nguồn.",
+      "evidence": "rag-graded-answers.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "FUNC-19",
+      "status": "FAIL",
+      "actual": "HTML của KnowledgeEntry không được lọc; sự kiện trong HTML thử nghiệm thực thi khi render preview Admin (SEC-13).",
+      "evidence": "security-results.json; xss-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "FUNC-20",
+      "status": "BLOCKED",
+      "actual": "Bộ kiểm expert có 23 unit test đạt trong suite 44 test.",
+      "evidence": "harness.log; evaluation/README.md Q-07",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa có oracle xác nhận uploader có phải chuyên gia nghiệp vụ và quy tắc xếp hạng khi đồng điểm.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "FUNC-21",
+      "status": "FAIL",
+      "actual": "Với cả Giám đốc và Phó giám đốc, KB 9 cho RAG [22, 23] nhưng Expert trả []; KB 11 cho RAG 5 tài liệu nhưng Expert chỉ có 3 tài liệu public.",
+      "evidence": "expert-scope-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Đã chạy hàm thật trên DB đang hoạt động ở chế độ chỉ đọc.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "FUNC-22",
+      "status": "FAIL",
+      "actual": "Các đường chunks, stats, analytics lồng và KG không tuân phạm vi quyền; SEC-01/10/18 xác nhận bằng fixture runtime.",
+      "evidence": "security-results.json; live-security-fixture-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "FUNC-23",
+      "status": "BLOCKED",
+      "actual": "Trang dashboard mở được với năm vai trò.",
+      "evidence": "browser-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Phạm vi “của tôi/toàn công ty” và biểu đồ ở ngày biên chưa chốt; chưa có số đếm chuẩn từ DB (Q-04).",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "FUNC-24",
+      "status": "BLOCKED",
+      "actual": "Trên SQLite, đổi vai trò với cùng JWT cấp và rút quyền đúng; tổ hợp vai trò/phòng ban không hợp lệ trả 400.",
+      "evidence": "business-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa thử xóa tài khoản hoặc phòng ban đang có liên kết; cần fixture quan hệ và chính sách dọn dữ liệu.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "FUNC-25",
+      "status": "BLOCKED",
+      "actual": "Đường API log của Admin hoạt động; vai trò quản lý khác nhận 403.",
+      "evidence": "browser-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa chốt phạm vi và thời hạn lưu log; chưa thử retention (Q-09).",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "FUNC-26",
+      "status": "NOT_RUN",
+      "actual": "Có 55 lượt mở route desktop mà không gặp page error.",
+      "evidence": "browser-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa kiểm đầy đủ mobile, bàn phím, focus và giao diện sáng/tối; mở route chưa thay thế kiểm UX.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P2"
+    },
+    {
+      "criterion_id": "OPS-01",
+      "status": "BLOCKED",
+      "actual": "Health, ready và probe trả 200; smoke ban đầu có bốn lượt curl 000, lần kiểm lại trả 200.",
+      "evidence": "harness.log; smoke-recheck.log",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Không gây lỗi DB/vector thật trên VPS dùng chung. Readiness trả tĩnh nên 200 chưa chứng minh dependency hoạt động; cần fault test ở staging.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "OPS-02",
+      "status": "PASS",
+      "actual": "Đã lưu provider, model, dimension (không lưu secret) và SHA-256 tệp mã nguồn; query/chat thật trả 200, truy xuất được nguồn.",
+      "evidence": "snapshot.json; rag-pilot-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa ép tình huống sai dimension; PASS chỉ cho cấu hình quan sát được.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "OPS-03",
+      "status": "BLOCKED",
+      "actual": "Đã kiểm UI với HTTP 503 và lỗi SSE.",
+      "evidence": "browser-fault-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa mô phỏng đầy đủ provider 429, timeout và fallback reranker; cần fixture lỗi backend có phạm vi xác định.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "OPS-04",
+      "status": "BLOCKED",
+      "actual": "Đã đo pilot query, chat và SSE đơn phiên.",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa chạy tải 10 phiên hoặc 100 lượt mỗi chế độ trên VPS dùng chung; SLA và môi trường tải chưa chốt (Q-11).",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "OPS-05",
+      "status": "BLOCKED",
+      "actual": "Chưa diễn tập reboot hoặc restore trên hệ thống dùng chung.",
+      "evidence": "evaluation/README.md Q-11",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Thiếu bản backup và RPO/RTO đã chốt; cần staging để thử mà không ảnh hưởng người dùng.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "OPS-06",
+      "status": "BLOCKED",
+      "actual": "Harness unit 44 và build đạt; thiếu DuckDNS tùy chọn khiến harness FAIL. Kiểm RAG/browser ngoài harness phát hiện thêm P0.",
+      "evidence": "harness.log; smoke-recheck.log",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa thay hoặc kiểm mọi nhánh skip của QA runner. Không coi unit/build là GO; báo cáo tổng hợp kết luận NO-GO.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "OPS-07",
+      "status": "PASS",
+      "actual": "Đã lưu SHA commit, hash từng tệp mã nguồn, cấu hình che bí mật, hash nguồn gốc, báo cáo và kết quả kiểm cleanup; mã ứng dụng không đổi.",
+      "evidence": "snapshot.json; cleanup-verification.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Working tree ban đầu đã dirty; snapshot dựa trên nội dung thực tế, không chỉ SHA commit.",
+      "group": "functional",
+      "result_file": "functional-results.json",
+      "priority": "P1"
+    },
+    {
+      "id": "RBAC-01",
+      "status": "PASS",
+      "evidence": "Live lãnh đạo 7/7 KB, chi tiết 7/7 HTTP 200; SQLite private KB 14/15: hai vai trò lãnh đạo thấy trong list/summary và GET 200.",
+      "criterion_id": "RBAC-01",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "RBAC-02",
+      "status": "BLOCKED",
+      "evidence": "Chưa hỏi RAG KB private; live không có private KB/tài liệu.",
+      "criterion_id": "RBAC-02",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "RBAC-03",
+      "status": "PASS",
+      "evidence": "12/12 PUT/DELETE KB của người khác với Giám đốc/Phó giám đốc: 403, 0 commit (handler cô lập).",
+      "criterion_id": "RBAC-03",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "RBAC-04",
+      "status": "PASS",
+      "evidence": "Live nhân viên/trưởng phòng 2 KB và GET khác phòng 403; SQLite 6 vai trò × 5 KB xác nhận public, phòng mình, private của mình; private người khác 403.",
+      "criterion_id": "RBAC-04",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "RBAC-05",
+      "status": "FAIL",
+      "evidence": "SEC-07/08: người ngoài GET/query/chat KB private theo ID và nhận sentinel từ tài liệu trong fixture; fail phân quyền truy xuất, chi tiết security-results.json.",
+      "criterion_id": "RBAC-05",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "RBAC-06",
+      "status": "FAIL",
+      "evidence": "SEC-02: user khác owner lấy sentinel tài liệu private qua API chunk; ngoài ra private filter theo department thiếu owner check. Chi tiết security-results.json.",
+      "criterion_id": "RBAC-06",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "RBAC-07",
+      "status": "BLOCKED",
+      "evidence": "Test hồi quy sẵn có xác nhận query loại ID cấm trong mock, nhưng chưa có kiểm live đủ query/chat/citation.",
+      "criterion_id": "RBAC-07",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "RBAC-08",
+      "status": "PASS",
+      "evidence": "Live lãnh đạo 17/17 docs; SQLite 6 vai trò kiểm list/GET private doc 104/105: lãnh đạo/Admin và owner 200, người khác 403.",
+      "criterion_id": "RBAC-08",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "RBAC-09",
+      "status": "PASS",
+      "evidence": "SQLite 6 vai trò × private KnowledgeEntry 201/202: lãnh đạo/Admin và owner nhìn thấy; vai trò khác bị 403/không liệt kê.",
+      "criterion_id": "RBAC-09",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "RBAC-10",
+      "status": "PASS",
+      "evidence": "SQLite pending 205/206 và rejected 207: lãnh đạo chỉ liệt kê approved, owner/Admin thấy bản của mình; GET tuân cùng phạm vi. Quy tắc xem bản nháp vẫn cần chủ nghiệp vụ xác nhận nếu muốn mở rộng.",
+      "criterion_id": "RBAC-10",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "RBAC-11",
+      "status": "PASS",
+      "evidence": "SQLite PUT/DELETE private KnowledgeEntry khác owner: Staff/Director 403, không đổi; owner sửa/xóa thành công, Admin sửa thành công.",
+      "criterion_id": "RBAC-11",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "RBAC-12",
+      "status": "PASS",
+      "evidence": "SQLite: Staff tạo private gắn owner; Admin tạo public; Head C tạo department gắn phòng C; Staff/Director tạo public 403, Staff tạo department 403.",
+      "criterion_id": "RBAC-12",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P1"
+    },
+    {
+      "id": "RBAC-13",
+      "status": "PASS",
+      "evidence": "SQLite Admin chuyển Staff→Director→Staff; cùng JWT cũ truy vấn user từ DB nhận role mới, quyền private B được cấp rồi thu hồi.",
+      "criterion_id": "RBAC-13",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P1"
+    },
+    {
+      "id": "RBAC-14",
+      "status": "PASS",
+      "evidence": "SQLite Admin update role Director ở phòng A và Staff ở Ban Giám đốc đều HTTP 400; chuyển role cùng phòng hợp lệ thành công. Quy tắc tên phòng vẫn cần chốt riêng.",
+      "criterion_id": "RBAC-14",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P1"
+    },
+    {
+      "id": "BIZ-01",
+      "status": "BLOCKED",
+      "evidence": "Chưa upload/duyệt tài liệu nội bộ; chỉ kiểm nhánh quyền duyệt âm bằng DB giả.",
+      "criterion_id": "BIZ-01",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "BIZ-02",
+      "status": "BLOCKED",
+      "evidence": "SQLite public Document pending→pending_org→approved/processing; trước INDEXED không vào allowed IDs; task index chỉ được xếp hàng, không chạy.",
+      "criterion_id": "BIZ-02",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "BIZ-03",
+      "status": "PASS",
+      "evidence": "Handler cô lập 12/12 approve/reject trái phòng hoặc trái cấp duyệt: 403, 0 commit.",
+      "criterion_id": "BIZ-03",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "BIZ-04",
+      "status": "PASS",
+      "evidence": "Handler cô lập approve/reject lặp trên approved/rejected và pending_org không public: 400, 0 commit.",
+      "criterion_id": "BIZ-04",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "BIZ-05",
+      "status": "FAIL",
+      "evidence": "SQLite private docs 104/105 do owner A/B sở hữu, department_id=NULL: `get_allowed_document_ids` trả [] thay vì [104]/[105]; owner không thể hỏi tài liệu private của mình. Live lifecycle Admin private có thể query, không phủ định lỗi Staff.",
+      "criterion_id": "BIZ-05",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "BIZ-06",
+      "status": "BLOCKED",
+      "evidence": "SQLite public KnowledgeEntry pending_dept→pending_org→approved/Active/ingest_status=processing; chỉ xếp task, chưa ingest/hỏi.",
+      "criterion_id": "BIZ-06",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "BIZ-07",
+      "status": "BLOCKED",
+      "evidence": "Handler cô lập: reject KnowledgeEntry thiếu lý do 400, Document thiếu lý do 200/rejected/note null. Cần chủ nghiệp vụ chốt thống nhất.",
+      "criterion_id": "BIZ-07",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P1"
+    },
+    {
+      "id": "BIZ-08",
+      "status": "BLOCKED",
+      "evidence": "Chưa thử sửa tri thức và xóa chỉ mục cũ; thiếu dữ liệu và oracle vòng đời.",
+      "criterion_id": "BIZ-08",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "BIZ-09",
+      "status": "BLOCKED",
+      "evidence": "Chưa upload phiên bản mới, chưa đối chiếu index cũ/mới; thiếu oracle thời điểm ngừng phục vụ bản cũ.",
+      "criterion_id": "BIZ-09",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "BIZ-10",
+      "status": "BLOCKED",
+      "evidence": "SQLite allowed IDs bỏ pending_org và FAILED kể cả doc còn INDEXED; chưa seed vector cũ hay chạy graph/chat.",
+      "criterion_id": "BIZ-10",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P0"
+    },
+    {
+      "id": "BIZ-11",
+      "status": "BLOCKED",
+      "evidence": "SQLite count/list đúng từng role/cấp; handler status của Trưởng phòng A với pending Document phòng B trả 200 (ngoài queue), cần xác nhận phạm vi detail.",
+      "criterion_id": "BIZ-11",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P1"
+    },
+    {
+      "id": "BIZ-12",
+      "status": "FAIL",
+      "evidence": "SEC-12: upload mạo department_id phòng khác HTTP 200, lưu phòng mạo và autoapproved. Xem security-results.json.",
+      "criterion_id": "BIZ-12",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P1"
+    },
+    {
+      "id": "BIZ-13",
+      "status": "BLOCKED",
+      "evidence": "Không đổi tên phòng live; quy tắc dựa tên phòng cần oracle chính thức.",
+      "criterion_id": "BIZ-13",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P1"
+    },
+    {
+      "id": "BIZ-14",
+      "status": "BLOCKED",
+      "evidence": "SQLite PUT visibility=public lên private KB giữ private như mã hiện hành; cần hợp đồng API chốt việc im lặng bỏ qua.",
+      "criterion_id": "BIZ-14",
+      "group": "business",
+      "result_file": "business-results.json",
+      "priority": "P2"
+    },
+    {
+      "criterion_id": "RAG-01",
+      "status": "BLOCKED",
+      "actual": "Đã đối chiếu original PDF/DOCX với markdown và truy xuất; live upload TXT→indexed→query thành công. Chưa chạy upload mới PDF/DOCX 2 trang trong fixture.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-02",
+      "status": "FAIL",
+      "actual": "G04 bỏ mất hàng bảng 500 triệu/20 ngày/Giám đốc; lặp qua 3 chat director +2 stream +1 admin vector. G06 bảng134 người/16giờ đúng.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-03",
+      "status": "BLOCKED",
+      "actual": "Không có bộ scan/OCR và vùng ảnh được chủ tài liệu duyệt để chấm; nguồn pilot là PDF text và DOCX.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-04",
+      "status": "BLOCKED",
+      "actual": "Nguồn pilot không có hình nghiệp vụ chứa đáp án độc lập; thiếu golden ảnh được duyệt.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "RAG-05",
+      "status": "FAIL",
+      "actual": "Bộ lọc IDs đúng trong pilot vector; fixture SEC-10 chứng minh nhánh KG có thể trả sentinel ngoài allowed IDs.",
+      "scope": "live-pilot + isolated-KG",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Live dữ liệu chưa có KG mixed-permission để tái hiện toàn luồng.",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-06",
+      "status": "FAIL",
+      "actual": "SEC-10 chạy DeepRetriever thật với vector/KG giả: KG private sentinel xuất hiện khi document_ids chỉ cho phép tài liệu public.",
+      "scope": "isolated-KG",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không đọc nội dung trái quyền từ tài liệu nghiệp vụ thật.",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-07",
+      "status": "BLOCKED",
+      "actual": "44 unit tests gồm bộ lọc approved+INDEXED đạt; chưa có đầy đủ trạng thái + pipeline vector/KG stale để chấm mọi nhánh.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-08",
+      "status": "FAIL",
+      "actual": "SEC-07/08/09 và RBAC fixture trả dữ liệu private KB cho foreign user; owners private docs department=None có lỗi thiếu quyền ngược chiều.",
+      "scope": "isolated-ASGI + SQLite",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-09",
+      "status": "BLOCKED",
+      "actual": "Pilot 3 docs trong2 KB đúng document IDs; chưa dựng đồng thời2KB có đáp án mâu thuẫn và đầy đủ vector/KG/image để kiểm tất cả đường.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-10",
+      "status": "BLOCKED",
+      "actual": "Thiếu nguồn V1/V2 có ngày hiệu lực và quy tắc phục vụ bản cũ được duyệt (Q-05).",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-11",
+      "status": "BLOCKED",
+      "actual": "Thiếu timeline chuyển tiếp/hồi tố được chủ tài liệu xác nhận (Q-05).",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-12",
+      "status": "BLOCKED",
+      "actual": "Chưa có thứ bậc thẩm quyền và cặp tài liệu mâu thuẫn được chốt (Q-05).",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-13",
+      "status": "BLOCKED",
+      "actual": "Chưa có golden xung đột ngang cấp được duyệt và quy tắc diễn đạt kết luận (Q-05/Q-10).",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-14",
+      "status": "FAIL",
+      "actual": "G04 chỉ lấy quy tắc đấu thầu, bỏ cấp duyệt và thời hạn; các câu G02/G05/G07 đầy đủ trên nguồn thử.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-15",
+      "status": "PASS",
+      "actual": "G10 nêu đúng1.250.000 đồng/tháng và nói nguồn không có số điện thoại; không tự điền số.",
+      "scope": "live pilot: G10 only",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Kết quả đúng trong mẫu1câu; không suy rộng mọi câu nhiều phần.",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-16",
+      "status": "PASS",
+      "actual": "G08 qua chat và2 stream đều nói nguồn không có số điện thoại; đối chiếu toàn bộ DOCX26 xác nhận không có.",
+      "scope": "live pilot: G08 3variants",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Đúng trên câu no-answer đã thử; chưa phải độ chính xác no-answer của toàn bộ KB.",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-17",
+      "status": "FAIL",
+      "actual": "G04 thiếu20ngày và khẳng định nguồn không có thời hạn dù bản gốc có; phụ cấp, ngày25, ngưỡng14, sát hạch40/45/80/30 đều đúng.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-18",
+      "status": "BLOCKED",
+      "actual": "Chưa có golden tổng hợp2+nguồn độc lập đã duyệt; pilot cố định1doc/câu để truy nguyên lỗi.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "SRC-01",
+      "status": "FAIL",
+      "actual": "G01 director repeat2 dẫn[hbc1] nhưng sources trả[index=hbcl]; một citation không có bằng chứng ánh xạ trong response.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SRC-02",
+      "status": "FAIL",
+      "actual": "Một citation ID không ánh xạ nguồn: hbc1≠hbcl; metadata tên nguồn còn dùng prefix cũ khác original_filename, cần chuẩn hóa.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SRC-03",
+      "status": "FAIL",
+      "actual": "SEC-10 xác nhận KG context có sentinel ngoài danh sách nguồn được phép; không thể coi mọi fact KG là bằng chứng đã duyệt.",
+      "scope": "isolated-KG",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SRC-04",
+      "status": "BLOCKED",
+      "actual": "XSS đã kiểm bằng HTML fixture, nhưng đó không thay thế prompt injection vào retrieval; chưa có bộ payload chỉ dẫn độc hại cùng golden được duyệt.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SRC-05",
+      "status": "BLOCKED",
+      "actual": "Pilot không dùng history chứa citation cũ; chưa đo ánh xạ citation xuyên2lượt sau đổi nguồn.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SRC-06",
+      "status": "BLOCKED",
+      "actual": "Thiếu fixture text/image/table khác trang có mapping vàng; pilot không truy xuất ảnh.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "RAG-19",
+      "status": "BLOCKED",
+      "actual": "3stream có complete, token cuối khớpanswer3/3; G01/G08 nhất quán chat, G04 đều bỏ bảng. Chưa đủ ma trận quyền và biến thể rollback/reconnect.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "RAG-20",
+      "status": "BLOCKED",
+      "actual": "Chưa có nguồn thay đổi hiệu lực và câu nối tiếp đã duyệt; lifecycle thử1version, không thay tài liệu thật.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "RAG-21",
+      "status": "BLOCKED",
+      "actual": "2câu so hybrid director và vector Admin: G01đúng/G04sai cả2; chưa có golden quan hệ/thực thể để so recall.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "RAG-22",
+      "status": "BLOCKED",
+      "actual": "Chưa có golden biến thể không dấu/song ngữ/thực thể gần giống được duyệt; không dùng paraphrase tùy ý để chấm PASS.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P2"
+    },
+    {
+      "criterion_id": "RAG-23",
+      "status": "BLOCKED",
+      "actual": "Fixture TXT xóa rồi GET404/query0chunks đạt; chưa đủ vòngđời thayversion + graph/images để nghiệm thu tiêu chí đầy đủ.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "RAG-24",
+      "status": "BLOCKED",
+      "actual": "Pilot cố định force_search để đo nguồn; chưa đo chính sách phân biệt chào hỏi và truy vấn nghiệp vụ tự động.",
+      "scope": "live-grounded-pilot",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json; rag-graded-answers.json; original-sources.json; rag-diagnostics.json",
+      "limitations": "Không phải bộ 120 golden/holdout đã được chủ nghiệp vụ duyệt",
+      "group": "rag",
+      "result_file": "rag-results.json",
+      "priority": "P2"
+    },
+    {
+      "criterion_id": "SEC-01",
+      "status": "FAIL",
+      "actual": "HTTP 200; private sentinel returned=True; kiểm tra bổ sung LIVE: anonymous GET chunks của tài liệu thử private43 trả200 chứa sentinel ở backend8001 và gateway8888; /documents/43 đối chứng trả401.",
+      "evidence": "rag.get_document_chunks via TestClient; fake Document and vector store; live-security-fixture-results.json",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-ASGI + live own synthetic document",
+      "limitations": "Chỉ dùng tài liệu thử vô hại; chưa kiểm kết nối từ Internet.",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-02",
+      "status": "FAIL",
+      "actual": "HTTP 200; foreign user sentinel returned=True",
+      "evidence": "same fixture, foreign user id=22, owner=11",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-03",
+      "status": "FAIL",
+      "actual": "HTTP 200; fake retriever invoked=True; private sentinel returned=True",
+      "evidence": "fake KB/retriever/LLM; socket network disabled",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-04",
+      "status": "FAIL",
+      "actual": "HTTP 200; fake retriever invoked=True; private sentinel returned=True",
+      "evidence": "fake KB/retriever/LLM; socket network disabled",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-05",
+      "status": "FAIL",
+      "actual": "HTTP process=200, batch=200, reindex=404, workspace=200",
+      "evidence": "fake DB; missing local fixture file prevents reindex; no background job launched",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "Reindex action not exercised; authentication absence also verified from route signatures",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-06",
+      "status": "FAIL",
+      "actual": "HTTP 200; foreign reindex reached fake RAG=True",
+      "evidence": "temp file; fake DB/RAG; socket network disabled",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-07",
+      "status": "FAIL",
+      "actual": "HTTP 200; foreign user private KB sentinel=True",
+      "evidence": "fake private KB/public-marked doc, fake vector RAG",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-08",
+      "status": "FAIL",
+      "actual": "nonstream HTTP 200; foreign private KB retrieval invoked=True",
+      "evidence": "fake KB/RAG/LLM/DB; socket network disabled",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "Streaming variant not executed; one failing variant suffices to fail criterion",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-09",
+      "status": "FAIL",
+      "actual": "HTTP 200; private KB document markdown sentinel=True",
+      "evidence": "fake DB, foreign user and public-marked doc",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "Covers markdown variant; list/detail/download not all executed",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-10",
+      "status": "FAIL",
+      "actual": "private KG sentinel returned=True with allowed document_ids=[88]",
+      "evidence": "real DeepRetriever.query, fake KG/vector/embedder; socket network disabled",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-11",
+      "status": "FAIL",
+      "actual": "HTTP 200; fake DB added=True; temp files=1",
+      "evidence": "fake private KB foreign to user; temp dir only",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-12",
+      "status": "FAIL",
+      "actual": "HTTP 200; foreign KB added=True; forged dept retained=True; autoapproved=True",
+      "evidence": "temp dir only; manager dept=2, forged dept=5",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-13",
+      "status": "FAIL",
+      "actual": "HTML event handler executed=True",
+      "evidence": "Approvals.jsx:123-129,587-592 direct HTML sink; knowledge.py:142-174 Admin may read pending entry; browser fixture sets same sink semantics",
+      "environment": "isolated Chromium",
+      "scope": "isolated-browser",
+      "limitations": "The full React approvals flow was not automated; pending-entry delivery established from source",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-14",
+      "status": "FAIL",
+      "actual": "untrusted Markdown event handler executed=True",
+      "evidence": "Exact renderMarkdown function extracted from ChatAssistant.jsx:144-264 and evaluated in Chromium; no network",
+      "environment": "isolated Chromium",
+      "scope": "isolated-browser",
+      "limitations": "Full document upload/preview UI path not automated",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    },
+    {
+      "criterion_id": "SEC-15",
+      "status": "FAIL",
+      "actual": "chat text preserved active HTML=True; executed=True",
+      "evidence": "Exact ChatAssistant renderMarkdown on synthetic chat text, Chromium; no network",
+      "environment": "isolated Chromium",
+      "scope": "isolated-browser",
+      "limitations": "Filename attribute variant not separately run; chat-text variant is sufficient to fail",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "SEC-16",
+      "status": "FAIL",
+      "actual": "HTTP 200; anonymous fixture bytes returned=True",
+      "evidence": "isolated identical StaticFiles mount, temp file; not deployed image ID",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "SEC-17",
+      "status": "FAIL",
+      "actual": "HTTP 200; anonymous fake rating changed=True",
+      "evidence": "fake chat row/DB; no production data",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "SEC-18",
+      "status": "FAIL",
+      "actual": "HTTP stats=200, analytics=200; no auth token",
+      "evidence": "fake private KB; no real stats/KG",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "Analytics may fail on incomplete fake DB; stats path is confirmed",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "SEC-19",
+      "status": "FAIL",
+      "actual": "HTTP 200; recommendation invoked=True",
+      "evidence": "fake KB/doc IDs/recommendation; foreign user",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "SEC-20",
+      "status": "BLOCKED",
+      "actual": "effective JWT secret uses built-in default=False; DEBUG=False",
+      "evidence": "boolean equality only, secret value not printed",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "remote-process-config",
+      "limitations": "Effective process secret differed from built-in default; behavior under forced-default startup not executed; deployed process setting may differ",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "SEC-21",
+      "status": "PASS",
+      "actual": "DEBUG=false rejected=True; DEBUG=true fixture user returned=True",
+      "evidence": "actual get_current_user, fake DB; settings restored",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "SEC-22",
+      "status": "FAIL",
+      "actual": "Với private document fixture43 có thật, anonymous chunks trả200 chứa marker ở cả backend8001 và gateway8888; endpoint metadata đối chứng401.",
+      "evidence": "live-security-fixture-results.json",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "live backend+gateway; own synthetic fixture",
+      "limitations": "Không kết luận đường mạng Internet ngoài gateway; fixture đã xóa.",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "SEC-23",
+      "status": "FAIL",
+      "actual": "non-image bytes with .png HTTP 200; temp file saved=True",
+      "evidence": "legacy avatar upload, temp dir/fake DB; no real image parser",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "Oversize branch not executed; spoofed image variant fails",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "SEC-24",
+      "status": "BLOCKED",
+      "actual": "Both management roles read private fixture KB; neither can modify it",
+      "evidence": "workspaces._can_access_workspace/_can_modify_workspace",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-unit",
+      "limitations": "Role-only helper exercised on one fixture; actual current and newly created KB route matrix not fully run by security suite",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P1"
+    },
+    {
+      "criterion_id": "SEC-25",
+      "status": "FAIL",
+      "actual": "HTTP 200; authenticated id=22 wrote 2 fake chat rows as id=11=True",
+      "evidence": "fake DB/RAG/LLM; no production persistence; socket network disabled",
+      "environment": "remote venv, fake DB/fixtures, no app lifespan",
+      "scope": "isolated-asgi",
+      "limitations": "Requires user_id query parameter; endpoint still authenticates caller",
+      "group": "security",
+      "result_file": "security-results.json",
+      "priority": "P0"
+    }
+  ]
+}

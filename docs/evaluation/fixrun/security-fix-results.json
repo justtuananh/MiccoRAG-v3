@@ -1,0 +1,231 @@
+{
+  "date": "2026-09-29",
+  "stage": "isolated post-fix",
+  "records": [
+    {
+      "criterion_id": "SEC-01",
+      "status": "PASS",
+      "actual": "Khách gọi chunks bị 401 trước truy vấn vector.",
+      "evidence": "test_fix_crossstack.py::test_anonymous_rejected_before_data_or_jobs",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-02",
+      "status": "PASS",
+      "actual": "Người ngoài KB private bị 403; không thấy sentinel và không gọi vector.",
+      "evidence": "test_fix_crossstack.py::test_private_kb_boundary_overrides_public_child_metadata",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-03",
+      "status": "PASS",
+      "actual": "Debug-chat không xác thực trả 401 trước retriever/LLM.",
+      "evidence": "test_fix_crossstack.py::test_anonymous_rejected_before_data_or_jobs; app/api/rag.py debug gate",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-04",
+      "status": "PASS",
+      "actual": "Người ngoài private KB bị 403 ở debug-chat trước truy xuất.",
+      "evidence": "test_api_security_regressions.py::test_foreign_private_routes_deny_before_retrieval",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-05",
+      "status": "PASS",
+      "actual": "Bốn tuyến process/batch/reindex/reindex-workspace đều từ chối khách 401, không tạo tác vụ.",
+      "evidence": "test_fix_crossstack.py::test_anonymous_rejected_before_data_or_jobs",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-06",
+      "status": "PASS",
+      "actual": "Người ngoài không thể reindex tài liệu hoặc KB private; 403 trước xóa chỉ mục.",
+      "evidence": "test_fix_crossstack.py::test_read_all_does_not_grant_write; test_api_security_regressions.py::test_foreign_private_routes_deny_before_retrieval",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-07",
+      "status": "PASS",
+      "actual": "Query KB private có tài liệu gắn public vẫn trả 403, không gọi vector.",
+      "evidence": "test_api_security_regressions.py::test_foreign_private_routes_deny_before_retrieval",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-08",
+      "status": "PASS",
+      "actual": "Chat thường và stream KB private trả 403 trước truy xuất.",
+      "evidence": "test_api_security_regressions.py::test_foreign_private_routes_deny_before_retrieval",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-09",
+      "status": "PASS",
+      "actual": "Liệt kê/markdown/tải tài liệu public-marked trong KB private bị từ chối cho người ngoài.",
+      "evidence": "test_fix_crossstack.py::test_private_kb_boundary_overrides_public_child_metadata; test_api_security_regressions.py::test_foreign_private_routes_deny_before_retrieval",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-10",
+      "status": "PASS",
+      "actual": "KG loại nút/cạnh có nguồn trộn được phép với cấm hoặc thiếu nguồn; empty scope chặn vector/KG.",
+      "evidence": "test_retrieval_scope.py::test_graph_context_rejects_mixed_or_missing_provenance; test_empty_document_scope_skips_vector_and_graph",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-11",
+      "status": "PASS",
+      "actual": "Upload v1 vào KB private của người khác trả 403 trước ghi tệp/DB.",
+      "evidence": "test_api_security_regressions.py::test_v1_upload_rejects_foreign_private_kb_without_file",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-12",
+      "status": "PASS",
+      "actual": "Trưởng phòng upload vào KB thuộc phòng mình nhưng giả department_id/visibility: server lưu phòng thật và loại KB; lô compat của nhân viên cũng bỏ department_id giả.",
+      "evidence": "test_api_security_regressions.py::test_v1_manager_upload_ignores_forged_department_and_visibility; test_batch_commits_once_and_uses_server_department",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-13",
+      "status": "PASS",
+      "actual": "Preview duyệt HTML thử không chạy event handler hoặc javascript URL trong Chromium.",
+      "evidence": "frontend-security-browser.json: approval preview cases",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-14",
+      "status": "PASS",
+      "actual": "Chat history/preview với payload img onerror và SVG onload không thực thi trong Chromium.",
+      "evidence": "frontend-security-browser.json: chat history cases",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-15",
+      "status": "PASS",
+      "actual": "Tên nguồn chứa dấu nháy và thuộc tính trích dẫn được giữ như văn bản, không thoát attribute.",
+      "evidence": "frontend-security-browser.json: citation title case",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-16",
+      "status": "PASS",
+      "actual": "StaticFiles ảnh công khai đã gỡ; ảnh private chỉ lấy qua endpoint bearer: khách 401, người ngoài 403, chủ sở hữu nhận đúng bytes.",
+      "evidence": "test_fix_crossstack.py::test_no_public_document_image_mount; test_api_security_regressions.py::test_protected_image_bytes_require_document_and_kb_access",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-17",
+      "status": "PASS",
+      "actual": "Khách 401, người khác 404, chủ tin nhắn assistant sửa rating thành công.",
+      "evidence": "test_api_security_regressions.py::test_rating_requires_owner_of_assistant_message",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-18",
+      "status": "PASS",
+      "actual": "Stats/analytics private KB từ khách 401, trước truy vấn dữ liệu.",
+      "evidence": "test_fix_crossstack.py::test_anonymous_rejected_before_data_or_jobs",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-19",
+      "status": "PASS",
+      "actual": "Expert recommend private KB của người ngoài trả 403, không gợi ý chuyên gia.",
+      "evidence": "test_api_security_regressions.py::test_foreign_private_routes_deny_before_retrieval",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-20",
+      "status": "PASS",
+      "actual": "Startup ngoài DEBUG với khóa JWT mặc định/blank thất bại trước DB; khóa cấu hình và DEBUG fixture được chấp nhận.",
+      "evidence": "test_fix_crossstack.py::test_production_rejects_unconfigured_jwt; test_insecure_startup_fails_before_database",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-21",
+      "status": "PASS",
+      "actual": "dev-skip bị từ chối khi DEBUG=false và chỉ dùng được trong fixture DEBUG=true.",
+      "evidence": "test_fix_crossstack.py dev-skip regression",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-22",
+      "status": "BLOCKED",
+      "actual": "Chưa probe sau triển khai qua backend thật và gateway; stage cô lập đã qua test, đường live chưa xác nhận.",
+      "evidence": "pending parent deployment + backend/gateway probe",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Chưa kiểm backend:8001 + gateway:8888 sau triển khai."
+    },
+    {
+      "criterion_id": "SEC-23",
+      "status": "PASS",
+      "actual": "Avatar giả dạng .png bị từ chối; ảnh hợp lệ được giải mã/mã hóa lại, hậu tố độc hại bị loại. V1 upload kiểm giới hạn byte và đuôi tệp.",
+      "evidence": "test_fix_crossstack.py::test_fake_avatar_rejected; test_avatar_reencoding_and_db_failure_preserve_previous",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-24",
+      "status": "PASS",
+      "actual": "Giám đốc/Phó giám đốc đọc KB private mới tạo và không sửa được; ma trận read hiện có duy trì.",
+      "evidence": "test_api_security_regressions.py::test_directors_read_new_private_kb_without_write_right; test_fix_crossstack.py::test_private_kb_boundary_overrides_public_child_metadata",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    },
+    {
+      "criterion_id": "SEC-25",
+      "status": "PASS",
+      "actual": "?user_id=1 bị bỏ qua; lịch sử câu hỏi/trả lời chỉ ghi cho caller ID=5.",
+      "evidence": "test_api_security_regressions.py::test_chat_ignores_forged_query_user_id",
+      "environment": "isolated ASGI/SQLite or Chromium fixture; test-only sources",
+      "scope": "post-fix staged source",
+      "limitations": "Không thay thế rà soát bảo mật toàn hệ thống; không dùng dữ liệu doanh nghiệp thật."
+    }
+  ]
+}

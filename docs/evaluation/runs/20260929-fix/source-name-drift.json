@@ -1,0 +1,8 @@
+{
+  "document_id": 22,
+  "original_filename_from_cloned_database": "Quy trình mua sắm vật tư an toàn.docx",
+  "retrieval_source_label": "KD-Quy-trinh-mua-sam-vat-tu-an-toan.docx",
+  "impact_before_fix": "Citation IDs resolved by document ID, but displayed source label came from stale vector metadata.",
+  "status_after_fix": "Resolved at retrieval assembly using current Document.original_filename; old vector metadata left intact.",
+  "proof": "src02-proof.json"
+}

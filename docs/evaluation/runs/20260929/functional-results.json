@@ -1,0 +1,268 @@
+{
+  "records": [
+    {
+      "criterion_id": "FUNC-01",
+      "status": "PASS",
+      "actual": "Đăng nhập bằng tài khoản thử: đúng trả 200, sai trả 401; yêu cầu nâng vai trò khi đăng ký bị bỏ qua. Năm vai trò xác thực được qua /me và token; token không hợp lệ khiến trình duyệt về trang đăng nhập và bị xóa.",
+      "evidence": "live-auth-profile-results.json; live-lifecycle-results.json; browser-results.json; business-sqlite-raw.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Đạt trong phạm vi các biến thể đã ghi; chưa thử mật khẩu thật của người dùng hiện hữu."
+    },
+    {
+      "criterion_id": "FUNC-02",
+      "status": "BLOCKED",
+      "actual": "Token không hợp lệ được xóa và chuyển về trang đăng nhập; 55 liên kết trực tiếp qua năm vai trò hoạt động đúng. Lượt kiểm Back/reload gặp Playwright networkidle timeout, chưa quy thành lỗi ứng dụng.",
+      "evidence": "browser-results.json; browser-session.log",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa đủ bằng chứng cho bfcache, đăng xuất và mất token giữa phiên."
+    },
+    {
+      "criterion_id": "FUNC-03",
+      "status": "FAIL",
+      "actual": "Đăng ký, cập nhật hồ sơ và đổi mật khẩu qua API live đạt; không thể tự nâng lên Admin. Tuy nhiên endpoint avatar nhận nội dung không phải ảnh có tên .png (SEC-23). MissingGreenlet ở SQLite không tái hiện trên live nên đã loại.",
+      "evidence": "live-auth-profile-results.json; security-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "FUNC-04",
+      "status": "FAIL",
+      "actual": "Giám đốc, Phó giám đốc và Trưởng phòng vào được giao diện /admin và /departments, nhưng API users, stats, logs và departments đều trả 403; quyền hiển thị thao tác lệch với backend.",
+      "evidence": "browser-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "FUNC-05",
+      "status": "PASS",
+      "actual": "KB private thử nghiệm được tạo (201), đổi tên và mô tả (200), rồi đọc lại đúng. SQLite kiểm danh sách, tóm tắt, chi tiết và tạo KB theo loại với sáu vai trò; trang workspaces mở được với năm vai trò.",
+      "evidence": "live-lifecycle-results.json; business-results.json; browser-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Phạm vi gồm API với dữ liệu thử và đọc UI; chưa bao phủ mọi biến thể lọc và validation."
+    },
+    {
+      "criterion_id": "FUNC-06",
+      "status": "BLOCKED",
+      "actual": "Xóa hai KB thử sau khi xóa tài liệu TXT trả 204; đã kiểm các thư mục Docling.",
+      "evidence": "live-lifecycle-results.json; cleanup-verification.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa diễn tập cascade với KB có ảnh, graph, phiên bản; chính sách khôi phục Q-06 chưa chốt."
+    },
+    {
+      "criterion_id": "FUNC-07",
+      "status": "FAIL",
+      "actual": "Upload và lập chỉ mục TXT đạt, tệp .exe bị từ chối 400. Tuy nhiên upload vào KB của người khác và mạo phòng ban vẫn được chấp nhận trong ASGI cô lập (SEC-11/12).",
+      "evidence": "live-lifecycle-results.json; security-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "FUNC-08",
+      "status": "FAIL",
+      "actual": "Lô valid.txt + invalid.exe trả HTTP 400 nhưng tài liệu hợp lệ, phiên bản và tệp đã được lưu; phản hồi không nêu phần đã thành công. Upload lặp cùng nội dung tạo hai tài liệu.",
+      "evidence": "functional-multiupload-results.json",
+      "scope": "Handler thật, SQLite và thư mục tạm; không ghi dữ liệu live.",
+      "limitations": "Chính sách chống trùng cần xác nhận; lỗi phản hồi lô hỗn hợp đã tái hiện. Chưa thử mất mạng."
+    },
+    {
+      "criterion_id": "FUNC-09",
+      "status": "BLOCKED",
+      "actual": "TXT live đi từ pending qua processing đến indexed trong khoảng 6 giây; approval là approved, metadata và API đồng nhất.",
+      "evidence": "live-lifecycle-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa thử tệp rỗng, lỗi parser và thông báo UI tương ứng."
+    },
+    {
+      "criterion_id": "FUNC-10",
+      "status": "BLOCKED",
+      "actual": "Gửi yêu cầu process lần hai trả 409.",
+      "evidence": "live-lifecycle-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa thử timeout, restart khi đang ingest và retry tài liệu failed trên VPS dùng chung; cần môi trường cô lập."
+    },
+    {
+      "criterion_id": "FUNC-11",
+      "status": "NOT_RUN",
+      "actual": "Đã mở trang và danh sách theo vai trò.",
+      "evidence": "browser-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa kiểm đầy đủ tìm kiếm tiếng Việt, loại, tag, phòng ban và trạng thái; mở được trang chưa đủ để PASS."
+    },
+    {
+      "criterion_id": "FUNC-12",
+      "status": "FAIL",
+      "actual": "Với tài liệu private thử số 43, metadata anonymous trả 401 nhưng chunk anonymous trả 200 ở backend và gateway; ảnh static cũng trả bytes từ fixture trong ASGI (SEC-16).",
+      "evidence": "live-security-fixture-results.json; security-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "FUNC-13",
+      "status": "BLOCKED",
+      "actual": "Chưa tạo bộ phiên bản V1/V2 để đối chiếu.",
+      "evidence": "evaluation/README.md Q-05",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa chốt oracle ngày hiệu lực và phê duyệt bản mới; cần bộ phiên bản có nguồn vàng."
+    },
+    {
+      "criterion_id": "FUNC-14",
+      "status": "BLOCKED",
+      "actual": "Xóa hai tài liệu TXT thử rồi GET trả 404 và query trả 0 chunk.",
+      "evidence": "live-lifecycle-results.json; live-security-fixture-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa chứng minh đầy đủ phạm vi lịch sử, graph, ảnh và phiên bản; xem Q-06."
+    },
+    {
+      "criterion_id": "FUNC-15",
+      "status": "BLOCKED",
+      "actual": "SQLite kiểm count và danh sách theo đúng cấp; chuyển pending → pending_org → approved. Yêu cầu duyệt lặp hoặc trái cấp bị chặn.",
+      "evidence": "business-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa kiểm UI nhiều phiên, xử lý đồng thời và oracle duyệt hai cấp Q-01; tác vụ ingest trong test được mock."
+    },
+    {
+      "criterion_id": "FUNC-16",
+      "status": "FAIL",
+      "actual": "Khi browser nhận một token rồi EOF mà thiếu complete, UI bỏ spinner, mở lại input và hiển thị đáp án một phần không cảnh báo. Lỗi explicit và HTTP 503 được báo đúng.",
+      "evidence": "browser-fault-results.json; browser-faults.mjs",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "FUNC-17",
+      "status": "FAIL",
+      "actual": "Trong fixture ASGI, user 22 gọi chat với user_id=11 và hai dòng lịch sử được lưu dưới user 11 (SEC-25).",
+      "evidence": "security-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Không ghi vào lịch sử người dùng thật; lịch sử được mock trong fixture."
+    },
+    {
+      "criterion_id": "FUNC-18",
+      "status": "FAIL",
+      "actual": "Ở lượt lặp G01 thứ hai, answer dẫn [hbc1] nhưng source index là hbcl, nên không ánh xạ được nguồn.",
+      "evidence": "rag-graded-answers.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "FUNC-19",
+      "status": "FAIL",
+      "actual": "HTML của KnowledgeEntry không được lọc; sự kiện trong HTML thử nghiệm thực thi khi render preview Admin (SEC-13).",
+      "evidence": "security-results.json; xss-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "FUNC-20",
+      "status": "BLOCKED",
+      "actual": "Bộ kiểm expert có 23 unit test đạt trong suite 44 test.",
+      "evidence": "harness.log; evaluation/README.md Q-07",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa có oracle xác nhận uploader có phải chuyên gia nghiệp vụ và quy tắc xếp hạng khi đồng điểm."
+    },
+    {
+      "criterion_id": "FUNC-21",
+      "status": "FAIL",
+      "actual": "Với cả Giám đốc và Phó giám đốc, KB 9 cho RAG [22, 23] nhưng Expert trả []; KB 11 cho RAG 5 tài liệu nhưng Expert chỉ có 3 tài liệu public.",
+      "evidence": "expert-scope-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Đã chạy hàm thật trên DB đang hoạt động ở chế độ chỉ đọc."
+    },
+    {
+      "criterion_id": "FUNC-22",
+      "status": "FAIL",
+      "actual": "Các đường chunks, stats, analytics lồng và KG không tuân phạm vi quyền; SEC-01/10/18 xác nhận bằng fixture runtime.",
+      "evidence": "security-results.json; live-security-fixture-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": ""
+    },
+    {
+      "criterion_id": "FUNC-23",
+      "status": "BLOCKED",
+      "actual": "Trang dashboard mở được với năm vai trò.",
+      "evidence": "browser-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Phạm vi “của tôi/toàn công ty” và biểu đồ ở ngày biên chưa chốt; chưa có số đếm chuẩn từ DB (Q-04)."
+    },
+    {
+      "criterion_id": "FUNC-24",
+      "status": "BLOCKED",
+      "actual": "Trên SQLite, đổi vai trò với cùng JWT cấp và rút quyền đúng; tổ hợp vai trò/phòng ban không hợp lệ trả 400.",
+      "evidence": "business-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa thử xóa tài khoản hoặc phòng ban đang có liên kết; cần fixture quan hệ và chính sách dọn dữ liệu."
+    },
+    {
+      "criterion_id": "FUNC-25",
+      "status": "BLOCKED",
+      "actual": "Đường API log của Admin hoạt động; vai trò quản lý khác nhận 403.",
+      "evidence": "browser-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa chốt phạm vi và thời hạn lưu log; chưa thử retention (Q-09)."
+    },
+    {
+      "criterion_id": "FUNC-26",
+      "status": "NOT_RUN",
+      "actual": "Có 55 lượt mở route desktop mà không gặp page error.",
+      "evidence": "browser-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa kiểm đầy đủ mobile, bàn phím, focus và giao diện sáng/tối; mở route chưa thay thế kiểm UX."
+    },
+    {
+      "criterion_id": "OPS-01",
+      "status": "BLOCKED",
+      "actual": "Health, ready và probe trả 200; smoke ban đầu có bốn lượt curl 000, lần kiểm lại trả 200.",
+      "evidence": "harness.log; smoke-recheck.log",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Không gây lỗi DB/vector thật trên VPS dùng chung. Readiness trả tĩnh nên 200 chưa chứng minh dependency hoạt động; cần fault test ở staging."
+    },
+    {
+      "criterion_id": "OPS-02",
+      "status": "PASS",
+      "actual": "Đã lưu provider, model, dimension (không lưu secret) và SHA-256 tệp mã nguồn; query/chat thật trả 200, truy xuất được nguồn.",
+      "evidence": "snapshot.json; rag-pilot-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa ép tình huống sai dimension; PASS chỉ cho cấu hình quan sát được."
+    },
+    {
+      "criterion_id": "OPS-03",
+      "status": "BLOCKED",
+      "actual": "Đã kiểm UI với HTTP 503 và lỗi SSE.",
+      "evidence": "browser-fault-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa mô phỏng đầy đủ provider 429, timeout và fallback reranker; cần fixture lỗi backend có phạm vi xác định."
+    },
+    {
+      "criterion_id": "OPS-04",
+      "status": "BLOCKED",
+      "actual": "Đã đo pilot query, chat và SSE đơn phiên.",
+      "evidence": "rag-pilot-results.json; rag-stream-results.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa chạy tải 10 phiên hoặc 100 lượt mỗi chế độ trên VPS dùng chung; SLA và môi trường tải chưa chốt (Q-11)."
+    },
+    {
+      "criterion_id": "OPS-05",
+      "status": "BLOCKED",
+      "actual": "Chưa diễn tập reboot hoặc restore trên hệ thống dùng chung.",
+      "evidence": "evaluation/README.md Q-11",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Thiếu bản backup và RPO/RTO đã chốt; cần staging để thử mà không ảnh hưởng người dùng."
+    },
+    {
+      "criterion_id": "OPS-06",
+      "status": "BLOCKED",
+      "actual": "Harness unit 44 và build đạt; thiếu DuckDNS tùy chọn khiến harness FAIL. Kiểm RAG/browser ngoài harness phát hiện thêm P0.",
+      "evidence": "harness.log; smoke-recheck.log",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Chưa thay hoặc kiểm mọi nhánh skip của QA runner. Không coi unit/build là GO; báo cáo tổng hợp kết luận NO-GO."
+    },
+    {
+      "criterion_id": "OPS-07",
+      "status": "PASS",
+      "actual": "Đã lưu SHA commit, hash từng tệp mã nguồn, cấu hình che bí mật, hash nguồn gốc, báo cáo và kết quả kiểm cleanup; mã ứng dụng không đổi.",
+      "evidence": "snapshot.json; cleanup-verification.json",
+      "scope": "live API/browser + isolated tests as noted",
+      "limitations": "Working tree ban đầu đã dirty; snapshot dựa trên nội dung thực tế, không chỉ SHA commit."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "source": "127.0.0.1:8003 (read only)",
+  "destination": "127.0.0.1:18003 (isolated)",
+  "collections": {
+    "kb_9": {
+      "source_count": 387,
+      "destination_count": 387,
+      "source_content_digest": "d02c4a48c793ea72e631ff6486567effcfc79a6feb77bf415011861b0e7fc11a"
+    },
+    "kb_11": {
+      "source_count": 388,
+      "destination_count": 388,
+      "source_content_digest": "01bf1e3fa2cffc2d03c110c5445e719941d2fd345ca6c9788b9edf7d96ce3e54"
+    }
+  },
+  "g04_source_chunk": {
+    "id": "doc_22_chunk_2",
+    "has_table": true,
+    "has_20_days": true,
+    "has_director": true
+  }
+}

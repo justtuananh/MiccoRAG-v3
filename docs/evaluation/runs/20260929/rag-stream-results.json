@@ -1,0 +1,2230 @@
+{
+  "run_id": "EVAL-20260929-2340d317",
+  "cases": [
+    {
+      "id": "G01",
+      "doc": 26,
+      "kb": 11,
+      "question": "Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp mỗi tháng là bao nhiêu và có dùng làm căn cứ đóng bảo hiểm xã hội không?",
+      "required": [
+        "1.250.000",
+        "không"
+      ],
+      "expected": "1.250.000 đồng/tháng; không dùng làm căn cứ tính đóng BHXH",
+      "criteria": [
+        "RAG-17",
+        "SRC-01"
+      ]
+    },
+    {
+      "id": "G02",
+      "doc": 26,
+      "kb": 11,
+      "question": "Theo tài liệu được chọn, nghỉ đúng 14 ngày trong tháng có được hưởng phụ cấp độc hại không? Có được quy đổi bồi dưỡng hiện vật thành tiền không?",
+      "required": [
+        "14",
+        "không"
+      ],
+      "expected": "Nghỉ từ 14 ngày trở lên không được hưởng phụ cấp tháng đó; hiện vật không quy đổi thành tiền",
+      "criteria": [
+        "RAG-14",
+        "RAG-17"
+      ]
+    },
+    {
+      "id": "G03",
+      "doc": 26,
+      "kb": 11,
+      "question": "Theo tài liệu được chọn, Phòng Nhân sự rà soát danh sách hưởng phụ cấp vào ngày nào hằng tháng?",
+      "required": [
+        "25"
+      ],
+      "expected": "Ngày 25 hằng tháng",
+      "criteria": [
+        "RAG-17",
+        "SRC-02"
+      ]
+    },
+    {
+      "id": "G04",
+      "doc": 22,
+      "kb": 9,
+      "question": "Theo quy trình mua sắm vật tư được chọn, gói đúng 500 triệu đồng có phải đấu thầu không, ai phê duyệt và thời gian xử lý tối đa bao nhiêu ngày làm việc?",
+      "required": [
+        "500",
+        "20",
+        "giám đốc",
+        "đấu thầu"
+      ],
+      "expected": "Có đấu thầu; Giám đốc phê duyệt; 20 ngày làm việc; từ 500 triệu trở lên",
+      "criteria": [
+        "RAG-02",
+        "RAG-14",
+        "RAG-17"
+      ]
+    },
+    {
+      "id": "G05",
+      "doc": 22,
+      "kb": 9,
+      "question": "Theo tài liệu được chọn, hãy nêu đủ năm bước mua sắm vật tư và đơn vị nghiệm thu chất lượng trước khi thanh toán.",
+      "required": [
+        "đề xuất",
+        "thẩm định",
+        "nhà cung cấp",
+        "hợp đồng",
+        "nghiệm thu",
+        "ban an toàn"
+      ],
+      "expected": "Đề xuất; thẩm định; chọn nhà cung cấp; ký hợp đồng và nhận hàng; nghiệm thu và thanh toán; Ban An toàn nghiệm thu trước Phòng Kế toán thanh toán",
+      "criteria": [
+        "RAG-14",
+        "SRC-01"
+      ]
+    },
+    {
+      "id": "G06",
+      "doc": 27,
+      "kb": 11,
+      "question": "Theo kế hoạch huấn luyện năm 2026 được chọn, đợt III diễn ra tháng nào, bao nhiêu người, thời lượng và đơn vị huấn luyện là gì?",
+      "required": [
+        "9",
+        "134",
+        "16",
+        "cao đẳng"
+      ],
+      "expected": "Tháng 9; 134 người; 16 giờ; Trường Cao đẳng Công nghiệp",
+      "criteria": [
+        "RAG-02",
+        "RAG-17"
+      ]
+    },
+    {
+      "id": "G07",
+      "doc": 27,
+      "kb": 11,
+      "question": "Theo kế hoạch huấn luyện được chọn, bài sát hạch có bao nhiêu câu, thời gian làm bài, mức điểm đạt và người không đạt phải thi lại trong bao lâu?",
+      "required": [
+        "40",
+        "45",
+        "80",
+        "30"
+      ],
+      "expected": "40 câu trong 45 phút; từ 80 điểm; học lại và sát hạch bổ sung trong 30 ngày",
+      "criteria": [
+        "RAG-14",
+        "RAG-17"
+      ]
+    },
+    {
+      "id": "G08",
+      "doc": 26,
+      "kb": 11,
+      "question": "Chỉ theo tài liệu được chọn, số điện thoại cá nhân của người phụ trách quy chế phụ cấp là gì? Nếu tài liệu không có thì nói rõ không có thông tin.",
+      "required": [],
+      "expected": "Không có số điện thoại trong nguồn; phải từ chối cung cấp số phỏng đoán",
+      "no_answer": true,
+      "criteria": [
+        "RAG-16"
+      ]
+    },
+    {
+      "id": "G09",
+      "doc": 26,
+      "kb": 11,
+      "question": "Theo tài liệu được chọn, phụ cấp độc hại là 9.999.999 đồng/tháng đúng không? Hãy kiểm tra và đính chính theo nguồn.",
+      "required": [
+        "1.250.000"
+      ],
+      "expected": "Bác bỏ 9.999.999; xác nhận 1.250.000 đồng/tháng",
+      "criteria": [
+        "RAG-17",
+        "SRC-01"
+      ]
+    },
+    {
+      "id": "G10",
+      "doc": 26,
+      "kb": 11,
+      "question": "Theo tài liệu được chọn, mức phụ cấp độc hại hằng tháng là bao nhiêu, và số điện thoại cá nhân người phụ trách là gì?",
+      "required": [
+        "1.250.000"
+      ],
+      "expected": "1.250.000 đồng/tháng; nguồn không có số điện thoại cá nhân",
+      "criteria": [
+        "RAG-15"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "case_id": "G01",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "url": "http://127.0.0.1:8001/api/v1/rag/chat/11/stream",
+      "request": {
+        "message": "Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp mỗi tháng là bao nhiêu và có dùng làm căn cứ đóng bảo hiểm xã hội không? [Mã phiên đánh giá EVAL-20260929-2340d317/G01/stream/Giám đốc/1]",
+        "document_ids": [
+          26
+        ],
+        "mode": "hybrid",
+        "force_search": true,
+        "enable_thinking": false
+      },
+      "mode_requested": "hybrid",
+      "status_code": 200,
+      "events": [
+        {
+          "event": "status",
+          "data": {
+            "step": "retrieving",
+            "detail": "Searching: Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp mỗi tháng là ..."
+          }
+        },
+        {
+          "event": "sources",
+          "data": {
+            "sources": [
+              {
+                "index": "ccbo",
+                "chunk_id": "doc_26_chunk_2",
+                "content": "Mức phụ cấp độc hại là <b>1.250.000 đồng mỗi tháng</b>, chi trả cùng kỳ lương hằng tháng. Phụ cấp không dùng làm căn cứ tính đóng bảo hiểm xã hội.",
+                "document_id": 26,
+                "page_no": 0,
+                "heading_path": [
+                  "QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT",
+                  "Điều 2. Mức phụ cấp độc hại"
+                ],
+                "score": 0.0,
+                "source_type": "vector"
+              }
+            ]
+          }
+        },
+        {
+          "event": "status",
+          "data": {
+            "step": "analyzing",
+            "detail": "Analyzing your question..."
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "Theo"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " quy"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " chế"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " phụ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cấp"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " độc"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " h"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ại"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " trong"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tài"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " liệu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " được"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " chọn"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": ","
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " mức"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " phụ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cấp"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " độc"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " h"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ại"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " là"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " "
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "1"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "."
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "250"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "."
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "000"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " đồng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " mỗi"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tháng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": ","
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " chi"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " trả"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cùng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " kỳ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " l"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ương"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " h"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ằng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tháng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "."
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " Ph"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ụ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cấp"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " này"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " không"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " dùng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " làm"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " căn"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cứ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tính"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " đóng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " bảo"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " hiểm"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " xã"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " hội"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "["
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "cc"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "bo"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "]."
+          }
+        },
+        {
+          "event": "complete",
+          "data": {
+            "answer": "Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, chi trả cùng kỳ lương hằng tháng. Phụ cấp này không dùng làm căn cứ tính đóng bảo hiểm xã hội[ccbo].",
+            "sources": [
+              {
+                "index": "ccbo",
+                "chunk_id": "doc_26_chunk_2",
+                "content": "Mức phụ cấp độc hại là <b>1.250.000 đồng mỗi tháng</b>, chi trả cùng kỳ lương hằng tháng. Phụ cấp không dùng làm căn cứ tính đóng bảo hiểm xã hội.",
+                "document_id": 26,
+                "page_no": 0,
+                "heading_path": [
+                  "QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT",
+                  "Điều 2. Mức phụ cấp độc hại"
+                ],
+                "score": 0.0,
+                "source_type": "vector"
+              }
+            ],
+            "image_refs": [],
+            "thinking": null,
+            "related_entities": []
+          }
+        }
+      ],
+      "raw_sse": "event: status\ndata: {\"step\": \"retrieving\", \"detail\": \"Searching: Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp mỗi tháng là ...\"}\n\nevent: sources\ndata: {\"sources\": [{\"index\": \"ccbo\", \"chunk_id\": \"doc_26_chunk_2\", \"content\": \"Mức phụ cấp độc hại là <b>1.250.000 đồng mỗi tháng</b>, chi trả cùng kỳ lương hằng tháng. Phụ cấp không dùng làm căn cứ tính đóng bảo hiểm xã hội.\", \"document_id\": 26, \"page_no\": 0, \"heading_path\": [\"QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT\", \"Điều 2. Mức phụ cấp độc hại\"], \"score\": 0.0, \"source_type\": \"vector\"}]}\n\nevent: status\ndata: {\"step\": \"analyzing\", \"detail\": \"Analyzing your question...\"}\n\nevent: token\ndata: {\"text\": \"Theo\"}\n\nevent: token\ndata: {\"text\": \" quy\"}\n\nevent: token\ndata: {\"text\": \" chế\"}\n\nevent: token\ndata: {\"text\": \" phụ\"}\n\nevent: token\ndata: {\"text\": \" cấp\"}\n\nevent: token\ndata: {\"text\": \" độc\"}\n\nevent: token\ndata: {\"text\": \" h\"}\n\nevent: token\ndata: {\"text\": \"ại\"}\n\nevent: token\ndata: {\"text\": \" trong\"}\n\nevent: token\ndata: {\"text\": \" tài\"}\n\nevent: token\ndata: {\"text\": \" liệu\"}\n\nevent: token\ndata: {\"text\": \" được\"}\n\nevent: token\ndata: {\"text\": \" chọn\"}\n\nevent: token\ndata: {\"text\": \",\"}\n\nevent: token\ndata: {\"text\": \" mức\"}\n\nevent: token\ndata: {\"text\": \" phụ\"}\n\nevent: token\ndata: {\"text\": \" cấp\"}\n\nevent: token\ndata: {\"text\": \" độc\"}\n\nevent: token\ndata: {\"text\": \" h\"}\n\nevent: token\ndata: {\"text\": \"ại\"}\n\nevent: token\ndata: {\"text\": \" là\"}\n\nevent: token\ndata: {\"text\": \" \"}\n\nevent: token\ndata: {\"text\": \"1\"}\n\nevent: token\ndata: {\"text\": \".\"}\n\nevent: token\ndata: {\"text\": \"250\"}\n\nevent: token\ndata: {\"text\": \".\"}\n\nevent: token\ndata: {\"text\": \"000\"}\n\nevent: token\ndata: {\"text\": \" đồng\"}\n\nevent: token\ndata: {\"text\": \" mỗi\"}\n\nevent: token\ndata: {\"text\": \" tháng\"}\n\nevent: token\ndata: {\"text\": \",\"}\n\nevent: token\ndata: {\"text\": \" chi\"}\n\nevent: token\ndata: {\"text\": \" trả\"}\n\nevent: token\ndata: {\"text\": \" cùng\"}\n\nevent: token\ndata: {\"text\": \" kỳ\"}\n\nevent: token\ndata: {\"text\": \" l\"}\n\nevent: token\ndata: {\"text\": \"ương\"}\n\nevent: token\ndata: {\"text\": \" h\"}\n\nevent: token\ndata: {\"text\": \"ằng\"}\n\nevent: token\ndata: {\"text\": \" tháng\"}\n\nevent: token\ndata: {\"text\": \".\"}\n\nevent: token\ndata: {\"text\": \" Ph\"}\n\nevent: token\ndata: {\"text\": \"ụ\"}\n\nevent: token\ndata: {\"text\": \" cấp\"}\n\nevent: token\ndata: {\"text\": \" này\"}\n\nevent: token\ndata: {\"text\": \" không\"}\n\nevent: token\ndata: {\"text\": \" dùng\"}\n\nevent: token\ndata: {\"text\": \" làm\"}\n\nevent: token\ndata: {\"text\": \" căn\"}\n\nevent: token\ndata: {\"text\": \" cứ\"}\n\nevent: token\ndata: {\"text\": \" tính\"}\n\nevent: token\ndata: {\"text\": \" đóng\"}\n\nevent: token\ndata: {\"text\": \" bảo\"}\n\nevent: token\ndata: {\"text\": \" hiểm\"}\n\nevent: token\ndata: {\"text\": \" xã\"}\n\nevent: token\ndata: {\"text\": \" hội\"}\n\nevent: token\ndata: {\"text\": \"[\"}\n\nevent: token\ndata: {\"text\": \"cc\"}\n\nevent: token\ndata: {\"text\": \"bo\"}\n\nevent: token\ndata: {\"text\": \"].\"}\n\nevent: complete\ndata: {\"answer\": \"Theo quy chế phụ cấp độc hại trong tài liệu được chọn, mức phụ cấp độc hại là 1.250.000 đồng mỗi tháng, chi trả cùng kỳ lương hằng tháng. Phụ cấp này không dùng làm căn cứ tính đóng bảo hiểm xã hội[ccbo].\", \"sources\": [{\"index\": \"ccbo\", \"chunk_id\": \"doc_26_chunk_2\", \"content\": \"Mức phụ cấp độc hại là <b>1.250.000 đồng mỗi tháng</b>, chi trả cùng kỳ lương hằng tháng. Phụ cấp không dùng làm căn cứ tính đóng bảo hiểm xã hội.\", \"document_id\": 26, \"page_no\": 0, \"heading_path\": [\"QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT\", \"Điều 2. Mức phụ cấp độc hại\"], \"score\": 0.0, \"source_type\": \"vector\"}], \"image_refs\": [], \"thinking\": null, \"related_entities\": []}\n",
+      "first_token_seconds": 4.155573601019569,
+      "seconds": 5.31
+    },
+    {
+      "case_id": "G04",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "url": "http://127.0.0.1:8001/api/v1/rag/chat/9/stream",
+      "request": {
+        "message": "Theo quy trình mua sắm vật tư được chọn, gói đúng 500 triệu đồng có phải đấu thầu không, ai phê duyệt và thời gian xử lý tối đa bao nhiêu ngày làm việc? [Mã phiên đánh giá EVAL-20260929-2340d317/G04/stream/Giám đốc/1]",
+        "document_ids": [
+          22
+        ],
+        "mode": "hybrid",
+        "force_search": true,
+        "enable_thinking": false
+      },
+      "mode_requested": "hybrid",
+      "status_code": 200,
+      "events": [
+        {
+          "event": "status",
+          "data": {
+            "step": "retrieving",
+            "detail": "Searching: Theo quy trình mua sắm vật tư được chọn, gói đúng 500 triệu đồng có phải đấu thầ..."
+          }
+        },
+        {
+          "event": "sources",
+          "data": {
+            "sources": [
+              {
+                "index": "aj3d",
+                "chunk_id": "doc_22_chunk_1",
+                "content": "Bước 1 — Đề xuất nhu cầu: đơn vị sử dụng lập phiếu đề xuất, có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật.\nBước 2 — Thẩm định: Phòng Kinh doanh đối chiếu định mức và ngân sách được duyệt.\nBước 3 — Lựa chọn nhà cung cấp: chỉ mua từ danh sách nhà cung cấp đã được phê duyệt. Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu.\nBước 4 — Ký hợp đồng và nhận hàng: kiểm tra chứng nhận hợp quy, hạn sử dụng và tem kiểm định.\nBước 5 — Nghiệm thu và thanh toán: Ban An toàn nghiệm thu chất lượng trước khi Phòng Kế toán thanh toán.",
+                "document_id": 22,
+                "page_no": 0,
+                "heading_path": [
+                  "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN",
+                  "Năm bước thực hiện"
+                ],
+                "score": 0.0,
+                "source_type": "vector"
+              }
+            ]
+          }
+        },
+        {
+          "event": "status",
+          "data": {
+            "step": "analyzing",
+            "detail": "Analyzing your question..."
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "Theo"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " quy"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " trình"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " mua"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " s"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ắm"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " vật"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tư"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " an"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " toàn"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": ":\n\n"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "-"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " G"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ói"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " mua"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " s"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ắm"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " có"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " giá"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " trị"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " từ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " "
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "500"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " triệu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " đồng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " trở"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " lên"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " bắt"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " bu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ộc"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tổ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " chức"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " đấu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " th"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ầu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "."
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " Nh"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ư"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " vậy"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": ","
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " g"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ói"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " đúng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " "
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "500"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " triệu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " đồng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cũng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " phải"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " đấu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " th"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ầu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "["
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "aj"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "3"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "d"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "].\n\n"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "-"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " Vi"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ệc"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " lựa"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " chọn"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " nhà"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cung"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cấp"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " chỉ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " được"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " thực"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " hiện"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " từ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " danh"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " sách"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " nhà"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cung"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cấp"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " đã"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " được"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " ph"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ê"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " duy"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ệt"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "."
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " Tuy"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " nhiên"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": ","
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tài"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " liệu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " không"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " n"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "êu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " rõ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " ai"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " là"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " người"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " ph"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ê"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " duy"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ệt"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " danh"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " sách"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " nhà"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cung"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cấp"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " hoặc"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " ph"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ê"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " duy"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ệt"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " g"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ói"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " mua"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " s"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ắm"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cụ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " thể"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": ".\n\n"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "-"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " V"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ề"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " thời"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " gian"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " xử"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " lý"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tối"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " đa"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " bao"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " nhi"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "êu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " ngày"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " làm"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " việc"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": ","
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tài"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " liệu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " không"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cung"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cấp"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " thông"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tin"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cụ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " thể"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " về"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " thời"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " gian"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " xử"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " lý"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " trong"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " quy"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " trình"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " này"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": ".\n\n"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "T"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "óm"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " lại"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": ","
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " g"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ói"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " mua"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " s"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ắm"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " đúng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " "
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "500"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " triệu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " đồng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " phải"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tổ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " chức"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " đấu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " th"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ầu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": ","
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " nhà"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cung"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cấp"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " phải"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " nằm"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " trong"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " danh"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " sách"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " được"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " ph"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ê"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " duy"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ệt"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": ","
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " nhưng"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " thông"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tin"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " về"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " người"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " ph"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ê"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " duy"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ệt"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " và"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " thời"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " gian"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " xử"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " lý"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tối"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " đa"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " không"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " được"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " n"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "êu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " trong"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tài"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " liệu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " hiện"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " có"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "."
+          }
+        },
+        {
+          "event": "complete",
+          "data": {
+            "answer": "Theo quy trình mua sắm vật tư an toàn:\n\n- Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu. Như vậy, gói đúng 500 triệu đồng cũng phải đấu thầu[aj3d].\n\n- Việc lựa chọn nhà cung cấp chỉ được thực hiện từ danh sách nhà cung cấp đã được phê duyệt. Tuy nhiên, tài liệu không nêu rõ ai là người phê duyệt danh sách nhà cung cấp hoặc phê duyệt gói mua sắm cụ thể.\n\n- Về thời gian xử lý tối đa bao nhiêu ngày làm việc, tài liệu không cung cấp thông tin cụ thể về thời gian xử lý trong quy trình này.\n\nTóm lại, gói mua sắm đúng 500 triệu đồng phải tổ chức đấu thầu, nhà cung cấp phải nằm trong danh sách được phê duyệt, nhưng thông tin về người phê duyệt và thời gian xử lý tối đa không được nêu trong tài liệu hiện có.",
+            "sources": [
+              {
+                "index": "aj3d",
+                "chunk_id": "doc_22_chunk_1",
+                "content": "Bước 1 — Đề xuất nhu cầu: đơn vị sử dụng lập phiếu đề xuất, có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật.\nBước 2 — Thẩm định: Phòng Kinh doanh đối chiếu định mức và ngân sách được duyệt.\nBước 3 — Lựa chọn nhà cung cấp: chỉ mua từ danh sách nhà cung cấp đã được phê duyệt. Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu.\nBước 4 — Ký hợp đồng và nhận hàng: kiểm tra chứng nhận hợp quy, hạn sử dụng và tem kiểm định.\nBước 5 — Nghiệm thu và thanh toán: Ban An toàn nghiệm thu chất lượng trước khi Phòng Kế toán thanh toán.",
+                "document_id": 22,
+                "page_no": 0,
+                "heading_path": [
+                  "QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN",
+                  "Năm bước thực hiện"
+                ],
+                "score": 0.0,
+                "source_type": "vector"
+              }
+            ],
+            "image_refs": [],
+            "thinking": null,
+            "related_entities": []
+          }
+        }
+      ],
+      "raw_sse": "event: status\ndata: {\"step\": \"retrieving\", \"detail\": \"Searching: Theo quy trình mua sắm vật tư được chọn, gói đúng 500 triệu đồng có phải đấu thầ...\"}\n\nevent: sources\ndata: {\"sources\": [{\"index\": \"aj3d\", \"chunk_id\": \"doc_22_chunk_1\", \"content\": \"Bước 1 — Đề xuất nhu cầu: đơn vị sử dụng lập phiếu đề xuất, có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật.\\nBước 2 — Thẩm định: Phòng Kinh doanh đối chiếu định mức và ngân sách được duyệt.\\nBước 3 — Lựa chọn nhà cung cấp: chỉ mua từ danh sách nhà cung cấp đã được phê duyệt. Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu.\\nBước 4 — Ký hợp đồng và nhận hàng: kiểm tra chứng nhận hợp quy, hạn sử dụng và tem kiểm định.\\nBước 5 — Nghiệm thu và thanh toán: Ban An toàn nghiệm thu chất lượng trước khi Phòng Kế toán thanh toán.\", \"document_id\": 22, \"page_no\": 0, \"heading_path\": [\"QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN\", \"Năm bước thực hiện\"], \"score\": 0.0, \"source_type\": \"vector\"}]}\n\nevent: status\ndata: {\"step\": \"analyzing\", \"detail\": \"Analyzing your question...\"}\n\nevent: token\ndata: {\"text\": \"Theo\"}\n\nevent: token\ndata: {\"text\": \" quy\"}\n\nevent: token\ndata: {\"text\": \" trình\"}\n\nevent: token\ndata: {\"text\": \" mua\"}\n\nevent: token\ndata: {\"text\": \" s\"}\n\nevent: token\ndata: {\"text\": \"ắm\"}\n\nevent: token\ndata: {\"text\": \" vật\"}\n\nevent: token\ndata: {\"text\": \" tư\"}\n\nevent: token\ndata: {\"text\": \" an\"}\n\nevent: token\ndata: {\"text\": \" toàn\"}\n\nevent: token\ndata: {\"text\": \":\\n\\n\"}\n\nevent: token\ndata: {\"text\": \"-\"}\n\nevent: token\ndata: {\"text\": \" G\"}\n\nevent: token\ndata: {\"text\": \"ói\"}\n\nevent: token\ndata: {\"text\": \" mua\"}\n\nevent: token\ndata: {\"text\": \" s\"}\n\nevent: token\ndata: {\"text\": \"ắm\"}\n\nevent: token\ndata: {\"text\": \" có\"}\n\nevent: token\ndata: {\"text\": \" giá\"}\n\nevent: token\ndata: {\"text\": \" trị\"}\n\nevent: token\ndata: {\"text\": \" từ\"}\n\nevent: token\ndata: {\"text\": \" \"}\n\nevent: token\ndata: {\"text\": \"500\"}\n\nevent: token\ndata: {\"text\": \" triệu\"}\n\nevent: token\ndata: {\"text\": \" đồng\"}\n\nevent: token\ndata: {\"text\": \" trở\"}\n\nevent: token\ndata: {\"text\": \" lên\"}\n\nevent: token\ndata: {\"text\": \" bắt\"}\n\nevent: token\ndata: {\"text\": \" bu\"}\n\nevent: token\ndata: {\"text\": \"ộc\"}\n\nevent: token\ndata: {\"text\": \" tổ\"}\n\nevent: token\ndata: {\"text\": \" chức\"}\n\nevent: token\ndata: {\"text\": \" đấu\"}\n\nevent: token\ndata: {\"text\": \" th\"}\n\nevent: token\ndata: {\"text\": \"ầu\"}\n\nevent: token\ndata: {\"text\": \".\"}\n\nevent: token\ndata: {\"text\": \" Nh\"}\n\nevent: token\ndata: {\"text\": \"ư\"}\n\nevent: token\ndata: {\"text\": \" vậy\"}\n\nevent: token\ndata: {\"text\": \",\"}\n\nevent: token\ndata: {\"text\": \" g\"}\n\nevent: token\ndata: {\"text\": \"ói\"}\n\nevent: token\ndata: {\"text\": \" đúng\"}\n\nevent: token\ndata: {\"text\": \" \"}\n\nevent: token\ndata: {\"text\": \"500\"}\n\nevent: token\ndata: {\"text\": \" triệu\"}\n\nevent: token\ndata: {\"text\": \" đồng\"}\n\nevent: token\ndata: {\"text\": \" cũng\"}\n\nevent: token\ndata: {\"text\": \" phải\"}\n\nevent: token\ndata: {\"text\": \" đấu\"}\n\nevent: token\ndata: {\"text\": \" th\"}\n\nevent: token\ndata: {\"text\": \"ầu\"}\n\nevent: token\ndata: {\"text\": \"[\"}\n\nevent: token\ndata: {\"text\": \"aj\"}\n\nevent: token\ndata: {\"text\": \"3\"}\n\nevent: token\ndata: {\"text\": \"d\"}\n\nevent: token\ndata: {\"text\": \"].\\n\\n\"}\n\nevent: token\ndata: {\"text\": \"-\"}\n\nevent: token\ndata: {\"text\": \" Vi\"}\n\nevent: token\ndata: {\"text\": \"ệc\"}\n\nevent: token\ndata: {\"text\": \" lựa\"}\n\nevent: token\ndata: {\"text\": \" chọn\"}\n\nevent: token\ndata: {\"text\": \" nhà\"}\n\nevent: token\ndata: {\"text\": \" cung\"}\n\nevent: token\ndata: {\"text\": \" cấp\"}\n\nevent: token\ndata: {\"text\": \" chỉ\"}\n\nevent: token\ndata: {\"text\": \" được\"}\n\nevent: token\ndata: {\"text\": \" thực\"}\n\nevent: token\ndata: {\"text\": \" hiện\"}\n\nevent: token\ndata: {\"text\": \" từ\"}\n\nevent: token\ndata: {\"text\": \" danh\"}\n\nevent: token\ndata: {\"text\": \" sách\"}\n\nevent: token\ndata: {\"text\": \" nhà\"}\n\nevent: token\ndata: {\"text\": \" cung\"}\n\nevent: token\ndata: {\"text\": \" cấp\"}\n\nevent: token\ndata: {\"text\": \" đã\"}\n\nevent: token\ndata: {\"text\": \" được\"}\n\nevent: token\ndata: {\"text\": \" ph\"}\n\nevent: token\ndata: {\"text\": \"ê\"}\n\nevent: token\ndata: {\"text\": \" duy\"}\n\nevent: token\ndata: {\"text\": \"ệt\"}\n\nevent: token\ndata: {\"text\": \".\"}\n\nevent: token\ndata: {\"text\": \" Tuy\"}\n\nevent: token\ndata: {\"text\": \" nhiên\"}\n\nevent: token\ndata: {\"text\": \",\"}\n\nevent: token\ndata: {\"text\": \" tài\"}\n\nevent: token\ndata: {\"text\": \" liệu\"}\n\nevent: token\ndata: {\"text\": \" không\"}\n\nevent: token\ndata: {\"text\": \" n\"}\n\nevent: token\ndata: {\"text\": \"êu\"}\n\nevent: token\ndata: {\"text\": \" rõ\"}\n\nevent: token\ndata: {\"text\": \" ai\"}\n\nevent: token\ndata: {\"text\": \" là\"}\n\nevent: token\ndata: {\"text\": \" người\"}\n\nevent: token\ndata: {\"text\": \" ph\"}\n\nevent: token\ndata: {\"text\": \"ê\"}\n\nevent: token\ndata: {\"text\": \" duy\"}\n\nevent: token\ndata: {\"text\": \"ệt\"}\n\nevent: token\ndata: {\"text\": \" danh\"}\n\nevent: token\ndata: {\"text\": \" sách\"}\n\nevent: token\ndata: {\"text\": \" nhà\"}\n\nevent: token\ndata: {\"text\": \" cung\"}\n\nevent: token\ndata: {\"text\": \" cấp\"}\n\nevent: token\ndata: {\"text\": \" hoặc\"}\n\nevent: token\ndata: {\"text\": \" ph\"}\n\nevent: token\ndata: {\"text\": \"ê\"}\n\nevent: token\ndata: {\"text\": \" duy\"}\n\nevent: token\ndata: {\"text\": \"ệt\"}\n\nevent: token\ndata: {\"text\": \" g\"}\n\nevent: token\ndata: {\"text\": \"ói\"}\n\nevent: token\ndata: {\"text\": \" mua\"}\n\nevent: token\ndata: {\"text\": \" s\"}\n\nevent: token\ndata: {\"text\": \"ắm\"}\n\nevent: token\ndata: {\"text\": \" cụ\"}\n\nevent: token\ndata: {\"text\": \" thể\"}\n\nevent: token\ndata: {\"text\": \".\\n\\n\"}\n\nevent: token\ndata: {\"text\": \"-\"}\n\nevent: token\ndata: {\"text\": \" V\"}\n\nevent: token\ndata: {\"text\": \"ề\"}\n\nevent: token\ndata: {\"text\": \" thời\"}\n\nevent: token\ndata: {\"text\": \" gian\"}\n\nevent: token\ndata: {\"text\": \" xử\"}\n\nevent: token\ndata: {\"text\": \" lý\"}\n\nevent: token\ndata: {\"text\": \" tối\"}\n\nevent: token\ndata: {\"text\": \" đa\"}\n\nevent: token\ndata: {\"text\": \" bao\"}\n\nevent: token\ndata: {\"text\": \" nhi\"}\n\nevent: token\ndata: {\"text\": \"êu\"}\n\nevent: token\ndata: {\"text\": \" ngày\"}\n\nevent: token\ndata: {\"text\": \" làm\"}\n\nevent: token\ndata: {\"text\": \" việc\"}\n\nevent: token\ndata: {\"text\": \",\"}\n\nevent: token\ndata: {\"text\": \" tài\"}\n\nevent: token\ndata: {\"text\": \" liệu\"}\n\nevent: token\ndata: {\"text\": \" không\"}\n\nevent: token\ndata: {\"text\": \" cung\"}\n\nevent: token\ndata: {\"text\": \" cấp\"}\n\nevent: token\ndata: {\"text\": \" thông\"}\n\nevent: token\ndata: {\"text\": \" tin\"}\n\nevent: token\ndata: {\"text\": \" cụ\"}\n\nevent: token\ndata: {\"text\": \" thể\"}\n\nevent: token\ndata: {\"text\": \" về\"}\n\nevent: token\ndata: {\"text\": \" thời\"}\n\nevent: token\ndata: {\"text\": \" gian\"}\n\nevent: token\ndata: {\"text\": \" xử\"}\n\nevent: token\ndata: {\"text\": \" lý\"}\n\nevent: token\ndata: {\"text\": \" trong\"}\n\nevent: token\ndata: {\"text\": \" quy\"}\n\nevent: token\ndata: {\"text\": \" trình\"}\n\nevent: token\ndata: {\"text\": \" này\"}\n\nevent: token\ndata: {\"text\": \".\\n\\n\"}\n\nevent: token\ndata: {\"text\": \"T\"}\n\nevent: token\ndata: {\"text\": \"óm\"}\n\nevent: token\ndata: {\"text\": \" lại\"}\n\nevent: token\ndata: {\"text\": \",\"}\n\nevent: token\ndata: {\"text\": \" g\"}\n\nevent: token\ndata: {\"text\": \"ói\"}\n\nevent: token\ndata: {\"text\": \" mua\"}\n\nevent: token\ndata: {\"text\": \" s\"}\n\nevent: token\ndata: {\"text\": \"ắm\"}\n\nevent: token\ndata: {\"text\": \" đúng\"}\n\nevent: token\ndata: {\"text\": \" \"}\n\nevent: token\ndata: {\"text\": \"500\"}\n\nevent: token\ndata: {\"text\": \" triệu\"}\n\nevent: token\ndata: {\"text\": \" đồng\"}\n\nevent: token\ndata: {\"text\": \" phải\"}\n\nevent: token\ndata: {\"text\": \" tổ\"}\n\nevent: token\ndata: {\"text\": \" chức\"}\n\nevent: token\ndata: {\"text\": \" đấu\"}\n\nevent: token\ndata: {\"text\": \" th\"}\n\nevent: token\ndata: {\"text\": \"ầu\"}\n\nevent: token\ndata: {\"text\": \",\"}\n\nevent: token\ndata: {\"text\": \" nhà\"}\n\nevent: token\ndata: {\"text\": \" cung\"}\n\nevent: token\ndata: {\"text\": \" cấp\"}\n\nevent: token\ndata: {\"text\": \" phải\"}\n\nevent: token\ndata: {\"text\": \" nằm\"}\n\nevent: token\ndata: {\"text\": \" trong\"}\n\nevent: token\ndata: {\"text\": \" danh\"}\n\nevent: token\ndata: {\"text\": \" sách\"}\n\nevent: token\ndata: {\"text\": \" được\"}\n\nevent: token\ndata: {\"text\": \" ph\"}\n\nevent: token\ndata: {\"text\": \"ê\"}\n\nevent: token\ndata: {\"text\": \" duy\"}\n\nevent: token\ndata: {\"text\": \"ệt\"}\n\nevent: token\ndata: {\"text\": \",\"}\n\nevent: token\ndata: {\"text\": \" nhưng\"}\n\nevent: token\ndata: {\"text\": \" thông\"}\n\nevent: token\ndata: {\"text\": \" tin\"}\n\nevent: token\ndata: {\"text\": \" về\"}\n\nevent: token\ndata: {\"text\": \" người\"}\n\nevent: token\ndata: {\"text\": \" ph\"}\n\nevent: token\ndata: {\"text\": \"ê\"}\n\nevent: token\ndata: {\"text\": \" duy\"}\n\nevent: token\ndata: {\"text\": \"ệt\"}\n\nevent: token\ndata: {\"text\": \" và\"}\n\nevent: token\ndata: {\"text\": \" thời\"}\n\nevent: token\ndata: {\"text\": \" gian\"}\n\nevent: token\ndata: {\"text\": \" xử\"}\n\nevent: token\ndata: {\"text\": \" lý\"}\n\nevent: token\ndata: {\"text\": \" tối\"}\n\nevent: token\ndata: {\"text\": \" đa\"}\n\nevent: token\ndata: {\"text\": \" không\"}\n\nevent: token\ndata: {\"text\": \" được\"}\n\nevent: token\ndata: {\"text\": \" n\"}\n\nevent: token\ndata: {\"text\": \"êu\"}\n\nevent: token\ndata: {\"text\": \" trong\"}\n\nevent: token\ndata: {\"text\": \" tài\"}\n\nevent: token\ndata: {\"text\": \" liệu\"}\n\nevent: token\ndata: {\"text\": \" hiện\"}\n\nevent: token\ndata: {\"text\": \" có\"}\n\nevent: token\ndata: {\"text\": \".\"}\n\nevent: complete\ndata: {\"answer\": \"Theo quy trình mua sắm vật tư an toàn:\\n\\n- Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu. Như vậy, gói đúng 500 triệu đồng cũng phải đấu thầu[aj3d].\\n\\n- Việc lựa chọn nhà cung cấp chỉ được thực hiện từ danh sách nhà cung cấp đã được phê duyệt. Tuy nhiên, tài liệu không nêu rõ ai là người phê duyệt danh sách nhà cung cấp hoặc phê duyệt gói mua sắm cụ thể.\\n\\n- Về thời gian xử lý tối đa bao nhiêu ngày làm việc, tài liệu không cung cấp thông tin cụ thể về thời gian xử lý trong quy trình này.\\n\\nTóm lại, gói mua sắm đúng 500 triệu đồng phải tổ chức đấu thầu, nhà cung cấp phải nằm trong danh sách được phê duyệt, nhưng thông tin về người phê duyệt và thời gian xử lý tối đa không được nêu trong tài liệu hiện có.\", \"sources\": [{\"index\": \"aj3d\", \"chunk_id\": \"doc_22_chunk_1\", \"content\": \"Bước 1 — Đề xuất nhu cầu: đơn vị sử dụng lập phiếu đề xuất, có xác nhận của Ban An toàn về tiêu chuẩn kỹ thuật.\\nBước 2 — Thẩm định: Phòng Kinh doanh đối chiếu định mức và ngân sách được duyệt.\\nBước 3 — Lựa chọn nhà cung cấp: chỉ mua từ danh sách nhà cung cấp đã được phê duyệt. Gói mua sắm có giá trị từ 500 triệu đồng trở lên bắt buộc tổ chức đấu thầu.\\nBước 4 — Ký hợp đồng và nhận hàng: kiểm tra chứng nhận hợp quy, hạn sử dụng và tem kiểm định.\\nBước 5 — Nghiệm thu và thanh toán: Ban An toàn nghiệm thu chất lượng trước khi Phòng Kế toán thanh toán.\", \"document_id\": 22, \"page_no\": 0, \"heading_path\": [\"QUY TRÌNH MUA SẮM VẬT TƯ AN TOÀN\", \"Năm bước thực hiện\"], \"score\": 0.0, \"source_type\": \"vector\"}], \"image_refs\": [], \"thinking\": null, \"related_entities\": []}\n",
+      "first_token_seconds": 1.204262417042628,
+      "seconds": 2.878
+    },
+    {
+      "case_id": "G08",
+      "variant": "stream",
+      "role": "Giám đốc",
+      "repeat": 1,
+      "url": "http://127.0.0.1:8001/api/v1/rag/chat/11/stream",
+      "request": {
+        "message": "Chỉ theo tài liệu được chọn, số điện thoại cá nhân của người phụ trách quy chế phụ cấp là gì? Nếu tài liệu không có thì nói rõ không có thông tin. [Mã phiên đánh giá EVAL-20260929-2340d317/G08/stream/Giám đốc/1]",
+        "document_ids": [
+          26
+        ],
+        "mode": "hybrid",
+        "force_search": true,
+        "enable_thinking": false
+      },
+      "mode_requested": "hybrid",
+      "status_code": 200,
+      "events": [
+        {
+          "event": "status",
+          "data": {
+            "step": "retrieving",
+            "detail": "Searching: Chỉ theo tài liệu được chọn, số điện thoại cá nhân của người phụ trách quy chế p..."
+          }
+        },
+        {
+          "event": "sources",
+          "data": {
+            "sources": [
+              {
+                "index": "y3xo",
+                "chunk_id": "doc_26_chunk_5",
+                "content": "Trưởng các đơn vị lập danh sách đề nghị; Phòng Nhân sự thẩm định; Phòng Kế toán chi trả. Người phụ trách: bà Lê Thị Thu Vân — Trưởng phòng Nhân sự.",
+                "document_id": 26,
+                "page_no": 0,
+                "heading_path": [
+                  "QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT",
+                  "Điều 5. Tổ chức thực hiện"
+                ],
+                "score": 0.0,
+                "source_type": "vector"
+              },
+              {
+                "index": "l7p2",
+                "chunk_id": "doc_26_chunk_0",
+                "content": "Số hiệu: QC-PCĐH-2026/MICCO. Hiệu lực từ ngày 01/01/2026. Phòng Nhân sự ban hành.",
+                "document_id": 26,
+                "page_no": 0,
+                "heading_path": [
+                  "QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT"
+                ],
+                "score": 0.0,
+                "source_type": "vector"
+              },
+              {
+                "index": "pvug",
+                "chunk_id": "doc_26_chunk_4",
+                "content": "- Bồi dưỡng hiện vật được tổ chức ăn uống tại chỗ, không quy đổi thành tiền.\n- Người lao động nghỉ từ 14 ngày trở lên trong tháng không được hưởng phụ cấp độc hại tháng đó.\n- Phòng Nhân sự rà soát danh sách đối tượng hưởng phụ cấp vào ngày 25 hằng tháng.",
+                "document_id": 26,
+                "page_no": 0,
+                "heading_path": [
+                  "QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT",
+                  "Điều 4. Nguyên tắc chi trả"
+                ],
+                "score": 0.0,
+                "source_type": "vector"
+              }
+            ]
+          }
+        },
+        {
+          "event": "status",
+          "data": {
+            "step": "analyzing",
+            "detail": "Analyzing your question..."
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "T"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ài"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " liệu"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " được"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " chọn"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " không"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " có"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " thông"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " tin"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " về"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " số"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " điện"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " thoại"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cá"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " nhân"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " của"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " người"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " phụ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " trách"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " quy"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " chế"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " phụ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " cấp"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "."
+          }
+        },
+        {
+          "event": "complete",
+          "data": {
+            "answer": "Tài liệu được chọn không có thông tin về số điện thoại cá nhân của người phụ trách quy chế phụ cấp.",
+            "sources": [
+              {
+                "index": "y3xo",
+                "chunk_id": "doc_26_chunk_5",
+                "content": "Trưởng các đơn vị lập danh sách đề nghị; Phòng Nhân sự thẩm định; Phòng Kế toán chi trả. Người phụ trách: bà Lê Thị Thu Vân — Trưởng phòng Nhân sự.",
+                "document_id": 26,
+                "page_no": 0,
+                "heading_path": [
+                  "QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT",
+                  "Điều 5. Tổ chức thực hiện"
+                ],
+                "score": 0.0,
+                "source_type": "vector"
+              },
+              {
+                "index": "l7p2",
+                "chunk_id": "doc_26_chunk_0",
+                "content": "Số hiệu: QC-PCĐH-2026/MICCO. Hiệu lực từ ngày 01/01/2026. Phòng Nhân sự ban hành.",
+                "document_id": 26,
+                "page_no": 0,
+                "heading_path": [
+                  "QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT"
+                ],
+                "score": 0.0,
+                "source_type": "vector"
+              },
+              {
+                "index": "pvug",
+                "chunk_id": "doc_26_chunk_4",
+                "content": "- Bồi dưỡng hiện vật được tổ chức ăn uống tại chỗ, không quy đổi thành tiền.\n- Người lao động nghỉ từ 14 ngày trở lên trong tháng không được hưởng phụ cấp độc hại tháng đó.\n- Phòng Nhân sự rà soát danh sách đối tượng hưởng phụ cấp vào ngày 25 hằng tháng.",
+                "document_id": 26,
+                "page_no": 0,
+                "heading_path": [
+                  "QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT",
+                  "Điều 4. Nguyên tắc chi trả"
+                ],
+                "score": 0.0,
+                "source_type": "vector"
+              }
+            ],
+            "image_refs": [],
+            "thinking": null,
+            "related_entities": []
+          }
+        }
+      ],
+      "raw_sse": "event: status\ndata: {\"step\": \"retrieving\", \"detail\": \"Searching: Chỉ theo tài liệu được chọn, số điện thoại cá nhân của người phụ trách quy chế p...\"}\n\nevent: sources\ndata: {\"sources\": [{\"index\": \"y3xo\", \"chunk_id\": \"doc_26_chunk_5\", \"content\": \"Trưởng các đơn vị lập danh sách đề nghị; Phòng Nhân sự thẩm định; Phòng Kế toán chi trả. Người phụ trách: bà Lê Thị Thu Vân — Trưởng phòng Nhân sự.\", \"document_id\": 26, \"page_no\": 0, \"heading_path\": [\"QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT\", \"Điều 5. Tổ chức thực hiện\"], \"score\": 0.0, \"source_type\": \"vector\"}, {\"index\": \"l7p2\", \"chunk_id\": \"doc_26_chunk_0\", \"content\": \"Số hiệu: QC-PCĐH-2026/MICCO. Hiệu lực từ ngày 01/01/2026. Phòng Nhân sự ban hành.\", \"document_id\": 26, \"page_no\": 0, \"heading_path\": [\"QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT\"], \"score\": 0.0, \"source_type\": \"vector\"}, {\"index\": \"pvug\", \"chunk_id\": \"doc_26_chunk_4\", \"content\": \"- Bồi dưỡng hiện vật được tổ chức ăn uống tại chỗ, không quy đổi thành tiền.\\n- Người lao động nghỉ từ 14 ngày trở lên trong tháng không được hưởng phụ cấp độc hại tháng đó.\\n- Phòng Nhân sự rà soát danh sách đối tượng hưởng phụ cấp vào ngày 25 hằng tháng.\", \"document_id\": 26, \"page_no\": 0, \"heading_path\": [\"QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT\", \"Điều 4. Nguyên tắc chi trả\"], \"score\": 0.0, \"source_type\": \"vector\"}]}\n\nevent: status\ndata: {\"step\": \"analyzing\", \"detail\": \"Analyzing your question...\"}\n\nevent: token\ndata: {\"text\": \"T\"}\n\nevent: token\ndata: {\"text\": \"ài\"}\n\nevent: token\ndata: {\"text\": \" liệu\"}\n\nevent: token\ndata: {\"text\": \" được\"}\n\nevent: token\ndata: {\"text\": \" chọn\"}\n\nevent: token\ndata: {\"text\": \" không\"}\n\nevent: token\ndata: {\"text\": \" có\"}\n\nevent: token\ndata: {\"text\": \" thông\"}\n\nevent: token\ndata: {\"text\": \" tin\"}\n\nevent: token\ndata: {\"text\": \" về\"}\n\nevent: token\ndata: {\"text\": \" số\"}\n\nevent: token\ndata: {\"text\": \" điện\"}\n\nevent: token\ndata: {\"text\": \" thoại\"}\n\nevent: token\ndata: {\"text\": \" cá\"}\n\nevent: token\ndata: {\"text\": \" nhân\"}\n\nevent: token\ndata: {\"text\": \" của\"}\n\nevent: token\ndata: {\"text\": \" người\"}\n\nevent: token\ndata: {\"text\": \" phụ\"}\n\nevent: token\ndata: {\"text\": \" trách\"}\n\nevent: token\ndata: {\"text\": \" quy\"}\n\nevent: token\ndata: {\"text\": \" chế\"}\n\nevent: token\ndata: {\"text\": \" phụ\"}\n\nevent: token\ndata: {\"text\": \" cấp\"}\n\nevent: token\ndata: {\"text\": \".\"}\n\nevent: complete\ndata: {\"answer\": \"Tài liệu được chọn không có thông tin về số điện thoại cá nhân của người phụ trách quy chế phụ cấp.\", \"sources\": [{\"index\": \"y3xo\", \"chunk_id\": \"doc_26_chunk_5\", \"content\": \"Trưởng các đơn vị lập danh sách đề nghị; Phòng Nhân sự thẩm định; Phòng Kế toán chi trả. Người phụ trách: bà Lê Thị Thu Vân — Trưởng phòng Nhân sự.\", \"document_id\": 26, \"page_no\": 0, \"heading_path\": [\"QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT\", \"Điều 5. Tổ chức thực hiện\"], \"score\": 0.0, \"source_type\": \"vector\"}, {\"index\": \"l7p2\", \"chunk_id\": \"doc_26_chunk_0\", \"content\": \"Số hiệu: QC-PCĐH-2026/MICCO. Hiệu lực từ ngày 01/01/2026. Phòng Nhân sự ban hành.\", \"document_id\": 26, \"page_no\": 0, \"heading_path\": [\"QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT\"], \"score\": 0.0, \"source_type\": \"vector\"}, {\"index\": \"pvug\", \"chunk_id\": \"doc_26_chunk_4\", \"content\": \"- Bồi dưỡng hiện vật được tổ chức ăn uống tại chỗ, không quy đổi thành tiền.\\n- Người lao động nghỉ từ 14 ngày trở lên trong tháng không được hưởng phụ cấp độc hại tháng đó.\\n- Phòng Nhân sự rà soát danh sách đối tượng hưởng phụ cấp vào ngày 25 hằng tháng.\", \"document_id\": 26, \"page_no\": 0, \"heading_path\": [\"QUY CHẾ PHỤ CẤP ĐỘC HẠI VÀ BỒI DƯỠNG BẰNG HIỆN VẬT\", \"Điều 4. Nguyên tắc chi trả\"], \"score\": 0.0, \"source_type\": \"vector\"}], \"image_refs\": [], \"thinking\": null, \"related_entities\": []}\n",
+      "first_token_seconds": 2.01859886496095,
+      "seconds": 2.966
+    }
+  ]
+}

@@ -1,0 +1,308 @@
+{
+  "run_id": "EVAL-LIFECYCLE-4cf2c5431e",
+  "fixture_ids": {
+    "user": 25,
+    "workspace": 13,
+    "document": 42
+  },
+  "fixture_text_sha256": "342943f85ce183054df8c8a5e6df2fcbbb77107aceb2ac39b39611e3e1933f6e",
+  "expected_answer": "7.654.321 đồng; 6 ngày làm việc",
+  "results": [
+    {
+      "name": "login_correct",
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200,
+      "seconds": 0.323,
+      "body": {}
+    },
+    {
+      "name": "login_wrong",
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 401,
+      "seconds": 0.298,
+      "body": {
+        "detail": "Invalid email or password"
+      }
+    },
+    {
+      "name": "create_private_workspace",
+      "method": "POST",
+      "path": "/api/v1/workspaces",
+      "status": 201,
+      "seconds": 0.032,
+      "body": {
+        "id": 13,
+        "name": "EVAL-LIFECYCLE-4cf2c5431e",
+        "description": "Temporary evaluation fixture",
+        "visibility": "private",
+        "owner_id": 25,
+        "system_prompt": null,
+        "kg_language": null,
+        "kg_entity_types": null,
+        "search_mode": "vector_only",
+        "document_count": 0,
+        "indexed_count": 0,
+        "suggested_questions": null,
+        "department_id": null,
+        "department_name": null,
+        "created_at": "2026-09-29T10:28:17.257974",
+        "updated_at": "2026-09-29T10:28:17.257988"
+      }
+    },
+    {
+      "name": "edit_workspace",
+      "method": "PUT",
+      "path": "/api/v1/workspaces/13",
+      "status": 200,
+      "seconds": 0.029,
+      "body": {
+        "id": 13,
+        "name": "EVAL-LIFECYCLE-4cf2c5431e-updated",
+        "description": "Updated evaluation fixture",
+        "visibility": "private",
+        "owner_id": 25,
+        "system_prompt": null,
+        "kg_language": null,
+        "kg_entity_types": null,
+        "search_mode": "vector_only",
+        "document_count": 0,
+        "indexed_count": 0,
+        "suggested_questions": null,
+        "department_id": null,
+        "department_name": null,
+        "created_at": "2026-09-29T10:28:17.257974",
+        "updated_at": "2026-09-29T10:28:17.297491"
+      }
+    },
+    {
+      "name": "reject_bad_extension",
+      "method": "POST",
+      "path": "/api/v1/documents/upload/13",
+      "status": 400,
+      "seconds": 0.013,
+      "body": {
+        "detail": "File type .exe not allowed. Allowed: {'.pptx', '.pdf', '.docx', '.txt', '.md'}"
+      }
+    },
+    {
+      "name": "upload_txt",
+      "method": "POST",
+      "path": "/api/v1/documents/upload/13?visibility=private",
+      "status": 200,
+      "seconds": 0.03,
+      "body": {
+        "id": 42,
+        "filename": "EVAL-LIFECYCLE-4cf2c5431e.txt",
+        "status": "pending",
+        "message": "Document uploaded. Click 'Process' to extract and index content."
+      }
+    },
+    {
+      "name": "document_before_process",
+      "method": "GET",
+      "path": "/api/v1/documents/42",
+      "status": 200,
+      "seconds": 0.011,
+      "body": {
+        "filename": "19dd5ce6-00ab-4dc5-abc1-7e2e4d24bea4.txt",
+        "original_filename": "EVAL-LIFECYCLE-4cf2c5431e.txt",
+        "file_type": "txt",
+        "file_size": 593,
+        "id": 42,
+        "workspace_id": 13,
+        "status": "pending",
+        "chunk_count": 0,
+        "error_message": null,
+        "created_at": "2026-09-29T10:28:17.344437",
+        "updated_at": "2026-09-29T10:28:17.344453",
+        "page_count": 0,
+        "image_count": 0,
+        "table_count": 0,
+        "parser_version": null,
+        "processing_time_ms": 0,
+        "uploader_id": 25,
+        "department_id": null,
+        "visibility": "private",
+        "approval_status": "approved"
+      }
+    },
+    {
+      "name": "process",
+      "method": "POST",
+      "path": "/api/v1/rag/process/42",
+      "status": 200,
+      "seconds": 0.013,
+      "body": {
+        "document_id": 42,
+        "status": "processing",
+        "chunk_count": 0,
+        "message": "Processing started. Document will be parsed and indexed in the background."
+      }
+    },
+    {
+      "name": "process_duplicate",
+      "method": "POST",
+      "path": "/api/v1/rag/process/42",
+      "status": 409,
+      "seconds": 0.013,
+      "body": {
+        "detail": "Document is already being analyzed"
+      }
+    },
+    {
+      "name": "terminal_ingest",
+      "status": 200,
+      "body": {
+        "filename": "19dd5ce6-00ab-4dc5-abc1-7e2e4d24bea4.txt",
+        "original_filename": "EVAL-LIFECYCLE-4cf2c5431e.txt",
+        "file_type": "txt",
+        "file_size": 593,
+        "id": 42,
+        "workspace_id": 13,
+        "status": "indexed",
+        "chunk_count": 1,
+        "error_message": null,
+        "created_at": "2026-09-29T10:28:17.344437",
+        "updated_at": "2026-09-29T10:28:23.357588",
+        "page_count": 1,
+        "image_count": 0,
+        "table_count": 0,
+        "parser_version": "docling",
+        "processing_time_ms": 5960,
+        "uploader_id": 25,
+        "department_id": null,
+        "visibility": "private",
+        "approval_status": "approved"
+      }
+    },
+    {
+      "name": "download",
+      "method": "GET",
+      "path": "/api/v1/documents/42/download",
+      "status": 200,
+      "seconds": 0.015,
+      "body": {
+        "byte_length": 593,
+        "sha256": "342943f85ce183054df8c8a5e6df2fcbbb77107aceb2ac39b39611e3e1933f6e"
+      }
+    },
+    {
+      "name": "query_fixture",
+      "method": "POST",
+      "path": "/api/v1/rag/query/13",
+      "status": 200,
+      "seconds": 0.39,
+      "body": {
+        "query": "Ngân sách dự án thử Sen Xanh bao nhiêu đồng, thời hạn xử lý tối đa bao nhiêu ngày làm việc?",
+        "chunks": [
+          {
+            "content": "TÀI LIỆU KIỂM THỬ TỔNG HỢP — KHÔNG PHẢI QUY ĐỊNH MICCO\nMã hồ sơ thử: EVA-57924.\nĐây là dữ liệu thử cô lập để kiểm tra xử lý, tìm kiếm và dẫn nguồn.\nDự án thử mang tên Sen Xanh. Người phụ trách thử là Nguyễn Thử Nghiệm.\nNgân sách thử nghiệm được phê duyệt là 7.654.321 đồng.\nNgày nghiệm thu thử dự kiến là 15/11/2026.\nThời hạn xử lý hồ sơ thử tối đa là 6 ngày làm việc.\nKhông có số điện thoại, mật khẩu hay dữ liệu cá nhân thật trong tài liệu này.",
+            "chunk_id": "doc_42_chunk_0",
+            "score": 0.52353024,
+            "metadata": {
+              "page_no": 0,
+              "file_type": "txt",
+              "document_id": 42,
+              "has_table": false,
+              "heading_path": "",
+              "has_code": false,
+              "chunk_index": 0,
+              "image_urls": "",
+              "image_ids": "",
+              "source": "EVAL-LIFECYCLE-4cf2c5431e.txt",
+              "table_ids": ""
+            },
+            "citation": null
+          }
+        ],
+        "context": "[1] EVAL-LIFECYCLE-4cf2c5431e.txt\nTÀI LIỆU KIỂM THỬ TỔNG HỢP — KHÔNG PHẢI QUY ĐỊNH MICCO\nMã hồ sơ thử: EVA-57924.\nĐây là dữ liệu thử cô lập để kiểm tra xử lý, tìm kiếm và dẫn nguồn.\nDự án thử mang tên Sen Xanh. Người phụ trách thử là Nguyễn Thử Nghiệm.\nNgân sách thử nghiệm được phê duyệt là 7.654.321 đồng.\nNgày nghiệm thu thử dự kiến là 15/11/2026.\nThời hạn xử lý hồ sơ thử tối đa là 6 ngày làm việc.\nKhông có số điện thoại, mật khẩu hay dữ liệu cá nhân thật trong tài liệu này.",
+        "total_chunks": 1,
+        "knowledge_graph_summary": "",
+        "citations": [],
+        "image_refs": []
+      }
+    },
+    {
+      "name": "chat_fixture",
+      "method": "POST",
+      "path": "/api/v1/rag/chat/13",
+      "status": 200,
+      "seconds": 1.868,
+      "body": {
+        "answer": "Theo tài liệu EVAL-LIFECYCLE-4cf2c5431e, ngân sách thử nghiệm dự án Sen Xanh được phê duyệt là 7.654.321 đồng. Thời hạn xử lý hồ sơ thử tối đa là 6 ngày làm việc[uggw].",
+        "sources": [
+          {
+            "index": "uggw",
+            "chunk_id": "doc_42_chunk_0",
+            "content": "TÀI LIỆU KIỂM THỬ TỔNG HỢP — KHÔNG PHẢI QUY ĐỊNH MICCO\nMã hồ sơ thử: EVA-57924.\nĐây là dữ liệu thử cô lập để kiểm tra xử lý, tìm kiếm và dẫn nguồn.\nDự án thử mang tên Sen Xanh. Người phụ trách thử là Nguyễn Thử Nghiệm.\nNgân sách thử nghiệm được phê duyệt là 7.654.321 đồng.\nNgày nghiệm thu thử dự kiến là 15/11/2026.\nThời hạn xử lý hồ sơ thử tối đa là 6 ngày làm việc.\nKhông có số điện thoại, mật khẩu hay dữ liệu cá nhân thật trong tài liệu này.",
+            "document_id": 42,
+            "page_no": 0,
+            "heading_path": [],
+            "score": 0.0,
+            "source_type": "vector"
+          }
+        ],
+        "related_entities": [],
+        "kg_summary": null,
+        "image_refs": [],
+        "thinking": null
+      }
+    },
+    {
+      "name": "delete_fixture_doc",
+      "method": "DELETE",
+      "path": "/api/v1/documents/42",
+      "status": 204,
+      "seconds": 0.217,
+      "body": {
+        "byte_length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "deleted_doc_absent",
+      "method": "GET",
+      "path": "/api/v1/documents/42",
+      "status": 404,
+      "seconds": 0.008,
+      "body": {
+        "detail": "Document with id 42 not found"
+      }
+    },
+    {
+      "name": "query_after_delete",
+      "method": "POST",
+      "path": "/api/v1/rag/query/13",
+      "status": 200,
+      "seconds": 0.007,
+      "body": {
+        "query": "Ngân sách dự án thử Sen Xanh bao nhiêu?",
+        "chunks": [],
+        "context": "",
+        "total_chunks": 0,
+        "knowledge_graph_summary": "",
+        "citations": [],
+        "image_refs": []
+      }
+    },
+    {
+      "name": "delete_fixture_workspace",
+      "method": "DELETE",
+      "path": "/api/v1/workspaces/13",
+      "status": 204,
+      "seconds": 0.048,
+      "body": {
+        "byte_length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "cleanup_attempted",
+      "fixture_user_id": 25,
+      "fixture_workspace_id": 13,
+      "fixture_document_id": 42
+    }
+  ]
+}

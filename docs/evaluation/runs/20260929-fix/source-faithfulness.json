@@ -1,0 +1,106 @@
+{
+  "scope": "Three original documents (22,26,27) selected explicitly for ten questions; no conflicting source or version oracle",
+  "checks": [
+    {
+      "case_id": "G01",
+      "original_document_id": 26,
+      "original_file_sha256": "fd6bf77cdc93062d806a4b6d4d55c427c2fe556c7f119c838b909d618c0bb6fe",
+      "original_pages": null,
+      "answer_variants": 6,
+      "source_document_ids_match_selected_document": true,
+      "all_fact_checks_pass": true,
+      "unresolved_citation_responses": 0
+    },
+    {
+      "case_id": "G02",
+      "original_document_id": 26,
+      "original_file_sha256": "fd6bf77cdc93062d806a4b6d4d55c427c2fe556c7f119c838b909d618c0bb6fe",
+      "original_pages": null,
+      "answer_variants": 1,
+      "source_document_ids_match_selected_document": true,
+      "all_fact_checks_pass": true,
+      "unresolved_citation_responses": 0
+    },
+    {
+      "case_id": "G03",
+      "original_document_id": 26,
+      "original_file_sha256": "fd6bf77cdc93062d806a4b6d4d55c427c2fe556c7f119c838b909d618c0bb6fe",
+      "original_pages": null,
+      "answer_variants": 1,
+      "source_document_ids_match_selected_document": true,
+      "all_fact_checks_pass": true,
+      "unresolved_citation_responses": 0
+    },
+    {
+      "case_id": "G04",
+      "original_document_id": 22,
+      "original_file_sha256": "f1ead220df23b6b45752bc24945865d4b26437412d4837138caa2b52621f10c8",
+      "original_pages": null,
+      "answer_variants": 6,
+      "source_document_ids_match_selected_document": true,
+      "all_fact_checks_pass": true,
+      "unresolved_citation_responses": 0
+    },
+    {
+      "case_id": "G05",
+      "original_document_id": 22,
+      "original_file_sha256": "f1ead220df23b6b45752bc24945865d4b26437412d4837138caa2b52621f10c8",
+      "original_pages": null,
+      "answer_variants": 1,
+      "source_document_ids_match_selected_document": true,
+      "all_fact_checks_pass": true,
+      "unresolved_citation_responses": 0
+    },
+    {
+      "case_id": "G06",
+      "original_document_id": 27,
+      "original_file_sha256": "c9d2cd850674a0cb2b1cd8d3f22b2311eeb4e44ea2c1b24b4069112c691d9fd1",
+      "original_pages": 1,
+      "answer_variants": 1,
+      "source_document_ids_match_selected_document": true,
+      "all_fact_checks_pass": true,
+      "unresolved_citation_responses": 0
+    },
+    {
+      "case_id": "G07",
+      "original_document_id": 27,
+      "original_file_sha256": "c9d2cd850674a0cb2b1cd8d3f22b2311eeb4e44ea2c1b24b4069112c691d9fd1",
+      "original_pages": 1,
+      "answer_variants": 1,
+      "source_document_ids_match_selected_document": true,
+      "all_fact_checks_pass": true,
+      "unresolved_citation_responses": 0
+    },
+    {
+      "case_id": "G08",
+      "original_document_id": 26,
+      "original_file_sha256": "fd6bf77cdc93062d806a4b6d4d55c427c2fe556c7f119c838b909d618c0bb6fe",
+      "original_pages": null,
+      "answer_variants": 3,
+      "source_document_ids_match_selected_document": true,
+      "all_fact_checks_pass": true,
+      "unresolved_citation_responses": 0
+    },
+    {
+      "case_id": "G09",
+      "original_document_id": 26,
+      "original_file_sha256": "fd6bf77cdc93062d806a4b6d4d55c427c2fe556c7f119c838b909d618c0bb6fe",
+      "original_pages": null,
+      "answer_variants": 1,
+      "source_document_ids_match_selected_document": true,
+      "all_fact_checks_pass": true,
+      "unresolved_citation_responses": 0
+    },
+    {
+      "case_id": "G10",
+      "original_document_id": 26,
+      "original_file_sha256": "fd6bf77cdc93062d806a4b6d4d55c427c2fe556c7f119c838b909d618c0bb6fe",
+      "original_pages": null,
+      "answer_variants": 1,
+      "source_document_ids_match_selected_document": true,
+      "all_fact_checks_pass": true,
+      "unresolved_citation_responses": 0
+    }
+  ],
+  "manual_review": "Read all 22 answer texts against independently extracted original DOCX/PDF text. Key numbers (1.250.000, 14, 25, 500, 20, 134, 16, 40, 45, 80, 30) and their associated conditions match the originals; G08/G10 correctly state that no personal phone is present. PDF27 is one page and its cited page_no is 1; DOCX citations use page_no 0 (unknown)."
+}
