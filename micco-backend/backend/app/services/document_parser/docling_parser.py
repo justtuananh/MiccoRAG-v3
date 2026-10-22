@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import re
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -29,6 +30,56 @@ logger = logging.getLogger(__name__)
 _DOCLING_EXTENSIONS = {".pdf", ".docx", ".pptx", ".html"}
 _LEGACY_EXTENSIONS = {".txt", ".md"}
 
+# Docling's layout/table/OCR models take ~60-90 s to load and stay resident.
+# Keep ONE converter per process instead of one per uploaded document, and
+# serialise conversions: the pipeline is not safe to run concurrently and each
+# run allocates hundreds of MB.
+_CONVERTER_INIT_LOCK = threading.Lock()
+_CONVERT_LOCK = threading.Lock()
+_CONVERTER = None
+
+
+def _build_converter():
+    from docling.document_converter import DocumentConverter, PdfFormatOption
+    from docling.datamodel.pipeline_options import PdfPipelineOptions
+
+    pipeline_options = PdfPipelineOptions()
+    pipeline_options.generate_picture_images = settings.NEXUSRAG_ENABLE_IMAGE_EXTRACTION
+    pipeline_options.images_scale = settings.NEXUSRAG_DOCLING_IMAGES_SCALE
+    pipeline_options.do_formula_enrichment = settings.NEXUSRAG_ENABLE_FORMULA_ENRICHMENT
+
+    return DocumentConverter(
+        format_options={
+            "pdf": PdfFormatOption(pipeline_options=pipeline_options),
+        }
+    )
+
+
+def get_shared_converter():
+    """Return the process-wide Docling converter, building it once on first use."""
+    global _CONVERTER
+    if _CONVERTER is not None:
+        return _CONVERTER
+    with _CONVERTER_INIT_LOCK:
+        if _CONVERTER is None:
+            start = time.time()
+            converter = _build_converter()
+            # Loads the heavy models now, so the first real upload is not stuck
+            # paying for them (the old behaviour: ~95 s for a one-page PDF).
+            converter.initialize_pipeline("pdf")
+            _CONVERTER = converter
+            logger.info(
+                "[docling] pipeline initialized in %.1fs", time.time() - start
+            )
+    return _CONVERTER
+
+
+def warmup_docling() -> float:
+    """Build and initialise the shared Docling pipeline; return elapsed seconds."""
+    start = time.time()
+    get_shared_converter()
+    return time.time() - start
+
 
 class DoclingDocumentParser(BaseDocumentParser):
     """
@@ -44,7 +95,6 @@ class DoclingDocumentParser(BaseDocumentParser):
 
     def __init__(self, workspace_id: int, output_dir: Optional[Path] = None):
         super().__init__(workspace_id, output_dir)
-        self._converter = None
 
     @staticmethod
     def supported_extensions() -> set[str]:
@@ -55,24 +105,8 @@ class DoclingDocumentParser(BaseDocumentParser):
     # ------------------------------------------------------------------
 
     def _get_converter(self):
-        """Lazy-init Docling DocumentConverter with image extraction."""
-        if self._converter is not None:
-            return self._converter
-
-        from docling.document_converter import DocumentConverter, PdfFormatOption
-        from docling.datamodel.pipeline_options import PdfPipelineOptions
-
-        pipeline_options = PdfPipelineOptions()
-        pipeline_options.generate_picture_images = settings.NEXUSRAG_ENABLE_IMAGE_EXTRACTION
-        pipeline_options.images_scale = settings.NEXUSRAG_DOCLING_IMAGES_SCALE
-        pipeline_options.do_formula_enrichment = settings.NEXUSRAG_ENABLE_FORMULA_ENRICHMENT
-
-        self._converter = DocumentConverter(
-            format_options={
-                "pdf": PdfFormatOption(pipeline_options=pipeline_options),
-            }
-        )
-        return self._converter
+        """Return the shared, process-wide Docling converter (built once)."""
+        return get_shared_converter()
 
     @staticmethod
     def is_docling_supported(file_path: str | Path) -> bool:
@@ -125,7 +159,12 @@ class DoclingDocumentParser(BaseDocumentParser):
         converter = self._get_converter()
 
         logger.info(f"Docling converting: {file_path}")
-        conv_result = converter.convert(str(file_path))
+        if _CONVERT_LOCK.locked():
+            logger.info(
+                "[docling] queued document %s behind an in-flight conversion", document_id
+            )
+        with _CONVERT_LOCK:
+            conv_result = converter.convert(str(file_path))
         doc = conv_result.document
 
         # Extract images and build URL mapping for markdown references
@@ -294,6 +333,9 @@ class DoclingDocumentParser(BaseDocumentParser):
                 contextualized=contextualized,
             ))
 
+        from app.services.document_parser.base import ensure_media_chunks
+        chunks = ensure_media_chunks(chunks, images, tables, document_id, original_filename)
+
         if images:
             logger.info(
                 f"Image-aware chunking: {len(assigned_images)}/{len(images)} images "
@@ -404,7 +446,7 @@ class DoclingDocumentParser(BaseDocumentParser):
         for idx in pic_to_image_idx:
             if idx >= 0:
                 img = images[idx]
-                url = f"/static/doc-images/kb_{self.workspace_id}/images/{img.image_id}.png"
+                url = f"/api/v1/documents/{img.document_id}/images/{img.image_id}/file"
                 pic_url_list.append((img.caption, url))
             else:
                 pic_url_list.append(("", ""))
