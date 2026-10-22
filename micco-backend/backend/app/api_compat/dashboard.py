@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import extract, func, select, case, and_
+from sqlalchemy import func, select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db
@@ -23,21 +24,54 @@ def _fmt_storage(total_bytes: int) -> str:
     return f"{total_bytes / 1024:.1f} KB"
 
 
+def dashboard_scope(user):
+    return "company" if user.role in {"Admin", "Giám đốc", "Phó giám đốc"} else "department" if user.role == "Trưởng phòng" else "mine"
+
+
+def _doc_filters(user):
+    filters = [Document.deleted_at.is_(None), Document.workspace_id.in_(select(KnowledgeBase.id).where(KnowledgeBase.deleted_at.is_(None)))]
+    scope = dashboard_scope(user)
+    if scope == "mine":
+        filters.append(Document.uploader_id == user.id)
+    elif scope == "department":
+        filters.append(and_(Document.department_id == user.department_id, Document.department_id.is_not(None)))
+    return filters
+
+
+def _kb_filters(user):
+    filters = [KnowledgeBase.deleted_at.is_(None)]
+    if dashboard_scope(user) != "company":
+        related = select(Document.workspace_id).where(*_doc_filters(user))
+        direct = KnowledgeBase.owner_id == user.id if dashboard_scope(user) == "mine" else and_(KnowledgeBase.visibility == "department", KnowledgeBase.department_id == user.department_id, KnowledgeBase.department_id.is_not(None))
+        filters.append(or_(direct, KnowledgeBase.id.in_(related)))
+    return filters
+
+
+def month_bounds(now, offset):
+    month_index = now.year * 12 + now.month - 1 - offset
+    year, month0 = divmod(month_index, 12)
+    next_year, next_month0 = divmod(month_index + 1, 12)
+    start = datetime(year, month0 + 1, 1, tzinfo=ZoneInfo("Asia/Ho_Chi_Minh"))
+    end = datetime(next_year, next_month0 + 1, 1, tzinfo=ZoneInfo("Asia/Ho_Chi_Minh"))
+    return start.astimezone(timezone.utc).replace(tzinfo=None), end.astimezone(timezone.utc).replace(tzinfo=None), start.strftime("%m/%Y")
+
+
 @router.get("/stats")
 async def get_stats(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    is_admin = current_user.role == "Admin"
-    
-    # Base filters
-    doc_filter = [Document.uploader_id == current_user.id] if not is_admin else []
-    kb_filter = [] # Workspaces are generally shared but can be filtered if needed
+    scope = dashboard_scope(current_user)
+    doc_filter = _doc_filters(current_user)
+    kb_filter = _kb_filters(current_user)
     
     total_files = (await db.execute(select(func.count(Document.id)).where(*doc_filter))).scalar() or 0
     total_bytes = (await db.execute(select(func.coalesce(func.sum(Document.file_size), 0)).where(*doc_filter))).scalar() or 0
-    team_members = (await db.execute(select(func.count(User.id)))).scalar() if is_admin else 1
-    total_workspaces = (await db.execute(select(func.count(KnowledgeBase.id)))).scalar() or 0
+    user_filters = [User.is_active.is_(True)]
+    if scope == "mine": user_filters.append(User.id == current_user.id)
+    elif scope == "department": user_filters.append(and_(User.department_id == current_user.department_id, User.department_id.is_not(None)))
+    team_members = (await db.execute(select(func.count(User.id)).where(*user_filters))).scalar() or 0
+    total_workspaces = (await db.execute(select(func.count(KnowledgeBase.id)).where(*kb_filter))).scalar() or 0
     total_chunks = (await db.execute(select(func.coalesce(func.sum(Document.chunk_count), 0)).where(*doc_filter))).scalar() or 0
     from sqlalchemy import cast, String
     indexed_docs = (await db.execute(
@@ -52,7 +86,12 @@ async def get_stats(
         await db.execute(select(func.count(Document.id)).where(Document.created_at >= seven_days_ago, *doc_filter))
     ).scalar() or 0
 
+    approval_rows = (await db.execute(select(Document.approval_status, func.count(Document.id)).where(*doc_filter).group_by(Document.approval_status))).all()
+    approval_counts = {state: count for state, count in approval_rows}
     return {
+        "approvalCounts": approval_counts,
+        "scope": scope,
+        "timezone": "Asia/Ho_Chi_Minh",
         "totalFiles": total_files,
         "storageUsed": _fmt_storage(total_bytes),
         "storageBytes": total_bytes,
@@ -69,28 +108,14 @@ async def get_uploads_over_time(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    is_admin = current_user.role == "Admin"
-    now = datetime.utcnow()
+    now = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh"))
     rows = []
-
     for i in range(5, -1, -1):
-        month_dt = now - timedelta(days=30 * i)
-        year, month = month_dt.year, month_dt.month
-        month_name = month_dt.strftime("%b")
-
-        where_clause = [
-            extract("year", Document.created_at) == year,
-            extract("month", Document.created_at) == month,
-        ]
-        if not is_admin:
-            where_clause.append(Document.uploader_id == current_user.id)
-
-        cnt = (
-            await db.execute(
-                select(func.count(Document.id)).where(*where_clause)
-            )
-        ).scalar() or 0
-        rows.append({"month": month_name, "uploads": cnt})
+        start, end, label = month_bounds(now, i)
+        count = (await db.execute(select(func.count(Document.id)).where(
+            *_doc_filters(current_user), Document.created_at >= start, Document.created_at < end,
+        ))).scalar() or 0
+        rows.append({"month": label, "uploads": count})
 
     return rows
 
@@ -115,7 +140,7 @@ async def get_storage_by_type(
 
     result = await db.execute(
         select(Document.file_type, func.coalesce(func.sum(Document.file_size), 0), func.count(Document.id))
-        .where(Document.uploader_id == current_user.id if current_user.role != "Admin" else True)
+        .where(*_doc_filters(current_user))
         .group_by(Document.file_type)
     )
 
@@ -150,7 +175,7 @@ async def get_document_status(
     }
 
     # If uploader_id filtering is desired:
-    doc_filter = [Document.uploader_id == current_user.id] if current_user.role != "Admin" else []
+    doc_filter = _doc_filters(current_user)
 
     result = await db.execute(
         select(Document.status, func.count(Document.id))
@@ -178,7 +203,7 @@ async def get_workspace_stats(
     """Get per-workspace document and chunk counts."""
     # Optional: Filter workspace stats by user uploads too?
     # For now, show overall workspace activity but maybe cap it.
-    doc_filter = [Document.uploader_id == current_user.id] if current_user.role != "Admin" else []
+    doc_filter = _doc_filters(current_user)
 
     result = await db.execute(
         select(
@@ -188,6 +213,7 @@ async def get_workspace_stats(
             func.coalesce(func.sum(Document.file_size), 0).label("total_size"),
         )
         .outerjoin(Document, and_(Document.workspace_id == KnowledgeBase.id, *doc_filter))
+        .where(*_kb_filters(current_user))
         .group_by(KnowledgeBase.id, KnowledgeBase.name)
         .order_by(func.count(Document.id).desc())
         .limit(10)
@@ -211,13 +237,11 @@ async def get_recent_documents(
     current_user: User = Depends(get_current_user),
 ):
     """Get recent 10 documents from MiccoRAG-v2."""
-    is_admin = current_user.role == "Admin"
     query = (
-        select(Document, KnowledgeBase.name.label("workspace_name"))
+        select(Document, KnowledgeBase)
         .join(KnowledgeBase, Document.workspace_id == KnowledgeBase.id)
     )
-    if not is_admin:
-        query = query.where(Document.uploader_id == current_user.id)
+    query = query.where(*_doc_filters(current_user))
         
     result = await db.execute(
         query.order_by(Document.created_at.desc()).limit(10)
@@ -226,7 +250,11 @@ async def get_recent_documents(
     docs = []
     for row in result.all():
         doc = row[0]
-        workspace_name = row[1]
+        workspace = row[1]
+        from app.core.permissions import can_read_document
+        if not can_read_document(current_user, doc, workspace, allow_owner_pending=True):
+            continue
+        workspace_name = workspace.name
         docs.append({
             "id": doc.id,
             "name": doc.original_filename or doc.filename,

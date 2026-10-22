@@ -1,3 +1,5 @@
+from app.models.upload_receipt import UploadReceipt
+from app.models.audit_event import AuditEvent
 from app.models.knowledge_base import KnowledgeBase
 from app.models.document import Document, DocumentImage, DocumentTable
 from app.models.document_version import DocumentVersion

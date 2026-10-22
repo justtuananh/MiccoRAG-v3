@@ -17,7 +17,7 @@ from app.models.user import User
 
 
 _BCRYPT_MAX = 72
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 def hash_password(password: str) -> str:
@@ -53,18 +53,27 @@ def decode_access_token(token: str) -> dict:
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: AsyncSession = Depends(get_db),
 ) -> User:
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     token = credentials.credentials
 
-    # Dev-mode bypass: VITE_SKIP_AUTH=true sends 'dev-skip' as token
-    if token == "dev-skip":
+    # Dev-mode bypass: VITE_SKIP_AUTH=true sends 'dev-skip' as token.
+    # Gated on DEBUG so this can never work against a publicly-reachable
+    # instance (DEBUG defaults to False) — was previously an unconditional
+    # admin-auth bypass regardless of environment.
+    if token == "dev-skip" and settings.DEBUG:
         # Deterministic: lowest id = seeded Admin. Without ORDER BY, Postgres heap order
         # can return a non-Admin user, silently breaking dept filters + mode override.
         result = await db.execute(select(User).options(selectinload(User.department)).order_by(User.id).limit(1))
         user = result.scalar_one_or_none()
-        if user:
+        if user and user.is_active:
             return user
         
         # No users in DB — return a transient dummy Admin user
@@ -93,8 +102,7 @@ async def get_current_user(
         .where(User.id == user_id)
     )
     user = result.scalar_one_or_none()
-    if user is None:
+    if user is None or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
 
     return user
-

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, date
 
-from sqlalchemy import String, Integer, DateTime, ForeignKey, Text
+from sqlalchemy import String, Integer, DateTime, Date, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,11 +23,17 @@ class KnowledgeEntry(Base):
     visibility: Mapped[str] = mapped_column(String(20), nullable=False, default="internal")
     approval_status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending_dept")
     approval_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    effective_from: Mapped[date | None] = mapped_column(Date, nullable=True)
+    effective_until: Mapped[date | None] = mapped_column(Date, nullable=True)
+    approved_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    supersedes_entry_id: Mapped[int | None] = mapped_column(ForeignKey("knowledge_entries.id", ondelete="SET NULL"), nullable=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="Active")
     ingest_status: Mapped[str | None] = mapped_column(String(20), nullable=True, default="pending")
     ingest_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    owner: Mapped["User"] = relationship(back_populates="knowledge_entries")
+    owner: Mapped["User"] = relationship(back_populates="knowledge_entries", foreign_keys=[owner_id])
     department: Mapped["Department | None"] = relationship()

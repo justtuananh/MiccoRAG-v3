@@ -48,6 +48,7 @@ class KnowledgeBase(Base):
     visibility: Mapped[str] = mapped_column(
         String(20), nullable=False, default="department"
     )
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     # Relationships
     documents: Mapped[list["Document"]] = relationship(
