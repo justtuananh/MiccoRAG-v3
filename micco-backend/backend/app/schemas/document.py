@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, date
 from app.models.document import DocumentStatus
 
 
@@ -32,11 +32,17 @@ class DocumentResponse(DocumentBase):
     table_count: int = 0
     parser_version: str | None = None
     processing_time_ms: int = 0
+    # "processed" | "failed" — None for documents indexed before this field existed
+    kg_status: str | None = None
+    kg_error: str | None = None
     # RBAC / approval fields
     uploader_id: int | None = None
     department_id: int | None = None
     visibility: str = "internal"
     approval_status: str = "approved"
+    effective_from: date | None = None
+    effective_until: date | None = None
+    deleted_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 
