@@ -1,0 +1,14 @@
+node_modules/
+dist/
+dist-ssr/
+coverage/
+.git/
+.env*
+**/.env*
+.npmrc
+**/.npmrc
+*.log
+*.local
+e2e/
+tests/
+README.md

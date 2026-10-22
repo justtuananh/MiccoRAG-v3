@@ -1,55 +1,52 @@
-# ============================================================
-# NexusRAG Backend — Multi-stage Docker build
-# ============================================================
+# Build from micco-backend/. Runtime data and credentials are mounted, never baked in.
+FROM python:3.12-slim-bookworm AS dependencies
 
-# Stage 1: Install Python dependencies
-FROM python:3.11-slim AS deps
-
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc g++ \
-    libpq-dev \
-    libgl1 \
-    libglib2.0-0 \
+    build-essential libpq-dev libgl1 libglib2.0-0 libgomp1 libmagic1 \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+WORKDIR /build
+COPY backend/requirements.txt backend/requirements-docker-constraints.txt ./
+# Match the tested runtime's PyTorch versions, using CPU wheels instead of CUDA.
+RUN pip install --no-cache-dir torch==2.14.0+cpu torchvision==0.29.0+cpu \
+      --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir -c requirements-docker-constraints.txt \
+      -r requirements.txt \
+    && pip check
 
-COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-
-# Stage 2: Pre-download ML models (~2.5GB, cached as Docker layer)
-FROM deps AS models
-
-COPY backend/scripts/download_models.py /tmp/download_models.py
-RUN python /tmp/download_models.py
-
-
-# Stage 3: Runtime image
-FROM python:3.11-slim AS runtime
-
+FROM python:3.12-slim-bookworm AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
-    libgl1 \
-    libglib2.0-0 \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+    libpq5 libgl1 libglib2.0-0 libgomp1 libmagic1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 10001 micco \
+    && useradd --uid 10001 --gid 10001 --home-dir /home/micco \
+       --create-home --shell /usr/sbin/nologin micco
 
+COPY --from=dependencies /usr/local/lib/python3.12/site-packages \
+    /usr/local/lib/python3.12/site-packages
+COPY --from=dependencies /usr/local/bin /usr/local/bin
+
+ENV HOME=/home/micco \
+    XDG_CACHE_HOME=/home/micco/.cache \
+    HF_HOME=/home/micco/.cache/huggingface \
+    TORCH_HOME=/home/micco/.cache/torch \
+    AUTO_CREATE_TABLES=false \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 WORKDIR /app/backend
-
-# Copy installed packages from deps stage
-COPY --from=deps /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=deps /usr/local/bin /usr/local/bin
-
-# Copy pre-downloaded models from models stage
-COPY --from=models /root/.cache/huggingface /root/.cache/huggingface
-
-# Copy backend source
-COPY backend/ .
-
-# Create runtime directories
-RUN mkdir -p data/docling data/lightrag uploads
-
+COPY --chown=10001:10001 backend/ /app/backend/
+RUN mkdir -p /app/backend/uploads /app/backend/data/docling \
+      /app/backend/data/lightrag /home/micco/.cache \
+    && chown -R 10001:10001 /app/backend /home/micco
+USER 10001:10001
 EXPOSE 8080
-
+HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
+  CMD python -c "import urllib.request; assert urllib.request.urlopen('http://127.0.0.1:8080/ready', timeout=3).status == 200"
+# Schema migration is an explicit operator step; startup only serves the app.
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
+
+# Keep release metadata after dependency layers so a new revision reuses them.
+ARG VCS_REF=unknown
+LABEL org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.title="miccoRAG backend"

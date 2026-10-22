@@ -1057,6 +1057,24 @@ async def chat_with_documents(
     from app.services.chat_routing import social_reply
     greeting = social_reply(request.message)
     if greeting:
+        # Social turns bypass retrieval, but must still appear in this user's
+        # workspace history just like an evidence-backed answer does.
+        try:
+            import uuid
+            from app.models.chat_message import ChatMessage as ChatMessageModel
+
+            db.add(ChatMessageModel(
+                workspace_id=workspace_id, user_id=effective_user_id,
+                message_id=str(uuid.uuid4()), role="user", content=request.message,
+            ))
+            db.add(ChatMessageModel(
+                workspace_id=workspace_id, user_id=effective_user_id,
+                message_id=str(uuid.uuid4()), role="assistant", content=greeting,
+            ))
+            await db.commit()
+        except Exception as e:
+            logger.warning("Failed to persist social chat messages: %s", e)
+            await db.rollback()
         return ChatResponse(answer=greeting, sources=[], related_entities=[])
 
     # Apply visibility filter
