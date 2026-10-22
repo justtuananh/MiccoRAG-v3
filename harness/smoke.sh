@@ -25,8 +25,7 @@ if have_docker; then
     ok "nexusrag-postgres running (health=$he)"
   else no "nexusrag-postgres không khỏe (status=${st:-missing} health=${he:-?})"; fi
   for c in nexusrag-chromadb micco-nginx-gw micco-duckdns-updater; do
-    st=$(dki "$c" '{{.State.Status}}')
-    [ "$st" = "running" ] && ok "$c running" || no "$c không chạy (status=${st:-missing})"
+    check_container "$c"
   done
 else wn "bỏ qua kiểm tra Docker (không quyền docker)"; fi
 

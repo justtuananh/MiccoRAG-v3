@@ -47,7 +47,7 @@ TP=0; TF=0; TW=0; RESULTS=(); rc_any=0
 for c in "${uniq_comps[@]}"; do
   script="$HDIR/$c.sh"
   echo; echo "▶▶▶ COMPONENT: $c"
-  if [ ! -f "$script" ]; then echo "  (thiếu $script)"; RESULTS+=("$c|NA|0|0|0"); rc_any=1; continue; fi
+  if [ ! -f "$script" ]; then echo "  (thiếu $script)"; RESULTS+=("$c|FAIL|0|1|0"); TF=$((TF+1)); rc_any=1; continue; fi
   out="$(bash "$script"; echo "__RC__=$?")"
   rc="$(printf '%s' "$out" | sed -n 's/^__RC__=//p' | tail -1)"
   printf '%s\n' "$out" | sed '/^__RC__=/d'
@@ -55,6 +55,9 @@ for c in "${uniq_comps[@]}"; do
   p=$(printf '%s' "$line" | grep -oE '[0-9]+ PASS' | grep -oE '[0-9]+'); p=${p:-0}
   f=$(printf '%s' "$line" | grep -oE '[0-9]+ FAIL' | grep -oE '[0-9]+'); f=${f:-0}
   w=$(printf '%s' "$line" | grep -oE '[0-9]+ WARN' | grep -oE '[0-9]+'); w=${w:-0}
+  if [ -z "$line" ] || { [ "${rc:-1}" != 0 ] && [ "$f" -eq 0 ]; }; then
+    f=$((f+1)); rc=1
+  fi
   TP=$((TP+p)); TF=$((TF+f)); TW=$((TW+w))
   [ "${rc:-1}" != "0" ] && rc_any=1
   RESULTS+=("$c|$( [ "${rc:-1}" = 0 ] && echo OK || echo FAIL )|$p|$f|$w")

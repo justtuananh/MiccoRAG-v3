@@ -29,7 +29,7 @@ if [ "${RUN_E2E:-0}" = "1" ]; then
     printf '%s\n' "$out" | grep -E 'PASS|FAIL' | sed 's/^/     /'
     [ "$rc" = 0 ] && ok "playwright e2e PASS" || no "playwright e2e FAIL — $(printf '%s' "$out" | tail -3 | tr '\n' ' ')"
   else
-    wn "playwright chưa cài — chạy: npm i -D playwright && npx playwright install chromium"
+    no "playwright chưa cài — không thể kiểm E2E đã yêu cầu"
   fi
 else wn "bỏ qua e2e (RUN_E2E=1 để bật; cần frontend :5174 hoặc gateway :8888 chạy)"; fi
 

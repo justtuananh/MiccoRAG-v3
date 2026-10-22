@@ -39,6 +39,7 @@ banner(){
 # ---- HTTP helpers (luôn có timeout) ----
 HARNESS_HTTP_TIMEOUT="${HARNESS_HTTP_TIMEOUT:-8}"
 AUTH_HDR="Authorization: Bearer dev-skip"   # dev bypass (core/security.py) cho smoke/read
+if [ -n "${HARNESS_AUTH_TOKEN:-}" ]; then AUTH_HDR="Authorization: Bearer $HARNESS_AUTH_TOKEN"; fi
 hcode(){ curl -s -o /dev/null --max-time "$HARNESS_HTTP_TIMEOUT" -w '%{http_code}' "$@" 2>/dev/null; }
 hbody(){ curl -s --max-time "${1:-$HARNESS_HTTP_TIMEOUT}" "${@:2}" 2>/dev/null; }
 
@@ -67,6 +68,17 @@ dki(){
 dkexec(){
   _is_ours "$1" || { echo "REFUSED (not ours): $1" >&2; return 99; }
   local c="$1"; shift; docker exec "$c" "$@"
+}
+
+# DuckDNS is optional unless explicitly required; an installed but stopped
+# updater is still a failure. Required services never become warnings.
+check_container(){
+  local c="$1" st
+  st=$(dki "$c" '{{.State.Status}}')
+  if [ "$st" = running ]; then ok "$c running"
+  elif [ "$c" = micco-duckdns-updater ] && [ -z "$st" ] && [ "${REQUIRE_DUCKDNS:-0}" != 1 ]; then
+    wn "$c không được triển khai (tùy chọn; REQUIRE_DUCKDNS=1 để bắt buộc)"
+  else no "$c không chạy (status=${st:-missing})"; fi
 }
 
 # ---- Kết luận component ----

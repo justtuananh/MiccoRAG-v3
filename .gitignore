@@ -175,3 +175,5 @@ harness/reports/
 # Temporary scratch files
 paper_outline.txt
 tech_paper_outline.txt
+# Playwright MCP browser logs
+.playwright-mcp/

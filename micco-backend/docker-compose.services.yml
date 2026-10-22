@@ -4,6 +4,7 @@
 
 services:
   postgres:
+    restart: unless-stopped
     image: postgres:15-alpine
     container_name: nexusrag-postgres
     environment:
@@ -23,6 +24,7 @@ services:
       retries: 5
 
   chromadb:
+    restart: unless-stopped
     image: chromadb/chroma:latest
     container_name: nexusrag-chromadb
     ports:

@@ -1,0 +1,7 @@
+# Desktop acceptance fixes, 2026-10-22. Use with compose.production.yaml.
+# Ports/secrets remain in the existing private docker-production.env file.
+services:
+  backend:
+    image: miccorag-backend:20261022-desktop-b03
+  frontend:
+    image: miccorag-frontend:20261022-desktop-b08

@@ -16,6 +16,10 @@ for c in smoke be fe test; do
   p=$(printf '%s' "$line" | grep -oE '[0-9]+ PASS' | grep -oE '[0-9]+'); p=${p:-0}
   f=$(printf '%s' "$line" | grep -oE '[0-9]+ FAIL' | grep -oE '[0-9]+'); f=${f:-0}
   w=$(printf '%s' "$line" | grep -oE '[0-9]+ WARN' | grep -oE '[0-9]+'); w=${w:-0}
+  if [ -z "$line" ] || { [ "${rc:-1}" != 0 ] && [ "$f" -eq 0 ]; }; then
+    f=$((f+1))
+    echo "  FAIL: $c không hoàn tất hợp lệ (rc=${rc:-missing}, summary=${line:-missing})"
+  fi
   gp=$((gp+p)); gf=$((gf+f)); gw=$((gw+w))
   rows+=("$c: ${p}P / ${f}F / ${w}W  (rc=${rc:-?})")
 done
@@ -24,7 +28,7 @@ section "KẾT LUẬN QA"
 for r in "${rows[@]}"; do note "$r"; done
 pass=$gp; fail=$gf; warn=$gw
 if [ "$gf" -eq 0 ]; then
-  echo "  🟢 GO — đủ điều kiện release ($gp PASS, 0 FAIL, $gw WARN)"
+  echo "  🟢 TECHNICAL GATE PASS ($gp PASS, 0 FAIL, $gw WARN) — xem checklist đánh giá để nghiệm thu nghiệp vụ/bảo mật"
 else
   echo "  🔴 NO-GO — còn $gf FAIL cần xử lý"
 fi

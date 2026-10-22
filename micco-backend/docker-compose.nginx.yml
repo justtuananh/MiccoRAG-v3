@@ -20,6 +20,9 @@ services:
       - PGID=1000
       - TZ=Asia/Ho_Chi_Minh
       - SUBDOMAINS=${DUCKDNS_SUBDOMAIN:-micco}
-      - TOKEN=${DUCKDNS_TOKEN:-4142a011-7611-4cce-af13-6198e55f96a2}
+      # Bắt buộc đặt DUCKDNS_TOKEN trong .env (đã gitignore). Trước đây token
+      # thật bị hardcode làm giá trị mặc định ở đây và đã lọt vào lịch sử git
+      # -> token cũ coi như lộ, phải xoay lại trên duckdns.org.
+      - TOKEN=${DUCKDNS_TOKEN:?DUCKDNS_TOKEN chua duoc dat trong .env}
       - LOG_FILE=false # set to true if you want to log to a file
     restart: unless-stopped
