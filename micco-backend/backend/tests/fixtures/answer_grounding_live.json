@@ -1,0 +1,575 @@
+{
+  "director-board-council": {
+    "question": "Hội đồng An toàn lao động công ty MICCO bao gồm những ai?",
+    "answer": "Hội đồng An toàn lao động Công ty MICCO gồm 09 thành viên, do ông Trần Quốc Bảo — Trưởng ban An toàn lao động làm Chủ tịch Hội đồng. Thành viên gồm:\n1. Trần Quốc Bảo - Trưởng ban An toàn, Chủ tịch Hội đồng.\n2. Nguyễn Đình Phúc - Phó phòng Kỹ thuật, Phó Chủ tịch.\n3. Lê Thị Thu Vân - Trưởng phòng Nhân sự, Ủy viên thường trực.\n4. Đỗ Trung Hiếu - Trưởng phòng Kinh doanh, Ủy viên.\n5. Phạm Minh Tuấn - Trưởng phòng Kế toán, Ủy viên.\n6-9. Đại diện các phân xưởng và công đoàn, Ủy viên.[1p76]",
+    "sources": [
+      {
+        "index": "1p76",
+        "chunk_id": "doc_30_chunk_1",
+        "authority": null,
+        "content": "Thành lập Hội đồng An toàn lao động Công ty MICCO gồm <b>09 thành viên</b>, do ông Trần Quốc Bảo — Trưởng ban An toàn lao động làm Chủ tịch Hội đồng.\n1, Họ và tên = Trần Quốc Bảo. 1, Chức vụ = Trưởng ban An toàn. 1, Nhiệm vụ trong Hội đồng = Chủ tịch. 2, Họ và tên = Nguyễn Đình Phúc. 2, Chức vụ = Phó phòng Kỹ thuật. 2, Nhiệm vụ trong Hội đồng = Phó Chủ tịch. 3, Họ và tên = Lê Thị Thu Vân. 3, Chức vụ = Trưởng phòng Nhân sự. 3, Nhiệm vụ trong Hội đồng = Ủy viên thường trực. 4, Họ và tên = Đỗ Trung Hiếu. 4, Chức vụ = Trưởng phòng Kinh doanh. 4, Nhiệm vụ trong Hội đồng = Ủy viên. 5, Họ và tên = Phạm Minh Tuấn. 5, Chức vụ = Trưởng phòng Kế toán. 5, Nhiệm vụ trong Hội đồng = Ủy viên. 6–9, Họ và tên = Đại diện các phân xưởng và công đoàn. 6–9, Chức vụ = —. 6–9, Nhiệm vụ trong Hội đồng = Ủy viên",
+        "document_id": 30,
+        "source_file": "Quyết định thành lập Hội đồng An toàn lao động.docx",
+        "page_no": 0,
+        "heading_path": [
+          "QUYẾT ĐỊNH THÀNH LẬP HỘI ĐỒNG AN TOÀN LAO ĐỘNG",
+          "Điều 1."
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "t28c",
+        "chunk_id": "doc_30_chunk_0",
+        "authority": null,
+        "content": "Số: 05/QĐ-MICCO ngày 08/01/2026. Căn cứ Điều lệ tổ chức và hoạt động của Công ty MICCO.",
+        "document_id": 30,
+        "source_file": "Quyết định thành lập Hội đồng An toàn lao động.docx",
+        "page_no": 0,
+        "heading_path": [
+          "QUYẾT ĐỊNH THÀNH LẬP HỘI ĐỒNG AN TOÀN LAO ĐỘNG"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "0icb",
+        "chunk_id": "doc_30_chunk_2",
+        "authority": null,
+        "content": "- Xây dựng và rà soát kế hoạch an toàn lao động hằng năm.\n- Tổ chức điều tra, kết luận nguyên nhân các vụ tai nạn lao động và sự cố.\n- Họp định kỳ mỗi quý một lần; họp đột xuất khi xảy ra sự cố nghiêm trọng.",
+        "document_id": 30,
+        "source_file": "Quyết định thành lập Hội đồng An toàn lao động.docx",
+        "page_no": 0,
+        "heading_path": [
+          "QUYẾT ĐỊNH THÀNH LẬP HỘI ĐỒNG AN TOÀN LAO ĐỘNG",
+          "Điều 2. Nhiệm vụ của Hội đồng"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      }
+    ]
+  },
+  "hr-public-empty": {
+    "question": "Theo quy định sử dụng eMicco, khi CBCNV nghỉ việc, chuyển công tác hoặc nghỉ hưu, phải thông báo cho bộ phận nào và tài khoản phải được khóa trong thời hạn bao lâu?",
+    "answer": "Tài liệu được phép sử dụng chưa có đủ thông tin để trả lời câu hỏi này.",
+    "sources": []
+  },
+  "hr-emicco-lock": {
+    "question": "Theo quy định sử dụng eMicco, khi CBCNV nghỉ việc, chuyển công tác hoặc nghỉ hưu, phải thông báo cho bộ phận nào và tài khoản phải được khóa trong thời hạn bao lâu?",
+    "answer": "Khi CBCNV nghỉ việc, chuyển công tác hoặc nghỉ hưu, các phòng ban tại Tổng công ty và các đơn vị phải thông báo bằng văn bản hoặc email nội bộ tới Phòng CLPT - CNTT để người quản trị hệ thống (Admin) thực hiện khóa tài khoản người dùng trong vòng 24 giờ kể từ khi nhận được thông báo.[xi37]",
+    "sources": [
+      {
+        "index": "xi37",
+        "chunk_id": "doc_39_chunk_11",
+        "authority": null,
+        "content": "- c) Trưởng các bộ phận chuyên môn (Phòng/Ban/Phân xưởng/Tổ đội) tại các đơn vị: Căn cứ vào vị trí việc làm và chức năng nhiệm vụ, có trách nhiệm trực tiếp rà soát, lập danh sách nhân sự đủ năng lực chuyên môn đề xuất Giám đốc đơn vị phê duyệt để gửi về Tổn g công ty cấp quyền khai thác phân hệ tương ứng , đồng thời thường xuyên kiểm tra, đôn đốc và giám sát việc nhập liệu, sử dụng phần mềm hàng ngày tại bộ phận mình.\n3. Quy định về thu hồi, khóa tài khoản và bàn giao số liệu khi thay đổi nhân sự:\n- a) Khi CBCNV nghỉ việc, chuyển công tác, hoặc nghỉ hưu, các phòng ban tại Tổng công ty và các đơn vị phải thông báo bằng văn bản hoặc email nội bộ tới Phòng CLPT - CNTT để người quản trị hệ thống (Admin) thực hiện khóa tài khoản người dùng trong vòng 24 giờ kể từ khi nhận được thông báo đảm bảo tuân thủ Quy định đảm bảo an toàn, an ninh thông tin mạng trong Tổng công ty.\n- b) Trước khi thực hiện khóa tài khoản, Trưởng các phòng ban Tổng công ty và các đơn vị có trách nhiệm tổ chức, giám sát việc bàn giao toàn bộ dữ liệu đang xử lý dở dang trên phần mềm eMicco của cán bộ đó cho người tiếp quản, lập biên bản bàn giao tài sản Công nghệ thông tin theo quy định",
+        "document_id": 39,
+        "source_file": "QĐSD phần mềm eMicco_V6_Final.pdf",
+        "page_no": 4,
+        "heading_path": [
+          "Điều 3. Trách nhiệm quản lý, phân cấp và bảo quản tài khoản trên hệ thống eMicco"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "0bmg",
+        "chunk_id": "doc_39_chunk_5",
+        "authority": null,
+        "content": "1. Phạm vi áp dụng: Quy định này quy định về quản lý, sử dụng phần mềm theo yêu cầu riêng phục vụ công tác chuyển đổi số của Tổng công ty (g ọi tắt là phần mềm eMicco).\n2. Đối tượng áp dụng: C án bộ công nhân viên (CBCNV) trong toàn Tổng công ty sử dụng phần mềm eMi cco bao gồm: Văn phòng Tổng công ty, các công ty con, đơn vị trực thuộc và các chi nhánh.",
+        "document_id": 39,
+        "source_file": "QĐSD phần mềm eMicco_V6_Final.pdf",
+        "page_no": 2,
+        "heading_path": [
+          "Điều 1. Phạm vi và đối tượng áp dụng"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "qvi2",
+        "chunk_id": "doc_39_chunk_10",
+        "authority": null,
+        "content": "1. Đối với tài khoản quản trị hệ thống (Admin account) :\n- a) Tổng giám đốc Tổng công ty ủy quyền cho Phó Tổng giám đốc phụ trách lĩnh vực CLPTCNTT trực tiếp quản lý, chỉ đạo hoạt động của hệ thống phần mềm eMicco.\n- b) Căn cứ văn bản ủy quyền, Phó Tổng giám đốc giao nhiệm vụ bằng văn bản cho Trưởng phòng CLPT - CNTT thực hiện quyền quản trị hệ thống. Trưởng phòng CLPT - CNTT chịu trách nhiệm trực tiếp trước Tổng giám đốc, Phó Tổng giám đốc và trước pháp luật về việc vận hành, khai thác tài khoản quản trị (Admin account), bảo đảm an toàn, bảo mật tuyệt đối dữ liệu trên toàn hệ thống.\n2. Đối với tài khoản người dùng (User account) :\n- a) Trưởng các Phòng/Ban nghiệp vụ tại Cơ quan Tổng công ty: Chịu trách nhiệm toàn diện trong việc quản lý, giám sát việc sử dụng các tài khoản người dùng thuộc phân hệ chuyên môn mình phụ trách trên toàn hệ thống; định kỳ rà soát quyền truy cập của CBCNV thuộc phòng ban mình bảo đảm sử dụng đúng mục đích .\n- b) Giám đốc các đơn vị (Công ty con, đơn vị trực thuộc, chi nhánh): Chịu trách nhiệm toàn diện trước Tổng công ty về việc phê duyệt, quản lý và giám sát toàn bộ các tài khoản người dùng thuộc phạm vi đơn vị mình quản lý.",
+        "document_id": 39,
+        "source_file": "QĐSD phần mềm eMicco_V6_Final.pdf",
+        "page_no": 4,
+        "heading_path": [
+          "Điều 3. Trách nhiệm quản lý, phân cấp và bảo quản tài khoản trên hệ thống eMicco"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "9pa0",
+        "chunk_id": "doc_39_chunk_12",
+        "authority": null,
+        "content": "1. Các thông tin, dữ liệu quản lý tương ứng với các phân hệ trong phần mềm eMicco do cấp nào trực tiếp quản lý thì cấp đó có trách nhiệm cập nhật thông tin, dữ liệu vào phần mềm eMicco.\n2. Cá nhân được cung cấp tài khoản người dùng phục vụ cho nhiệm vụ quản lý, khai thác, sử dụng phần mềm eMicco chịu trách nhiệm bảo mật, bảo đảm an toàn tài khoản người dùng không chia sẻ mật khẩu, thông tin đăng nhập vào phần mềm cho người không có trách nhi ệm, khi không sử dụng phải đăng xuất, thoát khỏi phần mềm ngay, tuân thủ các quy trình về an toàn bảo mật thông tin.\n3. Những thông tin, dữ liệu quản lý có liên quan đến các lĩnh vực nghiệp vụ công tác đã được thiết kế trong chức năng phần mềm phải được cập nhật đầy đủ, chính xác, kịp thời vào phần mềm eMicco.\n4. Phần mềm eMicco được quản lý, sử dụng và bảo quản dữ liệu theo chế độ bảo mật thông tin riêng của doanh nghiệp và thông tin cá nhân nội bộ của Tổng công ty, phù hợp với các tiêu chuẩn an toàn hệ thống thông tin theo cấp độ. Chỉ những người được cung cấp tà i khoản đăng nhập và truy cập vào phần mềm mới được phép khai thác, sử dụng.",
+        "document_id": 39,
+        "source_file": "QĐSD phần mềm eMicco_V6_Final.pdf",
+        "page_no": 4,
+        "heading_path": [
+          "Điều 4 . Nguyên tắc quản lý, khai thác, sử dụng phần mềm eMicco"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "3hvb",
+        "chunk_id": "doc_39_chunk_4",
+        "authority": null,
+        "content": "(Kèm theo Quyết định số: 2233 /QĐ -MICCO ngày 22/6 /2026 của Tổng công ty Công nghiệp Hóa chất mỏ - Vinacomin)",
+        "document_id": 39,
+        "source_file": "QĐSD phần mềm eMicco_V6_Final.pdf",
+        "page_no": 2,
+        "heading_path": [
+          "- Vinacomin"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "qs6c",
+        "chunk_id": "doc_39_chunk_6",
+        "authority": null,
+        "content": "- 1/ Quản lý hệ thống;\n- 2/ Quản lý mua hàng, vật tư;\n- 3/ Quản lý bán hàng có điều kiện;\n- 4/ Quản lý kho thực tế, vị trí, mã vạch;\n- 5/ Quản trị tài chính kế toán;\n- 6/ Quản lý tổ chức, lao động, tiền lương;\n- 7/ Quản lý hóa đơn điện tử kết nối;\n- 8/ Quản lý vật tư theo yêu cầu đặc thù TKV;\n- 9/ Quản lý hộ chiếu nổ mìn;\n- 10/ Báo cáo thông minh Bi Dashboard.\ncó chức năng cấu hình riêng biệt nhằm xử lý tự động hoặc bán tự động các hoạt động dữ liệu bao gồm: nhập, xuất, lưu trữ, gửi, nhận, tìm kiếm, thống kê, phân tích, tổng hợp và trích xuất tài liệu phục vụ công tác quản trị và điều hành sản xuất kinh doanh\nMỗi phân hệ c ủa Tổng công ty.",
+        "document_id": 39,
+        "source_file": "QĐSD phần mềm eMicco_V6_Final.pdf",
+        "page_no": 2,
+        "heading_path": [
+          "3. Các phân hệ của phần mềm eMicco bao gồm nhưng không giới hạn các phân hệ chính sau:"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      }
+    ]
+  },
+  "hr-training": {
+    "question": "Theo Kế hoạch huấn luyện và sát hạch an toàn năm 2026, bài sát hạch có bao nhiêu câu, thời gian làm bài bao lâu, bao nhiêu điểm thì đạt và người không đạt phải làm gì?",
+    "answer": "Bài sát hạch có 40 câu trắc nghiệm, thời gian làm bài là 45 phút, đạt từ 80 điểm trở lên thì đạt. Người không đạt phải học lại và sát hạch bổ sung trong vòng 30 ngày; nếu quá 2 lần không đạt sẽ chuyển công việc khác.[4fjd]",
+    "sources": [
+      {
+        "index": "calk",
+        "chunk_id": "doc_27_chunk_0",
+        "authority": null,
+        "content": "Số: 12/KH-NS ngày 20/01/2026 - Phòng Nhân sự\n1. Mục tiêu\n100% người lao động được huấn luyện an toàn theo đúng nhóm đối tượng; tỷ lệ sát hạch đạt yêu cầu ngay lần đầu không thấp hơn 90%.\n2. Quy mô\nTổng số người phải huấn luyện trong năm 2026: 486 người, chia theo 4 đợt. Trong đó 62 người thuộc nhóm nguy cơ cao phải huấn luyện chuyên sâu 24 giờ.\nĐợt I - tháng 3, Số người = 142. Đợt I - tháng 3, Thời lượng = 16 giờ. Đợt I - tháng 3, Đơn vị huấn luyện = Trung tâm Kiểm định KV II. Đợt II - tháng 6, Số người = 118. Đợt II - tháng 6, Thời lượng = 16 giờ. Đợt II - tháng 6, Đơn vị huấn luyện = Trung tâm Kiểm định KV II. Đợt III - tháng 9, Số người = 134. Đợt III - tháng 9, Thời lượng = 16 giờ. Đợt III - tháng 9, Đơn vị huấn luyện = Trường Cao đẳng Công nghiệp. Đợt IV - tháng 12, Số người = 92. Đợt IV - tháng 12, Thời lượng = 16 giờ. Đợt IV - tháng 12, Đơn vị huấn luyện = Trung tâm Kiểm định KV II\n\n[Table on page 1 (5x4)]: Bảng thể hiện thông tin về các đợt huấn luyện trong năm, gồm số người tham gia, thời lượng và đơn vị tổ chức. Các cột chính là Đợt (thời gian tổ chức), Số người (lượng học viên), Thời lượng (đều 16 giờ) và Đơn vị huấn luyện (chủ yếu là Trung tâm Kiểm định KV II, riêng đợt III do Trường Cao đẳng Công nghiệp). Đợt IV có số người tham gia thấp nhất (92), trong khi đợt I cao nhất (142).",
+        "document_id": 27,
+        "source_file": "Kế hoạch huấn luyện và sát hạch an toàn 2026.pdf",
+        "page_no": 1,
+        "heading_path": [
+          "KẾ HOẠCH HUẤN LUYỆN VÀ SÁT HẠCH AN TOÀN NĂM 2026"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "4fjd",
+        "chunk_id": "doc_27_chunk_1",
+        "authority": null,
+        "content": "Trắc nghiệm 40 câu trong 45 phút, đạt từ 80 điểm trở lên. Người không đạt phải học lại và sát hạch bổ sung trong vòng 30 ngày; quá 2 lần không đạt sẽ chuyển công việc khác.\n4. Kinh phí\nTổng kinh phí dự kiến 980 triệu đồng, trích từ quỹ an toàn lao động năm 2026.",
+        "document_id": 27,
+        "source_file": "Kế hoạch huấn luyện và sát hạch an toàn 2026.pdf",
+        "page_no": 1,
+        "heading_path": [
+          "3. Hình thức sát hạch"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      }
+    ]
+  },
+  "director-hr-council": {
+    "question": "Hội đồng An toàn lao động công ty MICCO bao gồm những ai?",
+    "answer": "Hội đồng An toàn lao động công ty MICCO bao gồm: Đảng ủy, Hội đồng thành viên (HĐTV); Tổng Giám đốc (TGĐ); Ban Kiểm soát; Các Phó Tổng Giám đốc (PTGĐ), Kế toán trưởng (KTT); Người đại diện MICCO tại các công ty con; Các đơn vị trong Tổng công ty (TCT); Các phòng trong TCT.[dsxt]",
+    "sources": [
+      {
+        "index": "dsxt",
+        "chunk_id": "doc_40_chunk_4",
+        "authority": null,
+        "content": "- Đảng ủy, HĐTV (e-copy,b/c);\n- TGĐ (e-copy);\n- Ban Kiểm soát (e-copy);\n- Các PTGĐ, KTT(e-copy);\n- Người đại diện MICCO tại các công ty con (e-copy);\n- Các đơn vị trong TCT (e-copy);\n- Các phòng trong TCT (e-copy);\n- Lưu VT, VTM;\nBùi Hồng Quang",
+        "document_id": 40,
+        "source_file": "QD 1068 Quy trinh quan ly thuc hien cong tác quan ly vat tu ngoai VLNCN.pdf",
+        "page_no": 2,
+        "heading_path": [
+          "TỔNG GIÁM ĐỐC"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "lot8",
+        "chunk_id": "doc_40_chunk_3",
+        "authority": null,
+        "content": "Điều 4. Quyết định có hiệu lực kể từ ngày ký, các Phó Tổng giám đốc, Kế toán trưởng, Trưởng các phòng của Tổng công ty; Chủ tịch, Giám đốc các công ty con TNHH Một thành viên; Giám đốc các đơn vị trực thuộc chịu trách nhiệm thi hành Quyết định này./.",
+        "document_id": 40,
+        "source_file": "QD 1068 Quy trinh quan ly thuc hien cong tác quan ly vat tu ngoai VLNCN.pdf",
+        "page_no": 2,
+        "heading_path": [
+          "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hạnh phúc"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      }
+    ]
+  },
+  "tech-record-retention": {
+    "question": "Theo tài liệu Quy trình an toàn trong sản xuất vật liệu nổ công nghiệp, những hồ sơ nào phải lưu và thời hạn lưu tối thiểu tại Phòng Kỹ thuật là bao lâu?",
+    "answer": "Theo tài liệu Quy trình an toàn trong sản xuất vật liệu nổ công nghiệp, những hồ sơ phải lưu tại Phòng Kỹ thuật gồm: Nhật ký vận hành ca, phiếu kiểm tra chất lượng từng lô, biên bản bàn giao ca. Thời hạn lưu tối thiểu là 05 năm.[6sjm]",
+    "sources": [
+      {
+        "index": "6sjm",
+        "chunk_id": "doc_20_chunk_3",
+        "authority": null,
+        "content": "Nhật ký vận hành ca, phiếu kiểm tra chất lượng từng lô, biên bản bàn giao ca - lưu tối thiểu 05 năm tại Phòng Kỹ thuật.",
+        "document_id": 20,
+        "source_file": "Quy trình an toàn trong sản xuất vật liệu nổ công nghiệp.pdf",
+        "page_no": 1,
+        "heading_path": [
+          "4. Hồ sơ lưu"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "yuj6",
+        "chunk_id": "doc_20_chunk_0",
+        "authority": null,
+        "content": "Số hiệu: QT-ATSX-01/2026 - Phòng Kỹ thuật biên soạn\n1. Phạm vi áp dụng\nQuy trình áp dụng cho dây chuyền sản xuất thuốc nổ nhũ tương và thuốc nổ ANFO tại Nhà máy số 1 và Nhà máy số 2.\n\n[Table on page 1 (8x3)]: Bảng trình bày các công đoạn trong quy trình sản xuất cùng với các điểm kiểm soát và ngưỡng cho phép tương ứng. Các cột chính gồm \"Công đoạn\" (giai đoạn sản xuất), \"Điểm kiểm soát\" (yếu tố cần giám sát) và \"Ngưỡng cho phép\" (giá trị giới hạn đảm bảo chất lượng). Các ngưỡng như độ ẩm nguyên liệu ≤ 0,5%, nhiệt độ buồng nghiền ≤ 45°C, và tốc độ nổ ≥ 4.200 m/s là các tiêu chuẩn quan trọng được duy trì trong từng bước.",
+        "document_id": 20,
+        "source_file": "Quy trình an toàn trong sản xuất vật liệu nổ công nghiệp.pdf",
+        "page_no": 1,
+        "heading_path": [
+          "QUY TRÌNH AN TOÀN TRONG SẢN XUẤT VẬT LIỆU NỔ CÔNG NGHIỆP"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "5dhb",
+        "chunk_id": "doc_20_chunk_1",
+        "authority": null,
+        "content": "Tiếp nhận nguyên liệu, Điểm kiểm soát = Độ ẩm nguyên liệu. Tiếp nhận nguyên liệu, Ngưỡng cho phép = ≤ 0,5%. Nghiền, sàng, Điểm kiểm soát = Nhiệt độ buồng nghiền. Nghiền, sàng, Ngưỡng cho phép = ≤ 45°C. Phối trộn, Điểm kiểm soát = Tốc độ khuấy. Phối trộn, Ngưỡng cho phép = ≤ 60 vòng/phút. Nhũ hóa, Điểm kiểm soát = Nhiệt độ pha nóng. Nhũ hóa, Ngưỡng cho phép = 80 - 95°C. Đóng gói, Điểm kiểm soát = Trọng lượng gói. Đóng gói, Ngưỡng cho phép = ±2% khối lượng danh nghĩa. Kiểm tra chất lượng, Điểm kiểm soát = Tốc độ nổ. Kiểm tra chất lượng, Ngưỡng cho phép = ≥ 4.200 m/s. Nhập kho, Điểm kiểm soát = Nhiệt độ kho. Nhập kho, Ngưỡng cho phép = ≤ 30°C",
+        "document_id": 20,
+        "source_file": "Quy trình an toàn trong sản xuất vật liệu nổ công nghiệp.pdf",
+        "page_no": 1,
+        "heading_path": [
+          "2. Bảy công đoạn và điểm kiểm soát"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "pf91",
+        "chunk_id": "doc_20_chunk_2",
+        "authority": null,
+        "content": "Dừng ngay dây chuyền khi: nhiệt độ pha nóng vượt 100°C; mất điện đột ngột quá 30 giây; phát hiện tia lửa hoặc mùi khét bất thường; hoặc khi hệ thống thông gió ngừng hoạt động.",
+        "document_id": 20,
+        "source_file": "Quy trình an toàn trong sản xuất vật liệu nổ công nghiệp.pdf",
+        "page_no": 1,
+        "heading_path": [
+          "3. Điều kiện dừng dây chuyền khẩn cấp"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      }
+    ]
+  },
+  "tech-emicco-outside-kb": {
+    "question": "Theo quy định sử dụng eMicco, khi CBCNV nghỉ việc, chuyển công tác hoặc nghỉ hưu, phải thông báo cho bộ phận nào và tài khoản phải được khóa trong thời hạn bao lâu?",
+    "answer": "Tài liệu được phép sử dụng chưa có đủ thông tin để trả lời câu hỏi này.",
+    "sources": [
+      {
+        "index": "g9zh",
+        "chunk_id": "doc_20_chunk_2",
+        "authority": null,
+        "content": "Dừng ngay dây chuyền khi: nhiệt độ pha nóng vượt 100°C; mất điện đột ngột quá 30 giây; phát hiện tia lửa hoặc mùi khét bất thường; hoặc khi hệ thống thông gió ngừng hoạt động.",
+        "document_id": 20,
+        "source_file": "Quy trình an toàn trong sản xuất vật liệu nổ công nghiệp.pdf",
+        "page_no": 1,
+        "heading_path": [
+          "3. Điều kiện dừng dây chuyền khẩn cấp"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "bhfm",
+        "chunk_id": "doc_20_chunk_3",
+        "authority": null,
+        "content": "Nhật ký vận hành ca, phiếu kiểm tra chất lượng từng lô, biên bản bàn giao ca - lưu tối thiểu 05 năm tại Phòng Kỹ thuật.",
+        "document_id": 20,
+        "source_file": "Quy trình an toàn trong sản xuất vật liệu nổ công nghiệp.pdf",
+        "page_no": 1,
+        "heading_path": [
+          "4. Hồ sơ lưu"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "v3at",
+        "chunk_id": "doc_20_chunk_1",
+        "authority": null,
+        "content": "Tiếp nhận nguyên liệu, Điểm kiểm soát = Độ ẩm nguyên liệu. Tiếp nhận nguyên liệu, Ngưỡng cho phép = ≤ 0,5%. Nghiền, sàng, Điểm kiểm soát = Nhiệt độ buồng nghiền. Nghiền, sàng, Ngưỡng cho phép = ≤ 45°C. Phối trộn, Điểm kiểm soát = Tốc độ khuấy. Phối trộn, Ngưỡng cho phép = ≤ 60 vòng/phút. Nhũ hóa, Điểm kiểm soát = Nhiệt độ pha nóng. Nhũ hóa, Ngưỡng cho phép = 80 - 95°C. Đóng gói, Điểm kiểm soát = Trọng lượng gói. Đóng gói, Ngưỡng cho phép = ±2% khối lượng danh nghĩa. Kiểm tra chất lượng, Điểm kiểm soát = Tốc độ nổ. Kiểm tra chất lượng, Ngưỡng cho phép = ≥ 4.200 m/s. Nhập kho, Điểm kiểm soát = Nhiệt độ kho. Nhập kho, Ngưỡng cho phép = ≤ 30°C",
+        "document_id": 20,
+        "source_file": "Quy trình an toàn trong sản xuất vật liệu nổ công nghiệp.pdf",
+        "page_no": 1,
+        "heading_path": [
+          "2. Bảy công đoạn và điểm kiểm soát"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "kqc6",
+        "chunk_id": "doc_20_chunk_0",
+        "authority": null,
+        "content": "Số hiệu: QT-ATSX-01/2026 - Phòng Kỹ thuật biên soạn\n1. Phạm vi áp dụng\nQuy trình áp dụng cho dây chuyền sản xuất thuốc nổ nhũ tương và thuốc nổ ANFO tại Nhà máy số 1 và Nhà máy số 2.\n\n[Table on page 1 (8x3)]: Bảng trình bày các công đoạn trong quy trình sản xuất cùng với các điểm kiểm soát và ngưỡng cho phép tương ứng. Các cột chính gồm \"Công đoạn\" (giai đoạn sản xuất), \"Điểm kiểm soát\" (yếu tố cần giám sát) và \"Ngưỡng cho phép\" (giá trị giới hạn đảm bảo chất lượng). Các ngưỡng như độ ẩm nguyên liệu ≤ 0,5%, nhiệt độ buồng nghiền ≤ 45°C, và tốc độ nổ ≥ 4.200 m/s là các tiêu chuẩn quan trọng được duy trì trong từng bước.",
+        "document_id": 20,
+        "source_file": "Quy trình an toàn trong sản xuất vật liệu nổ công nghiệp.pdf",
+        "page_no": 1,
+        "heading_path": [
+          "QUY TRÌNH AN TOÀN TRONG SẢN XUẤT VẬT LIỆU NỔ CÔNG NGHIỆP"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      }
+    ]
+  },
+  "legal-contract-template": {
+    "question": "Trong tài liệu Mẫu hợp đồng vận chuyển vật liệu nổ, số hiệu biểu mẫu là gì, đơn vị nào soạn thảo, hợp đồng tự động gia hạn bao lâu và cần báo chấm dứt trước bao nhiêu ngày?",
+    "answer": "Trong tài liệu Mẫu hợp đồng vận chuyển vật liệu nổ, số hiệu biểu mẫu là HĐ-VC-2026/MICCO, do Phòng Pháp chế soạn thảo và áp dụng thống nhất toàn công ty. Hợp đồng có hiệu lực kể từ ngày ký và tự động gia hạn 12 tháng nếu không bên nào có thông báo chấm dứt trước 30 ngày.[94fy][lfao]",
+    "sources": [
+      {
+        "index": "evs8",
+        "chunk_id": "doc_29_chunk_1",
+        "authority": null,
+        "content": "Bên A thuê Bên B vận chuyển vật liệu nổ công nghiệp từ kho của Bên A đến địa điểm giao hàng theo từng đơn hàng cụ thể đính kèm phụ lục.",
+        "document_id": 29,
+        "source_file": "Mẫu hợp đồng vận chuyển vật liệu nổ.docx",
+        "page_no": 0,
+        "heading_path": [
+          "MẪU HỢP ĐỒNG VẬN CHUYỂN VẬT LIỆU NỔ CÔNG NGHIỆP",
+          "Điều 1. Đối tượng hợp đồng"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "lfao",
+        "chunk_id": "doc_29_chunk_5",
+        "authority": null,
+        "content": "Hợp đồng có hiệu lực kể từ ngày ký và tự động gia hạn 12 tháng nếu không bên nào có thông báo chấm dứt trước 30 ngày.",
+        "document_id": 29,
+        "source_file": "Mẫu hợp đồng vận chuyển vật liệu nổ.docx",
+        "page_no": 0,
+        "heading_path": [
+          "MẪU HỢP ĐỒNG VẬN CHUYỂN VẬT LIỆU NỔ CÔNG NGHIỆP",
+          "Điều 5. Hiệu lực"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "9i64",
+        "chunk_id": "doc_29_chunk_2",
+        "authority": null,
+        "content": "- Có giấy phép vận chuyển vật liệu nổ công nghiệp còn hiệu lực.\n- Phương tiện được kiểm định, gắn thiết bị giám sát hành trình hoạt động liên tục.\n- Lái xe và người áp tải có chứng chỉ huấn luyện an toàn còn hạn.\n- Mua bảo hiểm trách nhiệm dân sự với mức trách nhiệm tối thiểu 10 tỷ đồng cho mỗi vụ.",
+        "document_id": 29,
+        "source_file": "Mẫu hợp đồng vận chuyển vật liệu nổ.docx",
+        "page_no": 0,
+        "heading_path": [
+          "MẪU HỢP ĐỒNG VẬN CHUYỂN VẬT LIỆU NỔ CÔNG NGHIỆP",
+          "Điều 2. Điều kiện bắt buộc đối với Bên B"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "94fy",
+        "chunk_id": "doc_29_chunk_0",
+        "authority": null,
+        "content": "Số hiệu biểu mẫu: HĐ-VC-2026/MICCO. Phòng Pháp chế soạn thảo, áp dụng thống nhất toàn công ty.",
+        "document_id": 29,
+        "source_file": "Mẫu hợp đồng vận chuyển vật liệu nổ.docx",
+        "page_no": 0,
+        "heading_path": [
+          "MẪU HỢP ĐỒNG VẬN CHUYỂN VẬT LIỆU NỔ CÔNG NGHIỆP"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "6kq6",
+        "chunk_id": "doc_29_chunk_4",
+        "authority": null,
+        "content": "Chậm giao hàng quá 24 giờ không lý do chính đáng, Mức phạt = 2% giá trị đơn hàng. Vận chuyển sai tuyến đường đã đăng ký, Mức phạt = 10% giá trị hợp đồng. Để người không có chứng chỉ áp tải, Mức phạt = Đình chỉ hợp đồng, phạt 15% giá trị",
+        "document_id": 29,
+        "source_file": "Mẫu hợp đồng vận chuyển vật liệu nổ.docx",
+        "page_no": 0,
+        "heading_path": [
+          "MẪU HỢP ĐỒNG VẬN CHUYỂN VẬT LIỆU NỔ CÔNG NGHIỆP",
+          "Điều 4. Phạt vi phạm"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "4qnw",
+        "chunk_id": "doc_29_chunk_3",
+        "authority": null,
+        "content": "Bên B chịu trách nhiệm toàn bộ thiệt hại phát sinh trong quá trình vận chuyển, trừ trường hợp bất khả kháng được quy định tại Điều 6. Bên B phải thông báo cho Bên A trong vòng 01 giờ kể từ khi xảy ra sự cố.",
+        "document_id": 29,
+        "source_file": "Mẫu hợp đồng vận chuyển vật liệu nổ.docx",
+        "page_no": 0,
+        "heading_path": [
+          "MẪU HỢP ĐỒNG VẬN CHUYỂN VẬT LIỆU NỔ CÔNG NGHIỆP",
+          "Điều 3. Trách nhiệm khi xảy ra sự cố"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      }
+    ]
+  },
+  "hr-council": {
+    "question": "Hội đồng An toàn lao động công ty MICCO bao gồm những ai?",
+    "answer": "Hội đồng An toàn lao động công ty MICCO bao gồm: Đảng ủy, HĐTV; TGĐ; Ban Kiểm soát; Các PTGĐ, KTT; Người đại diện MICCO tại các công ty con; Các đơn vị trong TCT; Các phòng trong TCT.[rwtq]",
+    "sources": [
+      {
+        "index": "rwtq",
+        "chunk_id": "doc_40_chunk_4",
+        "authority": null,
+        "content": "- Đảng ủy, HĐTV (e-copy,b/c);\n- TGĐ (e-copy);\n- Ban Kiểm soát (e-copy);\n- Các PTGĐ, KTT(e-copy);\n- Người đại diện MICCO tại các công ty con (e-copy);\n- Các đơn vị trong TCT (e-copy);\n- Các phòng trong TCT (e-copy);\n- Lưu VT, VTM;\nBùi Hồng Quang",
+        "document_id": 40,
+        "source_file": "QD 1068 Quy trinh quan ly thuc hien cong tác quan ly vat tu ngoai VLNCN.pdf",
+        "page_no": 2,
+        "heading_path": [
+          "TỔNG GIÁM ĐỐC"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "na02",
+        "chunk_id": "doc_40_chunk_3",
+        "authority": null,
+        "content": "Điều 4. Quyết định có hiệu lực kể từ ngày ký, các Phó Tổng giám đốc, Kế toán trưởng, Trưởng các phòng của Tổng công ty; Chủ tịch, Giám đốc các công ty con TNHH Một thành viên; Giám đốc các đơn vị trực thuộc chịu trách nhiệm thi hành Quyết định này./.",
+        "document_id": 40,
+        "source_file": "QD 1068 Quy trinh quan ly thuc hien cong tác quan ly vat tu ngoai VLNCN.pdf",
+        "page_no": 2,
+        "heading_path": [
+          "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hạnh phúc"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      }
+    ]
+  },
+  "legal-emicco-outside-kb": {
+    "question": "Theo quy định sử dụng eMicco, khi CBCNV nghỉ việc, chuyển công tác hoặc nghỉ hưu, phải thông báo cho bộ phận nào và tài khoản phải được khóa trong thời hạn bao lâu?",
+    "answer": "Tài liệu được phép sử dụng chưa có đủ thông tin để trả lời câu hỏi này.",
+    "sources": [
+      {
+        "index": "x3l2",
+        "chunk_id": "doc_29_chunk_0",
+        "authority": null,
+        "content": "Số hiệu biểu mẫu: HĐ-VC-2026/MICCO. Phòng Pháp chế soạn thảo, áp dụng thống nhất toàn công ty.",
+        "document_id": 29,
+        "source_file": "Mẫu hợp đồng vận chuyển vật liệu nổ.docx",
+        "page_no": 0,
+        "heading_path": [
+          "MẪU HỢP ĐỒNG VẬN CHUYỂN VẬT LIỆU NỔ CÔNG NGHIỆP"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "1ikv",
+        "chunk_id": "doc_29_chunk_5",
+        "authority": null,
+        "content": "Hợp đồng có hiệu lực kể từ ngày ký và tự động gia hạn 12 tháng nếu không bên nào có thông báo chấm dứt trước 30 ngày.",
+        "document_id": 29,
+        "source_file": "Mẫu hợp đồng vận chuyển vật liệu nổ.docx",
+        "page_no": 0,
+        "heading_path": [
+          "MẪU HỢP ĐỒNG VẬN CHUYỂN VẬT LIỆU NỔ CÔNG NGHIỆP",
+          "Điều 5. Hiệu lực"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "niht",
+        "chunk_id": "doc_28_chunk_2",
+        "authority": null,
+        "content": "Duy trì giấy phép sử dụng vật liệu nổ công nghiệp còn hiệu lực; lập và lưu đầy đủ sổ theo dõi xuất nhập tồn; báo cáo định kỳ 6 tháng một lần về Sở Công Thương; bảo đảm khoảng cách an toàn theo quy chuẩn khi thiết kế kho và bãi nổ.",
+        "document_id": 28,
+        "source_file": "Tổng hợp quy định pháp luật về quản lý vật liệu nổ.pdf",
+        "page_no": 1,
+        "heading_path": [
+          "2. Nghĩa vụ chính của doanh nghiệp"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "i35e",
+        "chunk_id": "doc_29_chunk_1",
+        "authority": null,
+        "content": "Bên A thuê Bên B vận chuyển vật liệu nổ công nghiệp từ kho của Bên A đến địa điểm giao hàng theo từng đơn hàng cụ thể đính kèm phụ lục.",
+        "document_id": 29,
+        "source_file": "Mẫu hợp đồng vận chuyển vật liệu nổ.docx",
+        "page_no": 0,
+        "heading_path": [
+          "MẪU HỢP ĐỒNG VẬN CHUYỂN VẬT LIỆU NỔ CÔNG NGHIỆP",
+          "Điều 1. Đối tượng hợp đồng"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "zjfp",
+        "chunk_id": "doc_29_chunk_4",
+        "authority": null,
+        "content": "Chậm giao hàng quá 24 giờ không lý do chính đáng, Mức phạt = 2% giá trị đơn hàng. Vận chuyển sai tuyến đường đã đăng ký, Mức phạt = 10% giá trị hợp đồng. Để người không có chứng chỉ áp tải, Mức phạt = Đình chỉ hợp đồng, phạt 15% giá trị",
+        "document_id": 29,
+        "source_file": "Mẫu hợp đồng vận chuyển vật liệu nổ.docx",
+        "page_no": 0,
+        "heading_path": [
+          "MẪU HỢP ĐỒNG VẬN CHUYỂN VẬT LIỆU NỔ CÔNG NGHIỆP",
+          "Điều 4. Phạt vi phạm"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "j5ea",
+        "chunk_id": "doc_28_chunk_1",
+        "authority": null,
+        "content": "Luật Quản lý, sử dụng vũ khí, VLN và CCHT, Nội dung chính = Khung pháp lý chung. Luật Quản lý, sử dụng vũ khí, VLN và CCHT, Ghi chú áp dụng = Áp dụng toàn bộ hoạt đ. Nghị định 71/2018/NĐ-CP, Nội dung chính = Điều kiện kinh doanh VLNCN. Nghị định 71/2018/NĐ-CP, Ghi chú áp dụng = Cơ sở cấp/gia hạn giấy. Thông tư 13/2018/TT-BCT, Nội dung chính = Quản lý, sử dụng VLNCN. Thông tư 13/2018/TT-BCT, Ghi chú áp dụng = Quy định hồ sơ, sổ sách. QCVN 01:2019/BCT, Nội dung chính = Quy chuẩn kỹ thuật quốc gia về an toàn VLNCN. QCVN 01:2019/BCT, Ghi chú áp dụng = Bắt buộc tuân thủ. Thông tư 25/2022/TT-BLĐTBXH, Nội dung chính = Trang bị phương tiện bảo vệ cá nhân. Thông tư 25/2022/TT-BLĐTBXH, Ghi chú áp dụng = Căn cứ xây dựng định m",
+        "document_id": 28,
+        "source_file": "Tổng hợp quy định pháp luật về quản lý vật liệu nổ.pdf",
+        "page_no": 1,
+        "heading_path": [
+          "1. Văn bản pháp lý chủ đạo"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      },
+      {
+        "index": "cux9",
+        "chunk_id": "doc_28_chunk_3",
+        "authority": null,
+        "content": "Ba nhóm vi phạm bị xử phạt nhiều nhất: sổ sách xuất nhập tồn không khớp thực tế; người trực tiếp sử dụng vật liệu nổ chưa có chứng chỉ hợp lệ; kho không bảo đảm khoảng cách an toàn hoặc điều kiện bảo quản theo quy chuẩn.",
+        "document_id": 28,
+        "source_file": "Tổng hợp quy định pháp luật về quản lý vật liệu nổ.pdf",
+        "page_no": 1,
+        "heading_path": [
+          "3. Rủi ro pháp lý thường gặp"
+        ],
+        "score": 0,
+        "source_type": "vector"
+      }
+    ]
+  }
+}
